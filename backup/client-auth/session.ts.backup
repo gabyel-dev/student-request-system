@@ -1,0 +1,25 @@
+import { ACCESS_TOKEN_COOKIE } from '@/src/lib/auth/session-cookies'
+
+export function getAccessToken(): string | null {
+  const doc = (globalThis as { document?: Document }).document
+  if (!doc) return null
+  const match = doc.cookie
+    .split(';')
+    .map((part) => part.trim())
+    .find((part) => part.startsWith(`${ACCESS_TOKEN_COOKIE}=`))
+  return match
+    ? decodeURIComponent(match.slice(ACCESS_TOKEN_COOKIE.length + 1))
+    : null
+}
+
+export async function silentRefresh(): Promise<boolean> {
+  try {
+    const response = await fetch('/api/auth/refresh', {
+      method: 'POST',
+      credentials: 'same-origin',
+    })
+    return response.ok
+  } catch {
+    return false
+  }
+}
