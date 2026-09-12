@@ -98,6 +98,9 @@ export default async function DashboardPage() {
               </p>
             </div>
             <div className="flex items-center gap-3">
+              <div className="lg:hidden">
+                <LogoutButton />
+              </div>
               <div className="hidden text-right sm:block">
                 <p className="text-sm font-bold text-[#17392d]">
                   {user.fullName}

@@ -90,11 +90,11 @@ export function ProfileForm({
             name="sectionCode"
             type="text"
             defaultValue={initialSectionCode}
-            placeholder="e.g. A"
+            placeholder="e.g. A or AB"
             required
             minLength={1}
-            maxLength={3}
-            pattern="[A-Za-z]{1,3}"
+            maxLength={2}
+            pattern="[A-Za-z]{1,2}"
             autoCapitalize="characters"
             className="min-h-14 w-full border border-[#b8d4c6] bg-white px-4 text-base text-[#17392d] outline-none transition placeholder:text-[#8aa79a] focus:border-[#0c8f62] focus:ring-2 focus:ring-[#0c8f62]/20"
           />

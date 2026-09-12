@@ -18,9 +18,9 @@ export default async function LoginPage() {
 
   return (
     <main
-      className={`relative flex h-screen min-h-screen w-full flex-col overflow-hidden bg-[#09201e] ${manrope.variable}`}
+      className={`relative  flex h-screen w-full flex-col overflow-hidden bg-[#09201e] ${manrope.variable}`}
       style={{ fontFamily: "var(--font-manrope)" }}>
-      <div className="relative h-1/2 min-h-0 w-full md:absolute md:inset-0 md:h-full">
+      <div className="relative  md:block h-1/2 min-h-0 w-full md:absolute md:inset-0 md:h-full">
         <img
           src="/bg.webp"
           alt="Pateros Technological College campus"
@@ -37,8 +37,8 @@ export default async function LoginPage() {
         </div>
       </div>
 
-      <div className="flex z-2 h-1/1 min-h-0 w-full flex-col overflow-y-auto bg-[#e8e8e8] md:relative md:z-10 md:h-screen md:overflow-visible md:bg-transparent">
-        <section className="flex z-4 flex-1 flex-col justify-center px-6 py-10 sm:px-10 md:mx-auto md:my-auto md:flex-none md:w-full md:max-w-md md:bg-[#e8e8e8] md:px-10 md:py-10 md:shadow-2xl">
+      <div className="flex z-2 h-screen min-h-0 w-full flex-col overflow-y-auto bg-[#e8e8e8]/95 md:relative md:z-10 md:h-screen md:overflow-visible md:bg-transparent">
+        <section className="flex z-4 flex-1 flex-col justify-center px-6 sm:px-10 md:mx-auto md:my-auto md:flex-none md:w-full md:max-w-md md:bg-[#e8e8e8] md:px-10 md:py-10 md:shadow-2xl">
           <Image
             src="/logo.png"
             alt="Pateros Technological College logo"
