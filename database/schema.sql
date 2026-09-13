@@ -2,11 +2,37 @@ create table if not exists public.users (
   id uuid primary key default gen_random_uuid(),
   full_name text not null,
   email text not null unique,
+  profile_picture_url text,
   section text,
   student_number text unique,
   created_at timestamptz not null default now(),
   updated_at timestamptz not null default now()
 );
+
+alter table public.users
+  add column if not exists profile_picture_url text;
+
+insert into storage.buckets (id, name, public)
+values ('profile_pictures', 'profile_pictures', true)
+on conflict (id) do update set public = true;
+
+-- Profile images are public because the dashboard uses their public Supabase URL as its image src.
+do $$
+begin
+  if not exists (
+    select 1
+    from pg_policies
+    where schemaname = 'storage'
+      and tablename = 'objects'
+      and policyname = 'Anyone can read profile pictures'
+  ) then
+    create policy "Anyone can read profile pictures"
+      on storage.objects
+      for select
+      using (bucket_id = 'profile_pictures');
+  end if;
+end
+$$;
 
 -- Enable Row Level Security
 alter table public.users enable row level security;

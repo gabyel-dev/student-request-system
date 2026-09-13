@@ -41,7 +41,7 @@ export default async function LoginPage() {
           />
         </header>
 
-        <section className="relative z-20 flex flex-1 flex-col items-start px-7 pb-10 pt-8">
+        <section className="relative z-20 flex flex-1 flex-col items-start px-7 pb-0 ">
           <Image
             src="/logo.png"
             alt="Pateros Technological College seal"

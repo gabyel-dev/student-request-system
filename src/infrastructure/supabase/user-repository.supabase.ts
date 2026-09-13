@@ -6,6 +6,7 @@ interface UserRow {
   id: string;
   full_name: string;
   email: string;
+  profile_picture_url: string | null;
   section: string | null;
   student_number: string | null;
   created_at: string;
@@ -17,6 +18,7 @@ function toUser(row: UserRow): User {
     id: row.id,
     fullName: row.full_name,
     email: row.email,
+    profilePictureUrl: row.profile_picture_url,
     section: row.section,
     studentNumber: row.student_number,
     createdAt: row.created_at,
@@ -32,7 +34,7 @@ export function createSupabaseUserRepository(): UserRepository {
       const { data, error } = await client
         .from("users")
         .select(
-          "id, full_name, email, section, student_number, created_at, updated_at",
+          "id, full_name, email, profile_picture_url, section, student_number, created_at, updated_at",
         )
         .eq("email", email)
         .maybeSingle();
@@ -45,7 +47,7 @@ export function createSupabaseUserRepository(): UserRepository {
       const { data, error } = await client
         .from("users")
         .select(
-          "id, full_name, email, section, student_number, created_at, updated_at",
+          "id, full_name, email, profile_picture_url, section, student_number, created_at, updated_at",
         )
         .eq("id", id)
         .maybeSingle();
@@ -62,7 +64,7 @@ export function createSupabaseUserRepository(): UserRepository {
           email: input.email,
         })
         .select(
-          "id, full_name, email, section, student_number, created_at, updated_at",
+          "id, full_name, email, profile_picture_url, section, student_number, created_at, updated_at",
         )
         .single();
 
@@ -80,7 +82,24 @@ export function createSupabaseUserRepository(): UserRepository {
         })
         .eq("id", input.id)
         .select(
-          "id, full_name, email, section, student_number, created_at, updated_at",
+          "id, full_name, email, profile_picture_url, section, student_number, created_at, updated_at",
+        )
+        .single();
+
+      if (error) throw error;
+      return toUser(data as UserRow);
+    },
+
+    async updateProfilePicture(input): Promise<User> {
+      const { data, error } = await client
+        .from("users")
+        .update({
+          profile_picture_url: input.profilePictureUrl,
+          updated_at: new Date().toISOString(),
+        })
+        .eq("id", input.id)
+        .select(
+          "id, full_name, email, profile_picture_url, section, student_number, created_at, updated_at",
         )
         .single();
 

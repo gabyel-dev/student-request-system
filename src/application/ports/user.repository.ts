@@ -9,4 +9,8 @@ export interface UserRepository {
     section: string;
     studentNumber: string;
   }): Promise<User>;
+  updateProfilePicture(input: {
+    id: string;
+    profilePictureUrl: string;
+  }): Promise<User>;
 }

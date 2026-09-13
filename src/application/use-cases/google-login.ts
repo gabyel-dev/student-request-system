@@ -5,16 +5,13 @@ import { refreshTokenRepository } from "@/src/infrastructure/supabase/refresh-to
 import type { UserRepository } from "@/src/application/ports/user.repository";
 import { UnauthorizedDomainError } from "@/src/application/errors";
 import type { User } from "@/src/domain/user";
+import { storeGoogleProfilePicture } from "@/src/infrastructure/supabase/profile-picture-storage";
 
 const ALLOWED_DOMAIN = "paterostechnologicalcollege.edu.ph";
 
-export function createGoogleLogin(deps: {
-  userRepository: UserRepository;
-}) {
+export function createGoogleLogin(deps: { userRepository: UserRepository }) {
   return {
-    async execute(input: {
-      credential: string;
-    }): Promise<{
+    async execute(input: { credential: string }): Promise<{
       accessToken: string;
       refreshToken: string;
       user: User;
@@ -38,13 +35,33 @@ export function createGoogleLogin(deps: {
         });
       }
 
+      if (googleUser.picture) {
+        try {
+          const profilePictureUrl = await storeGoogleProfilePicture({
+            email: googleUser.email,
+            pictureUrl: googleUser.picture,
+          });
+          if (profilePictureUrl) {
+            user = await deps.userRepository.updateProfilePicture({
+              id: user.id,
+              profilePictureUrl,
+            });
+          }
+        } catch (error) {
+          console.error("Google profile picture storage failed", error);
+        }
+      }
+
       const accessToken = await tokenService.signAccessToken({
         userId: user.id,
       });
 
       // Store only the hash of the refresh token — never the raw value.
-      const { token: refreshToken, tokenHash, expiresAt } =
-        generateRefreshToken();
+      const {
+        token: refreshToken,
+        tokenHash,
+        expiresAt,
+      } = generateRefreshToken();
       await refreshTokenRepository.create({
         userId: user.id,
         tokenHash,

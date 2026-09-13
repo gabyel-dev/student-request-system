@@ -5,6 +5,7 @@ export interface GoogleTokenPayload {
   email: string;
   name: string;
   sub: string;
+  picture?: string;
 }
 
 /**
@@ -47,5 +48,6 @@ export async function verifyGoogleToken(
     email: payload.email,
     name: payload.name ?? "",
     sub: payload.sub,
+    picture: payload.picture,
   };
 }
