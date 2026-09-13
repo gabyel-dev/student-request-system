@@ -57,3 +57,200 @@ body {
 .google-button:hover::before {
   width: 40em;
 }
+
+@media (min-width: 768px) {
+  .desktop-login {
+    background: #dff1e9;
+  }
+
+  .desktop-login__texture {
+    filter: blur(1px) saturate(0.72);
+    opacity: 0.26;
+    transform: scale(1.05);
+  }
+
+  .desktop-login__shade {
+    background: linear-gradient(
+      110deg,
+      rgba(5, 50, 38, 0.83),
+      rgba(20, 125, 88, 0.24) 58%,
+      rgba(206, 247, 225, 0.35)
+    );
+  }
+
+  .desktop-login__blob {
+    position: absolute;
+    border-radius: 999px;
+    filter: blur(3px);
+    opacity: 0.66;
+  }
+
+  .desktop-login__blob--one {
+    right: -8vw;
+    top: 13vh;
+    width: 32vw;
+    height: 58vh;
+    background: #9cdec0;
+    transform: rotate(34deg);
+  }
+
+  .desktop-login__blob--two {
+    bottom: -20vh;
+    left: 17vw;
+    width: 38vw;
+    height: 42vh;
+    background: #8ed4b5;
+    transform: rotate(-19deg);
+  }
+
+  .desktop-login__wave {
+    position: absolute;
+    left: -12vw;
+    width: 62vw;
+    border-radius: 0 0 48% 52% / 0 0 30% 28%;
+  }
+
+  .desktop-login__wave--back {
+    top: -25vh;
+    height: 82vh;
+    background: rgba(9, 92, 68, 0.92);
+    transform: rotate(-8deg);
+  }
+
+  .desktop-login__wave--front {
+    top: -16vh;
+    height: 66vh;
+    background: rgba(33, 164, 113, 0.82);
+    transform: rotate(8deg);
+  }
+
+  .desktop-login__card {
+    border: 1px solid rgba(255, 255, 255, 0.72);
+    border-radius: 30px;
+    background: rgba(245, 255, 250, 0.84);
+    box-shadow: 18px 24px 60px rgba(5, 45, 34, 0.24);
+    backdrop-filter: blur(20px);
+    transform: perspective(1200px) rotateY(-3deg) rotateX(1deg);
+  }
+
+  .desktop-login .google-button {
+    width: 100%;
+    height: 3.35rem;
+    border: 1px solid rgba(255, 255, 255, 0.76);
+    background: rgba(255, 255, 255, 0.62);
+    box-shadow: 0 8px 20px rgba(30, 105, 78, 0.12);
+    color: #28554a;
+  }
+
+  .desktop-login .google-button::before {
+    height: 3.35rem;
+    background: linear-gradient(
+      to right,
+      rgba(255, 255, 255, 0.72),
+      rgba(221, 255, 244, 0.84)
+    );
+  }
+
+  .desktop-login .google-button:hover::before {
+    width: 100%;
+  }
+
+  .desktop-login__footer {
+    min-height: 64px;
+    background: #13845f;
+    clip-path: ellipse(34% 95% at 50% 100%);
+  }
+}
+
+@media (max-width: 767px) {
+  .mobile-login {
+    background: #dff1e9;
+  }
+
+  .mobile-login__texture {
+    filter: blur(5px) saturate(0.7);
+    opacity: 0.17;
+    transform: scale(1.08);
+  }
+
+  .mobile-login__blob {
+    position: absolute;
+    border-radius: 999px;
+    filter: blur(2px);
+    opacity: 0.55;
+  }
+
+  .mobile-login__blob--one {
+    top: 220px;
+    left: -70px;
+    width: 190px;
+    height: 250px;
+    background: #bce8d2;
+    transform: rotate(28deg);
+  }
+
+  .mobile-login__blob--two {
+    right: -88px;
+    bottom: 105px;
+    width: 210px;
+    height: 285px;
+    background: #a4ddc1;
+    transform: rotate(-25deg);
+  }
+
+  .mobile-login__wave {
+    position: absolute;
+    left: -14%;
+    width: 128%;
+    border-radius: 0 0 48% 52% / 0 0 35% 30%;
+    transform: rotate(-3deg);
+  }
+
+  .mobile-login__wave--back {
+    top: -70px;
+    height: 224px;
+    background: #0d6951;
+    transform: rotate(5deg);
+  }
+
+  .mobile-login__wave--middle {
+    top: -58px;
+    height: 310px;
+    background: #16936c;
+    transform: rotate(-4deg);
+  }
+
+  .mobile-login__wave--front {
+    top: -40px;
+    height: 300px;
+    background: #54c795;
+    transform: rotate(10deg);
+  }
+
+  .mobile-login .google-button {
+    width: 100%;
+    height: 3.35rem;
+    border: 1px solid rgba(255, 255, 255, 0.75);
+    background: rgba(255, 255, 255, 0.58);
+    box-shadow: 0 8px 20px rgba(30, 105, 78, 0.12);
+    color: #28554a;
+  }
+
+  .mobile-login .google-button::before {
+    height: 3.35rem;
+    background: linear-gradient(
+      to right,
+      rgba(255, 255, 255, 0.72),
+      rgba(221, 255, 244, 0.84)
+    );
+  }
+
+  .mobile-login .google-button:hover::before {
+    width: 100%;
+  }
+
+  .mobile-login__footer {
+    background: #13845f;
+    clip-path: ellipse(92% 88% at 22% 100%);
+  }
+}

@@ -113,7 +113,7 @@ export function ProfileForm({
           inputMode="text"
           autoCapitalize="characters"
           defaultValue={studentNumber ?? ""}
-          placeholder="e.g. 24BSIT-0345"
+          placeholder="e.g. 24BSIT-0123"
           required
           pattern="[0-9]{2}[A-Z]{4}-[0-9]{4}"
           className="min-h-14 w-full border border-[#b8d4c6] bg-white px-4 text-base text-[#17392d] outline-none transition placeholder:text-[#8aa79a] focus:border-[#0c8f62] focus:ring-2 focus:ring-[#0c8f62]/20"
