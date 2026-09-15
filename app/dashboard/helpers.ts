@@ -1,7 +1,3 @@
-export function getFirstName(name: string) {
-  return name.trim().split(/\s+/)[0] ?? name;
-}
-
 export function getInitials(name: string) {
   return name
     .trim()

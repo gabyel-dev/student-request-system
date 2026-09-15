@@ -66,3 +66,51 @@ create table if not exists public.refresh_tokens (
   revoked_at timestamptz,
   created_at timestamptz not null default now()
 );
+
+create table if not exists public.requests (
+  id uuid primary key default gen_random_uuid(),
+  user_id uuid not null references public.users(id) on delete cascade,
+  document_type text not null,
+  queue_number integer not null,
+  status text not null default 'pending',
+  notes text,
+  proof_url text,
+  created_at timestamptz not null default now(),
+  updated_at timestamptz not null default now()
+);
+
+-- Proofs and notes can be added later, so keep the columns idempotent.
+alter table public.requests
+  add column if not exists notes text;
+alter table public.requests
+  add column if not exists proof_url text;
+
+
+
+create policy "Service role has full request access"
+  on public.requests
+  for all
+  using (auth.role() = 'service_role')
+  with check (auth.role() = 'service_role');
+
+-- Students attach a supporting file (proof) to their request so staff can verify it faster.
+insert into storage.buckets (id, name, public)
+values ('request_proofs', 'request_proofs', true)
+on conflict (id) do update set public = true;
+
+do $$
+begin
+  if not exists (
+    select 1
+    from pg_policies
+    where schemaname = 'storage'
+      and tablename = 'objects'
+      and policyname = 'Anyone can read request proofs'
+  ) then
+    create policy "Anyone can read request proofs"
+      on storage.objects
+      for select
+      using (bucket_id = 'request_proofs');
+  end if;
+end
+$$;

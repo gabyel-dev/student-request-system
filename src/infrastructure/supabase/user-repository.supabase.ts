@@ -56,6 +56,18 @@ export function createSupabaseUserRepository(): UserRepository {
       return data ? toUser(data as UserRow) : null;
     },
 
+    async findAll(): Promise<User[]> {
+      const { data, error } = await client
+        .from("users")
+        .select(
+          "id, full_name, email, profile_picture_url, section, student_number, created_at, updated_at",
+        )
+        .order("created_at", { ascending: false });
+
+      if (error) throw error;
+      return (data as UserRow[]).map(toUser);
+    },
+
     async create(input: { fullName: string; email: string }): Promise<User> {
       const { data, error } = await client
         .from("users")

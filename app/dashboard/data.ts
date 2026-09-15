@@ -1,28 +1,28 @@
 import {
   FiBookOpen,
-  FiCreditCard,
+  FiEdit,
   FiFileText,
+  FiGrid,
   FiHelpCircle,
 } from "react-icons/fi";
+import type { IconType } from "react-icons";
+import { services as serviceDefinitions } from "@/src/domain/services";
 import type { Service } from "./types";
 
-export const services: Service[] = [
-  {
-    title: "Documents",
-    description: "Certificates and records",
-    icon: FiFileText,
-  },
-  {
-    title: "Clearance",
-    description: "Start a clearance request",
-    icon: FiBookOpen,
-  },
-  { title: "Transcripts", description: "Ask the registrar", icon: FiFileText },
-  {
-    title: "Enrollment",
-    description: "Enrollment and dates",
-    icon: FiBookOpen,
-  },
-  { title: "ID Card", description: "Request a student ID", icon: FiCreditCard },
-  { title: "Other", description: "Ask the registrar", icon: FiHelpCircle },
-];
+const icons: Record<string, IconType> = {
+  "Certificate of Registration": FiBookOpen,
+  "Transcript of Records": FiFileText,
+  "Certificate of Grades": FiBookOpen,
+  "Grade Correction": FiEdit,
+  "Subject Request": FiGrid,
+  Others: FiHelpCircle,
+};
+
+export const services: Service[] = serviceDefinitions.map((service) => ({
+  ...service,
+  icon: icons[service.title],
+}));
+
+export function getServiceBySlug(slug: string): Service | undefined {
+  return services.find((service) => service.slug === slug);
+}

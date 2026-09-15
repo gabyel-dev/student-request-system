@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from "next/server";
 import axios from "axios";
 import { googleLogin } from "@/src/server/container";
 import { env } from "@/src/infrastructure/env";
+import { isAdminEmail } from "@/src/infrastructure/auth/admin-accounts";
 import {
   ACCESS_TOKEN_COOKIE,
   ACCESS_TOKEN_COOKIE_MAX_AGE,
@@ -82,7 +83,7 @@ export async function GET(request: NextRequest) {
     // Step 4: Set our session cookies and redirect to the dashboard.
     // httpOnly refresh_token prevents JavaScript from reading it (XSS protection).
     const destination =
-      user.section && user.studentNumber !== null
+      isAdminEmail(user.email) || (user.section && user.studentNumber !== null)
         ? "/dashboard"
         : "/onboarding";
     const response = NextResponse.redirect(new URL(destination, request.url));

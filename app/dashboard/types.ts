@@ -9,6 +9,7 @@ export type Student = {
 };
 
 export type Service = {
+  slug: string;
   title: string;
   description: string;
   icon: IconType;
