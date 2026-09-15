@@ -2,7 +2,7 @@ export function DuckMascot() {
   return (
     <>
       <div
-        className="pointer-events-none absolute right-4 top-4 z-40 w-16 opacity-95 sm:w-20 md:hidden"
+        className="pointer-events-none absolute right-4 -top-0 z-40 w-22 opacity-95 sm:w-20 md:hidden"
         aria-label="Friendly itikQ duck mascot"
         role="img">
         <img

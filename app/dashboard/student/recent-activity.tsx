@@ -5,6 +5,7 @@ import { useTransition } from "react";
 import { FiEdit, FiFileText, FiTrash } from "react-icons/fi";
 import { deleteRequest } from "@/app/actions/requests";
 import { useToast } from "@/app/components/toaster";
+import { getServiceByTitle } from "@/src/domain/services";
 import type { StudentRequest, RequestStatus } from "@/src/domain/request";
 
 const statusMeta: Record<
@@ -132,11 +133,16 @@ export function RecentActivity({ requests }: { requests: StudentRequest[] }) {
                       <button
                         type="button"
                         disabled={isPending}
-                        onClick={() =>
+                        onClick={() => {
+                          const service = getServiceByTitle(
+                            request.documentType,
+                          );
                           router.push(
-                            `/request/${encodeURIComponent(request.documentType)}?edit=${request.id}`,
-                          )
-                        }
+                            service
+                              ? `/request/${service.slug}?edit=${request.id}`
+                              : `/request/${encodeURIComponent(request.documentType)}?edit=${request.id}`,
+                          );
+                        }}
                         className="inline-flex items-center gap-1 rounded-full border border-[#bfd9cc] bg-white px-3 py-1.5 text-[10px] font-semibold text-[#087a54] transition-colors hover:border-[#087a54] hover:bg-[#f7fbf9] disabled:opacity-50"
                         aria-label={`Edit ${request.documentType} request`}>
                         <FiEdit className="text-[11px]" />

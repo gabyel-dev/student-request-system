@@ -16,6 +16,7 @@ import {
   FiX,
 } from "react-icons/fi";
 import { logout } from "@/app/actions/auth";
+import { useGlobalLoading } from "@/app/components/global-loader";
 import { getInitials } from "./helpers";
 import type { Student } from "./types";
 
@@ -25,6 +26,7 @@ type SidebarProps = {
 };
 
 export function Sidebar({ student, adminMode = false }: SidebarProps) {
+  const { start: startLoading, stop: stopLoading } = useGlobalLoading();
   const [profileOpen, setProfileOpen] = useState(false);
   const [navOpen, setNavOpen] = useState(false);
   const [loggingOut, setLoggingOut] = useState(false);
@@ -70,11 +72,17 @@ export function Sidebar({ student, adminMode = false }: SidebarProps) {
 
   async function handleLogout() {
     setLoggingOut(true);
-    await logout();
-    // Hard navigation: fully reload the page so the browser re-reads the
-    // cleared cookies and drops any stale client-side auth state.
-    // eslint-disable-next-line @next/next/no-location-assign-relative-destination
-    window.location.href = "/login";
+    startLoading();
+    try {
+      await logout();
+      // Hard navigation: fully reload the page so the browser re-reads the
+      // cleared cookies and drops any stale client-side auth state. The
+      // spinner stays up through the reload.
+      // eslint-disable-next-line @next/next/no-location-assign-relative-destination
+      window.location.href = "/login";
+    } catch {
+      stopLoading();
+    }
   }
 
   const navLinks = adminMode

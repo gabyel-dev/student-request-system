@@ -1,6 +1,7 @@
 "use client";
 
 import { FcGoogle } from "react-icons/fc";
+import { useGlobalLoading } from "@/app/components/global-loader";
 
 const ALLOWED_DOMAIN = "paterostechnologicalcollege.edu.ph";
 const GOOGLE_CLIENT_ID = process.env.NEXT_PUBLIC_GOOGLE_CLIENT_ID!;
@@ -25,6 +26,8 @@ const GOOGLE_CLIENT_ID = process.env.NEXT_PUBLIC_GOOGLE_CLIENT_ID!;
  * The server verifies the state parameter, then exchanges the code for tokens.
  */
 export function GoogleSignInButton() {
+  const { start } = useGlobalLoading();
+
   function handleSignIn() {
     // Generate a random CSRF state token and store it in a cookie.
     // The callback route will verify this matches before processing the auth code.
@@ -36,6 +39,8 @@ export function GoogleSignInButton() {
     const scope = "openid email profile";
     const url = `https://accounts.google.com/o/oauth2/v2/auth?client_id=${GOOGLE_CLIENT_ID}&redirect_uri=${encodeURIComponent(redirectUri)}&response_type=code&scope=${encodeURIComponent(scope)}&hd=${ALLOWED_DOMAIN}&prompt=select_account&state=${state}`;
 
+    // Show the spinner while leaving to Google — it stays up through the redirect.
+    start();
     window.location.href = url;
   }
 

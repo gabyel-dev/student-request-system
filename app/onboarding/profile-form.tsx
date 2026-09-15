@@ -1,11 +1,12 @@
 "use client";
 
-import { useActionState } from "react";
+import { useActionState, useCallback } from "react";
 import { useFormStatus } from "react-dom";
 import {
   saveStudentProfile,
   type ProfileFormState,
 } from "@/app/actions/profile";
+import { useGlobalLoading } from "@/app/components/global-loader";
 
 const initialState: ProfileFormState = { error: null };
 
@@ -29,7 +30,21 @@ export function ProfileForm({
   section: string;
   studentNumber: string | null;
 }) {
-  const [state, formAction] = useActionState(saveStudentProfile, initialState);
+  const { start, stop, startNavigation } = useGlobalLoading();
+  const wrappedAction = useCallback(
+    async (prev: ProfileFormState, formData: FormData) => {
+      start();
+      try {
+        const result = await saveStudentProfile(prev, formData);
+        if (!result.error) startNavigation();
+        return result;
+      } finally {
+        stop();
+      }
+    },
+    [start, stop, startNavigation],
+  );
+  const [state, formAction] = useActionState(wrappedAction, initialState);
   const existingSection = /^(\S+)\s+([1-4])([A-Za-z]{1,3})$/.exec(section);
   const initialCourse = existingSection?.[1] ?? "";
   const initialYear = existingSection?.[2] ?? "";

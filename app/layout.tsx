@@ -1,5 +1,6 @@
 import type { Metadata } from "next";
 import { DM_Mono, Manrope } from "next/font/google";
+import { GlobalLoadingProvider } from "@/app/components/global-loader";
 import { ToasterProvider } from "@/app/components/toaster";
 import "./globals.css";
 
@@ -25,7 +26,9 @@ export default function RootLayout({ children }: LayoutProps<"/">) {
       lang="en"
       className={`${manrope.variable} ${dmMono.variable} h-full antialiased`}>
       <body className="min-h-full flex flex-col">
-        <ToasterProvider>{children}</ToasterProvider>
+        <ToasterProvider>
+          <GlobalLoadingProvider>{children}</GlobalLoadingProvider>
+        </ToasterProvider>
       </body>
     </html>
   );

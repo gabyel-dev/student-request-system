@@ -41,6 +41,12 @@ export function getServiceBySlug(slug: string): ServiceDefinition | undefined {
   return services.find((service) => service.slug === slug);
 }
 
+export function getServiceByTitle(
+  title: string,
+): ServiceDefinition | undefined {
+  return services.find((service) => service.title === title);
+}
+
 export function isServiceTitle(title: string): boolean {
   return services.some((service) => service.title === title);
 }

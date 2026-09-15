@@ -1,6 +1,6 @@
 "use client";
 
-import { useActionState, useEffect, useRef, useState } from "react";
+import { useActionState, useCallback, useEffect, useRef, useState } from "react";
 import { useRouter } from "next/navigation";
 import { useFormStatus } from "react-dom";
 import {
@@ -17,6 +17,7 @@ import {
   updateRequest,
   type RequestActionState,
 } from "@/app/actions/requests";
+import { useGlobalLoading } from "@/app/components/global-loader";
 import { useToast } from "@/app/components/toaster";
 import type { Student } from "@/app/dashboard/types";
 import type { ServiceDefinition } from "@/src/domain/services";
@@ -58,7 +59,21 @@ export function RequestForm({
 }) {
   const editing = Boolean(editingRequest);
   const action = editing ? updateRequest : submitRequest;
-  const [state, formAction] = useActionState(action, initialState);
+  const { start, stop, startNavigation } = useGlobalLoading();
+  const wrappedAction = useCallback(
+    async (prev: RequestActionState, formData: FormData) => {
+      start();
+      try {
+        const result = await action(prev, formData);
+        if (!result.error) startNavigation();
+        return result;
+      } finally {
+        stop();
+      }
+    },
+    [action, start, stop, startNavigation],
+  );
+  const [state, formAction] = useActionState(wrappedAction, initialState);
   const router = useRouter();
   const { success: toastSuccess, error: toastError } = useToast();
   const fileRef = useRef<HTMLInputElement>(null);
