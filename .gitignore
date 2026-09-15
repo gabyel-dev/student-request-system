@@ -43,4 +43,5 @@ next-env.d.ts
 .agent/
 .claude/
 .gemini/
+.opencode/
 .impeccable/
