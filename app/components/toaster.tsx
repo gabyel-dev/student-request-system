@@ -26,6 +26,7 @@ type ToastContextValue = {
 };
 
 const TOAST_DURATION_MS = 4500;
+const MAX_TOASTS = 3;
 
 const ToastContext = createContext<ToastContextValue | null>(null);
 
@@ -40,7 +41,12 @@ export function ToasterProvider({ children }: { children: React.ReactNode }) {
   const show = useCallback(
     (kind: ToastKind, message: string, action?: ToastAction) => {
       const id = nextId.current++;
-      setToasts((current) => [...current, { id, kind, message, action }]);
+      setToasts((current) => {
+        const next = [...current, { id, kind, message, action }];
+        return next.length > MAX_TOASTS
+          ? next.slice(next.length - MAX_TOASTS)
+          : next;
+      });
       window.setTimeout(() => dismiss(id), TOAST_DURATION_MS);
     },
     [dismiss],

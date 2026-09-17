@@ -116,14 +116,16 @@ export function GlobalLoadingProvider({
     fetchPatched = true;
     const originalFetch = window.fetch.bind(window);
     window.fetch = (input, init) => {
-      setCount((current) => current + 1);
+      const url = typeof input === "string" ? input : input instanceof URL ? input.href : input.url;
+      const isSilentAuth = url.includes("/api/auth/refresh");
+      if (!isSilentAuth) setCount((current) => current + 1);
       return originalFetch(input, init).then(
         (response) => {
-          setCount((current) => Math.max(0, current - 1));
+          if (!isSilentAuth) setCount((current) => Math.max(0, current - 1));
           return response;
         },
         (error) => {
-          setCount((current) => Math.max(0, current - 1));
+          if (!isSilentAuth) setCount((current) => Math.max(0, current - 1));
           throw error;
         },
       );

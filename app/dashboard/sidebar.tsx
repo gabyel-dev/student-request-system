@@ -11,6 +11,7 @@ import {
   FiLogOut,
   FiMenu,
   FiPlus,
+  FiSend,
   FiUser,
   FiUsers,
   FiX,
@@ -90,6 +91,7 @@ export function Sidebar({ student, adminMode = false }: SidebarProps) {
         { icon: FiGrid, label: "Overview", href: "/dashboard" },
         { icon: FiActivity, label: "Requests", href: "#requests" },
         { icon: FiUsers, label: "Students", href: "#students" },
+        { icon: FiSend, label: "Email", href: "#email" },
       ]
     : [
         { icon: FiFileText, label: "My requests", href: "/dashboard" },

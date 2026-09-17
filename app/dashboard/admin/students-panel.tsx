@@ -3,23 +3,23 @@ import type { User } from "@/src/domain/user";
 
 export function StudentsPanel({ students }: { students: User[] }) {
   return (
-    <section id="students">
+    <section
+      id="students"
+      className="dash-glass scroll-mt-24 px-4 py-5 sm:px-8 sm:py-7 lg:rounded-tr-4xl lg:rounded-bl-4xl">
       <div className="flex items-baseline justify-between gap-3">
-        <h2 className="text-xl font-bold tracking-[-.03em] text-[#14251d]">
+        <h2 className="text-xl font-bold tracking-[-.03em] text-[#123b32]">
           Students
         </h2>
-        <span className="flex items-center gap-1.5 text-xs text-[#5d6f66]">
-          <FiUsers className="text-[13px]" aria-hidden="true" />
+        <span className="flex items-center gap-1.5 rounded-full border border-[#bfd9cc] bg-white/60 px-3 py-1 text-[10px] font-bold uppercase tracking-[0.15em] text-[#087a54]">
+          <FiUsers className="text-[11px]" aria-hidden="true" />
           {students.length} profiles
         </span>
       </div>
       {students.length ? (
-        <div className="mt-4 grid sm:grid-cols-2 sm:gap-x-10 lg:grid-cols-3">
-          {students.map((student, index) => (
+        <div className="mt-3 grid border-t border-[#dbebe3] sm:grid-cols-2 sm:gap-x-10 lg:grid-cols-3">
+          {students.map((student) => (
             <article
-              className={`flex min-w-0 items-center justify-between gap-3 py-2.5 ${
-                index === 0 ? "border-t-0" : "border-t"
-              } border-[#dbebe3]`}
+              className="flex min-w-0 items-center justify-between gap-3 border-b border-[#dbebe3] py-3"
               key={student.id}>
               <div className="min-w-0">
                 <strong className="block truncate text-sm text-[#14251d]">

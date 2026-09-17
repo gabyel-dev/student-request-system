@@ -3,10 +3,15 @@
 import { revalidatePath } from "next/cache";
 import { isAdminEmail } from "@/src/infrastructure/auth/admin-accounts";
 import { storeRequestProof } from "@/src/infrastructure/supabase/request-proof-storage";
-import { requestRepository, userRepository } from "@/src/server/container";
+import {
+  mailer,
+  requestRepository,
+  userRepository,
+} from "@/src/server/container";
 import { getSessionTokenUserId } from "@/src/server/session";
 import { isServiceTitle } from "@/src/domain/services";
 import type { RequestStatus } from "@/src/domain/request";
+import { requestStatusEmail } from "@/src/infrastructure/mail/templates";
 
 export type RequestActionState = {
   error: string | null;
@@ -163,7 +168,8 @@ export async function updateRequestStatus(
     };
 
   try {
-    await requestRepository.updateStatus(requestId, status);
+    const updated = await requestRepository.updateStatus(requestId, status);
+    await notifyStatusChange(updated);
     revalidatePath("/dashboard");
     return { error: null, success: "Request status updated." };
   } catch {
@@ -172,6 +178,36 @@ export async function updateRequestStatus(
         "The request could not be updated. Check your connection and try again.",
       success: null,
     };
+  }
+}
+
+/**
+ * Emails the student about a request status change. Only milestones the
+ * student must act on are emailed (completed = claim your document, rejected);
+ * intermediate moves (pending/processing) and admin reverts stay quiet so
+ * toggling statuses doesn't spam the student's inbox.
+ */
+async function notifyStatusChange(updated: {
+  studentEmail: string;
+  studentName: string;
+  documentType: string;
+  queueNumber: number;
+  status: RequestStatus;
+  notes: string | null;
+}): Promise<void> {
+  if (updated.status !== "completed" && updated.status !== "rejected") return;
+  if (!updated.studentEmail || !mailer.isConfigured()) return;
+  try {
+    const email = requestStatusEmail({
+      studentName: updated.studentName,
+      documentType: updated.documentType,
+      queueNumber: updated.queueNumber,
+      status: updated.status,
+      notes: updated.notes,
+    });
+    await mailer.send({ to: updated.studentEmail, ...email });
+  } catch (error) {
+    console.error("Failed to send request status email:", error);
   }
 }
 

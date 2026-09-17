@@ -1,7 +1,7 @@
 "use client";
 
 import { FiActivity } from "react-icons/fi";
-import { statusTone } from "../lib/request-utils";
+import { statusMeta, statusTone } from "../lib/request-utils";
 import type { StudentRequest, RequestStatus } from "@/src/domain/request";
 
 export function StatusControl({
@@ -15,8 +15,12 @@ export function StatusControl({
   updatingId: string | null;
   onChangeStatus: (id: string, status: RequestStatus) => void;
 }) {
+  const meta = statusMeta[request.status];
+  const isActive =
+    request.status === "pending" || request.status === "processing";
+
   return (
-    <div className="flex items-center gap-2">
+    <div className="flex min-w-28 flex-col gap-1.5">
       <span className="flex items-center gap-1.5">
         <span aria-hidden="true" className={`h-2 w-2 ${statusTone[request.status]}`} />
         <select
@@ -32,14 +36,27 @@ export function StatusControl({
           <option value="completed">Completed</option>
           <option value="rejected">Rejected</option>
         </select>
+        {updatingId === request.id ? (
+          <FiActivity
+            className="animate-spin text-xs text-[#5d6f66]"
+            aria-label="Saving"
+            aria-live="polite"
+          />
+        ) : null}
       </span>
-      {updatingId === request.id ? (
-        <FiActivity
-          className="animate-spin text-xs text-[#5d6f66]"
-          aria-label="Saving"
-          aria-live="polite"
-        />
-      ) : null}
+      <span className="flex items-center gap-2">
+        <span className="h-1.5 w-24 shrink-0 overflow-hidden rounded-full bg-[#e3efe9]">
+          <span
+            className={`dash-progress block h-full rounded-full ${meta.bar} ${
+              isActive ? "dash-progress--active" : ""
+            }`}
+            style={{ width: `${meta.width}%` }}
+          />
+        </span>
+        <span className={`font-mono text-[10px] tabular-nums ${meta.text}`}>
+          {request.status === "rejected" ? "Closed" : `${meta.width}%`}
+        </span>
+      </span>
     </div>
   );
 }

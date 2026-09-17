@@ -13,7 +13,7 @@ export default async function OnboardingPage() {
 
   return (
     <main className="h-screen w-full bg-[#eef7f1]  text-[#17392d]  ">
-      <section className="mx-auto grid h-screen w-full overflow-hidden bg-white shadow-[0_24px_70px_rgba(28,83,57,0.16)] lg:grid-cols-[1fr_0.9fr]">
+      <section className="mx-auto grid h-screen w-full overflow-hidden rounded-tr-3xl rounded-bl-3xl border border-white/70 bg-[rgba(247,255,251,.94)] shadow-[18px_24px_80px_rgba(0,0,0,.5)] backdrop-blur lg:grid-cols-[1fr_0.9fr]">
         <div className="px-6 py-8 sm:px-12 sm:py-12 lg:px-16 lg:py-16">
           <p className="text-xs font-bold uppercase tracking-[0.18em] text-[#0c8f62]">
             Student request system

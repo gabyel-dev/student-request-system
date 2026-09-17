@@ -20,6 +20,36 @@ export const statusTone: Record<RequestStatus, string> = {
   rejected: "bg-[#b0423c]",
 };
 
+export const statusMeta: Record<
+  RequestStatus,
+  { label: string; width: number; bar: string; text: string }
+> = {
+  pending: {
+    label: "Pending review",
+    width: 25,
+    bar: "bg-gradient-to-r from-[#c9922b] to-[#b07b17]",
+    text: "text-[#8a5e10]",
+  },
+  processing: {
+    label: "Being processed",
+    width: 65,
+    bar: "bg-gradient-to-r from-[#4fa3e3] to-[#1f6fb2]",
+    text: "text-[#16578f]",
+  },
+  completed: {
+    label: "Completed",
+    width: 100,
+    bar: "bg-gradient-to-r from-[#28b48a] to-[#087a54]",
+    text: "text-[#0a6a49]",
+  },
+  rejected: {
+    label: "Rejected",
+    width: 100,
+    bar: "bg-gradient-to-r from-[#c96a63] to-[#b0423c]",
+    text: "text-[#8f3029]",
+  },
+};
+
 export type EmailMaps = {
   sectionByEmail: Map<string, string>;
   studentNumberByEmail: Map<string, string | null>;

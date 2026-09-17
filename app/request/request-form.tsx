@@ -129,13 +129,13 @@ export function RequestForm({
           <FiArrowLeft /> Back to dashboard
         </a>
 
-        <section className="mt-6 border border-[#d3e1d9] bg-white p-5 sm:p-8">
+        <section className="mt-6 rounded-tr-3xl rounded-bl-3xl border border-white/70 bg-[rgba(247,255,251,.92)] p-5 shadow-[18px_24px_70px_rgba(0,0,0,.4)] backdrop-blur sm:p-8">
           <div className="flex items-start justify-between gap-4">
             <div>
               <p className="text-[11px] font-bold uppercase tracking-[.16em] text-[#087a54]">
                 {editing ? "Edit request" : "New request"}
               </p>
-              <h1 className="mt-2 text-xl font-bold tracking-[-.03em] sm:text-2xl">
+              <h1 className="mt-2 text-xl font-bold tracking-[-.03em] text-[#14251d] sm:text-2xl">
                 {service.title}
               </h1>
               <p className="mt-1 text-sm text-[#5d6f66]">
@@ -260,7 +260,7 @@ export function RequestForm({
                   <button
                     type="button"
                     onClick={handleRemoveExistingProof}
-                    className="inline-flex items-center gap-1 rounded-sm border border-[#e6d3d2] bg-white px-2.5 py-1 text-[10px] font-semibold text-[#b0423c] transition-colors hover:border-[#b0423c] hover:bg-[#fdf6f6]"
+                    className="inline-flex items-center gap-1 rounded-sm border border-[#e6d3d2] bg-white px-2.5 py-1 text-[10px] font-semibold text-[#8a3a35] transition-colors hover:border-[#b0423c] hover:bg-red-50"
                     aria-label="Remove current proof">
                     <FiTrash className="text-[11px]" />
                     Remove
@@ -287,7 +287,7 @@ export function RequestForm({
                     <button
                       type="button"
                       onClick={clearFile}
-                      className="grid h-5 w-5 shrink-0 place-items-center rounded-full text-[#8a3a35] transition hover:bg-red-50"
+                      className="grid h-5 w-5 shrink-0 place-items-center rounded-full text-[#b0423c] transition hover:bg-[#fdf6f6]"
                       aria-label="Remove file">
                       <FiX />
                     </button>
