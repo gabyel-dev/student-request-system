@@ -94,13 +94,19 @@ export function filterRequests(
   return requests.filter((request) => {
     const matchesStatus =
       statusFilter === "all" || request.status === statusFilter;
+    // Prefer the section snapshotted onto the request; fall back to the
+    // student's current profile section.
+    const section =
+      request.section ??
+      sectionByEmail.get(request.studentEmail.toLowerCase()) ??
+      "Unknown";
     const matchesSearch = normalized
       ? [
           request.studentName,
           request.studentEmail,
           request.documentType,
+          section,
           String(request.queueNumber),
-          sectionByEmail.get(request.studentEmail.toLowerCase()) ?? "",
         ].some((value) => value.toLowerCase().includes(normalized))
       : true;
     return matchesStatus && matchesSearch;
@@ -118,6 +124,32 @@ export function sortRequests(
   });
 }
 
+/**
+ * Groups requests by the student who submitted them (matched on email), keeping
+ * the list's existing order. Used by the admin queue so a student with several
+ * requests collapses into one dropdown instead of cluttering the list. Requests
+ * with no email are never grouped (each stays its own row).
+ */
+export function groupRequestsByStudent(
+  requests: StudentRequest[],
+): StudentRequest[][] {
+  const groups: StudentRequest[][] = [];
+  const index = new Map<string, number>();
+
+  for (const request of requests) {
+    const key = request.studentEmail.trim().toLowerCase() || request.id;
+    const existing = index.get(key);
+    if (existing === undefined) {
+      index.set(key, groups.length);
+      groups.push([request]);
+    } else {
+      groups[existing].push(request);
+    }
+  }
+
+  return groups;
+}
+
 export function groupRequestsBySection(
   requests: StudentRequest[],
   sectionByEmail: Map<string, string>,
@@ -126,7 +158,9 @@ export function groupRequestsBySection(
 
   for (const request of requests) {
     const section =
-      sectionByEmail.get(request.studentEmail.toLowerCase()) ?? "Unknown";
+      request.section ??
+      sectionByEmail.get(request.studentEmail.toLowerCase()) ??
+      "Unknown";
     const existing = groups.get(section);
     if (existing) {
       existing.push(request);

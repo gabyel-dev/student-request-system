@@ -1,27 +1,32 @@
 "use client";
 
 import { useRouter } from "next/navigation";
-import { useState, useTransition } from "react";
+import Link from "next/link";
+import { useMemo, useState, useTransition } from "react";
 import {
+  FiArrowRight,
   FiCheckCircle,
   FiCheckSquare,
   FiClock,
   FiLayers,
   FiSend,
+  FiUsers,
 } from "react-icons/fi";
 import { updateRequestStatus } from "@/app/actions/requests";
 import { useToast } from "@/app/components/toaster";
 import type { StudentRequest, RequestStatus } from "@/src/domain/request";
 import type { User } from "@/src/domain/user";
 import { useRequestFilters } from "../lib/use-request-filters";
+import { useRealtimeRequests } from "../lib/use-realtime-requests";
+import { RealtimeLiveBadge } from "../lib/realtime-live-badge";
 import type { StatusFilter } from "../lib/request-utils";
 import { DuckMascot } from "../student/duck-mascot";
 import { RequestCardList, RequestTable } from "./requests-list";
 import { SectionGroups } from "./section-groups";
-import { StudentsPanel } from "./students-panel";
 import { EmailPanel } from "./email-panel";
 import { SummaryTabs } from "./summary-tabs";
 import { Toolbar } from "./toolbar";
+import { QueueCyclePanel } from "./queue-cycle-panel";
 import type { RequestListContext } from "./types";
 
 export function AdminDashboard({
@@ -34,8 +39,28 @@ export function AdminDashboard({
   const [isPending, startTransition] = useTransition();
   const router = useRouter();
   const { success: toastSuccess, error: toastError } = useToast();
-  const requests = initialRequests;
   const [updatingId, setUpdatingId] = useState<string | null>(null);
+
+  // Realtime is the source of truth after first render: it starts with the
+  // server-fetched requests, then applies Supabase's INSERT / UPDATE / DELETE
+  // events live so the queue stays current without manual refreshes.
+  const resolveUser = useMemo(() => {
+    const byId = new Map(
+      students.map((student) => [
+        student.id,
+        { fullName: student.fullName, email: student.email },
+      ]),
+    );
+    return (userId: string) => byId.get(userId);
+  }, [students]);
+
+  const { requests, isLive } = useRealtimeRequests({
+    initialRequests,
+    // Admins watch the whole table — every student request flows in live.
+    filter: undefined,
+    resolveUser,
+  });
+
   const filters = useRequestFilters(requests, students);
 
   const requestContext: RequestListContext = {
@@ -104,27 +129,36 @@ export function AdminDashboard({
   }
 
   const counts = filters.counts;
-  const overview = [
+  const overview: {
+    label: string;
+    value: number;
+    icon: React.ComponentType<React.SVGProps<SVGSVGElement>>;
+    href?: string;
+    filter?: StatusFilter;
+  }[] = [
     {
       label: "Total requests",
       value: counts.all,
       icon: FiLayers,
-      tilt: "dash-tilt--left",
-      filter: "all" as const,
+      filter: "all",
     },
     {
       label: "Needs review",
       value: counts.pending,
       icon: FiClock,
-      tilt: "",
-      filter: "pending" as const,
+      filter: "pending",
     },
     {
       label: "Completed",
       value: counts.completed,
       icon: FiCheckCircle,
-      tilt: "dash-tilt--right",
-      filter: "completed" as const,
+      filter: "completed",
+    },
+    {
+      label: "Students",
+      value: students.length,
+      icon: FiUsers,
+      href: "/dashboard/admin/students",
     },
   ];
 
@@ -178,34 +212,58 @@ export function AdminDashboard({
         </div>
       </section>
 
-      <section className="grid gap-1 grid-cols-1 md:grid-cols-1 lg:grid-cols-3 w-full pb-1">
-        {overview.map(({ label, value, icon: Icon, tilt, filter }, index) => {
+      <section className="grid w-full grid-cols-1 gap-1 md:grid-cols-2 lg:grid-cols-12 lg:gap-2">
+        <div className="md:col-span-2 lg:col-span-6 lg:row-span-2">
+          <QueueCyclePanel requests={requests} />
+        </div>
+        {overview.map(({ label, value, icon: Icon, href, filter }) => {
+          const isFilterButton = Boolean(filter);
           const isActive = filters.statusFilter === filter;
-          return (
-            <button
-              key={label}
-              type="button"
-              onClick={() => selectStatus(filter)}
-              aria-pressed={isActive}
-              className={`dash-glass ${
-                index === 0 ? "lg:rounded-tl-4xl" : ""
-              } dash-tilt flex items-center gap-3 px-4 py-4 text-left transition sm:gap-4 sm:px-5 sm:py-5 ${tilt} hover:-translate-y-0.5 ${
-                isActive
-                  ? "ring-2 ring-[#087a54]/25"
-                  : "focus-visible:ring-2 focus-visible:ring-[#087a54]/40"
-              }`}>
-              <span className="grid h-10 w-10 shrink-0 place-items-center rounded-2xl bg-gradient-to-br from-[#e3f5ee] to-[#cdeeda] text-[#087a54] sm:h-11 sm:w-11">
-                <Icon className="text-lg sm:text-xl" />
+          const shared = `dash-glass flex h-full w-full items-center gap-1 overflow-hidden rounded-tr-3xl rounded-bl-3xl px-4 py-5 text-left transition hover:-translate-y-0.5 sm:px-5 ${
+            isActive
+              ? "ring-2 ring-[#087a54]/25"
+              : "focus-visible:ring-2 focus-visible:ring-[#087a54]/40"
+          }`;
+          const content = (
+            <>
+              <span className="grid h-11 w-11 shrink-0 place-items-center rounded-2xl bg-gradient-to-br from-[#e3f5ee] to-[#cdeeda] text-[#087a54]">
+                <Icon className="text-xl" aria-hidden="true" />
               </span>
-              <span>
-                <strong className="block text-xl font-bold tabular-nums tracking-tight text-[#123b32] sm:text-2xl">
-                  {value}
-                </strong>
-                <span className="text-[11px] font-semibold text-[#5d6f66] sm:text-xs">
+              <span className="min-w-0">
+                <span className="block text-[11px] font-semibold uppercase tracking-[.1em] text-[#5d6f66]">
                   {label}
                 </span>
+                <strong className="mt-0.5 block text-2xl font-bold tabular-nums tracking-tight text-[#123b32] sm:text-3xl">
+                  {value}
+                </strong>
               </span>
-            </button>
+              {href ? (
+                <FiArrowRight
+                  className="ml-auto shrink-0 text-[#087a54]"
+                  aria-hidden="true"
+                />
+              ) : null}
+            </>
+          );
+
+          return (
+            <div key={label} className="lg:col-span-3">
+              {href ? (
+                <Link href={href} className={shared}>
+                  {content}
+                </Link>
+              ) : (
+                <button
+                  type="button"
+                  onClick={() =>
+                    isFilterButton && filter ? selectStatus(filter) : undefined
+                  }
+                  aria-pressed={isActive}
+                  className={shared}>
+                  {content}
+                </button>
+              )}
+            </div>
           );
         })}
       </section>
@@ -215,11 +273,14 @@ export function AdminDashboard({
         id="requests"
         className="dash-glass overflow-hidden rounded-tr-4xl rounded-bl-4xl scroll-mt-24 [animation:register-in_0.4s_cubic-bezier(.16,1,.3,1)]">
         <div className="flex flex-wrap items-center justify-between gap-x-6 gap-y-3 border-b border-[#e7efea] px-4 py-3.5 sm:px-6">
-          <SummaryTabs
-            counts={filters.counts}
-            active={filters.statusFilter}
-            onSelect={selectStatus}
-          />
+          <div className="flex flex-wrap items-center gap-3">
+            <SummaryTabs
+              counts={filters.counts}
+              active={filters.statusFilter}
+              onSelect={selectStatus}
+            />
+            <RealtimeLiveBadge isLive={isLive} />
+          </div>
           <Toolbar
             viewMode={filters.viewMode}
             onViewMode={filters.setViewMode}
@@ -234,13 +295,22 @@ export function AdminDashboard({
         {filters.sortedRequests.length ? (
           filters.viewMode === "flat" ? (
             <>
-              <RequestTable requests={filters.sortedRequests} context={requestContext} />
+              <RequestTable
+                requests={filters.sortedRequests}
+                context={requestContext}
+              />
               <div className="md:hidden">
-                <RequestCardList requests={filters.sortedRequests} context={requestContext} />
+                <RequestCardList
+                  requests={filters.sortedRequests}
+                  context={requestContext}
+                />
               </div>
             </>
           ) : (
-            <SectionGroups groups={filters.groupedBySection} context={requestContext} />
+            <SectionGroups
+              groups={filters.groupedBySection}
+              context={requestContext}
+            />
           )
         ) : (
           <div className="px-4 py-16 text-center sm:px-6">
@@ -257,8 +327,6 @@ export function AdminDashboard({
           </div>
         )}
       </section>
-
-      <StudentsPanel students={students} />
 
       <div className="border-t border-[#d9e6de]" />
 

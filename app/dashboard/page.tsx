@@ -40,6 +40,7 @@ export default async function DashboardPage() {
         studentNumber: user.studentNumber ?? "",
       }}
       requests={requests}
+      userId={user.id}
       adminData={admin ? { requests, students } : undefined}
     />
   );

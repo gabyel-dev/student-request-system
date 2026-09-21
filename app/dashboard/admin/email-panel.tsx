@@ -242,7 +242,7 @@ export function EmailPanel({
                         </div>
                         {incompleteProfile ? (
                           <span
-                            className="shrink-0 "
+                            className="shrink-0 text-[#b07b17]"
                             title="Incomplete profile">
                             <FiUserX aria-hidden="true" />
                           </span>
@@ -264,12 +264,12 @@ export function EmailPanel({
                     {verified.length} verified
                   </span>
                   <span className="flex items-center gap-1.5">
-                    <FiUserX className="" aria-hidden="true" />
+                    <FiUserX className="text-[#b07b17]" aria-hidden="true" />
                     {incomplete.length} incomplete
                   </span>
                 </div>
                 {incomplete.length > 0 ? (
-                  <p className="mt-2 flex items-start gap-1.5 rounded-md bg-[#fdf5ee] px-3 py-2 text-[11px] leading-relaxed ">
+                  <p className="mt-2 flex items-start gap-1.5 rounded-md bg-[#fdf5ee] px-3 py-2 text-[11px] leading-relaxed text-[#7a4a13]">
                     <FiAlertCircle
                       className="mt-0.5 shrink-0"
                       aria-hidden="true"

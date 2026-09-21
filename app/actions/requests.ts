@@ -85,6 +85,13 @@ export async function submitRequest(
       error: "Only student accounts can submit requests.",
       success: null,
     };
+  // Queue numbers are per section, so the request must know the student's
+  // section at creation time (it is snapshotted onto the request row).
+  if (!user.section)
+    return {
+      error: "Complete your profile with a section before requesting.",
+      success: null,
+    };
 
   const documentType = String(formData.get("documentType") ?? "")
     .trim()
@@ -134,6 +141,7 @@ export async function submitRequest(
   await requestRepository.create({
     userId,
     documentType,
+    section: user.section,
     notes,
     proofUrl,
   });
@@ -231,6 +239,8 @@ export async function deleteRequest(
     return { error: "Request not found.", success: null };
   if (request.userId !== userId)
     return { error: "You can only delete your own requests.", success: null };
+  if (request.archivedAt)
+    return { error: "Archived requests cannot be deleted.", success: null };
   if (request.status !== "pending")
     return {
       error: "Only pending requests can be deleted.",
@@ -276,6 +286,8 @@ export async function updateRequest(
       error: "You can only edit your own requests.",
       success: null,
     };
+  if (request.archivedAt)
+    return { error: "Archived requests cannot be edited.", success: null };
   if (request.status !== "pending")
     return {
       error: "Only pending requests can be edited.",
@@ -328,6 +340,44 @@ export async function updateRequest(
   } catch {
     return {
       error: "The request could not be updated. Try again.",
+      success: null,
+    };
+  }
+}
+
+/**
+ * Archives the current queue cycle and resets every section's active queue.
+ *
+ * This is the admin's "Complete Queue" action:
+ *  - every active request is archived (preserved, not deleted),
+ *  - the active queue of each section becomes empty,
+ *  - the next request in any section starts again at Queue 1.
+ *
+ * Historical records stay in the archive grouped by section and completed date.
+ */
+export async function completeQueueCycle(): Promise<RequestActionState> {
+  const userId = await getSessionTokenUserId();
+  if (!userId)
+    return {
+      error: "Your session has expired. Please sign in again.",
+      success: null,
+    };
+
+  const user = await userRepository.findById(userId);
+  if (!user || !isAdminEmail(user.email))
+    return { error: "Admin access is required.", success: null };
+
+  try {
+    await requestRepository.archiveActiveQueue();
+    revalidatePath("/dashboard");
+    return {
+      error: null,
+      success:
+        "Queue cycle completed. Active requests were archived and the queue reset — new requests start again at Queue 1 per section.",
+    };
+  } catch {
+    return {
+      error: "The queue could not be reset. Try again.",
       success: null,
     };
   }

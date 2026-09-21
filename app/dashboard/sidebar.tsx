@@ -4,6 +4,7 @@ import Link from "next/link";
 import { useEffect, useRef, useState } from "react";
 import {
   FiActivity,
+  FiArchive,
   FiChevronDown,
   FiFileText,
   FiGrid,
@@ -89,9 +90,10 @@ export function Sidebar({ student, adminMode = false }: SidebarProps) {
   const navLinks = adminMode
     ? [
         { icon: FiGrid, label: "Overview", href: "/dashboard" },
-        { icon: FiActivity, label: "Requests", href: "#requests" },
-        { icon: FiUsers, label: "Students", href: "#students" },
-        { icon: FiSend, label: "Email", href: "#email" },
+        { icon: FiActivity, label: "Requests", href: "/dashboard#requests" },
+        { icon: FiUsers, label: "Students", href: "/dashboard/admin/students" },
+        { icon: FiArchive, label: "Archive", href: "/dashboard/admin/archive" },
+        { icon: FiSend, label: "Email", href: "/dashboard#email" },
       ]
     : [
         { icon: FiFileText, label: "My requests", href: "/dashboard" },

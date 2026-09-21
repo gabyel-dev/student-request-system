@@ -1,6 +1,7 @@
 "use client";
 
 import Link from "next/link";
+import { useMemo } from "react";
 import {
   FiArrowUpRight,
   FiCheckCircle,
@@ -12,6 +13,7 @@ import { DuckMascot } from "./duck-mascot";
 import { QuickActions } from "./quick-actions";
 import { RecentActivity } from "./recent-activity";
 import { StudentDetails } from "./student-details";
+import { useRealtimeRequests } from "../lib/use-realtime-requests";
 import type { Student } from "../types";
 import type { StudentRequest } from "@/src/domain/request";
 
@@ -21,14 +23,34 @@ function getFirstName(name: string) {
 
 export function StudentDashboard({
   student,
-  requests,
+  userId,
+  requests: initialRequests,
 }: {
   student: Student;
+  userId: string;
   requests: StudentRequest[];
 }) {
+  // Realtime keeps this dashboard in sync with the student's own requests:
+  // it seeds from the server-rendered list, then applies live changes as they
+  // happen (e.g. the registrar marks a request "completed" -> the tracker and
+  // counts below update instantly).
+  const resolveUser = useMemo(
+    () => () => ({ fullName: student.name, email: student.email }),
+    [student.name, student.email],
+  );
+
+  const { requests, isLive } = useRealtimeRequests({
+    initialRequests,
+    // Students only receive events for rows belonging to them.
+    // (For admins, this filter is omitted so all requests come through.)
+    filter: `user_id=eq.${userId}`,
+    resolveUser,
+  });
+
   const active = requests.filter(
     (request) =>
-      request.status === "pending" || request.status === "processing",
+      !request.archivedAt &&
+      (request.status === "pending" || request.status === "processing"),
   ).length;
   const completed = requests.filter(
     (request) => request.status === "completed",
@@ -124,7 +146,7 @@ export function StudentDashboard({
           <QuickActions />
         </section>
 
-        <RecentActivity requests={requests} />
+        <RecentActivity requests={requests} isLive={isLive} />
       </div>
 
       <StudentDetails student={student} />

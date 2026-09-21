@@ -10,10 +10,12 @@ import type { User } from "@/src/domain/user";
 
 export function DashboardShell({
   student,
+  userId,
   requests,
   adminData,
 }: {
   student: Student;
+  userId: string;
   requests: StudentRequest[];
   adminData?: { requests: StudentRequest[]; students: User[] };
 }) {
@@ -28,7 +30,7 @@ export function DashboardShell({
               students={adminData.students}
             />
           ) : (
-            <StudentDashboard student={student} requests={requests} />
+            <StudentDashboard student={student} userId={userId} requests={requests} />
           )}
         </div>
       </div>

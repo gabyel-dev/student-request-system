@@ -6,6 +6,7 @@ import { FiEdit, FiFileText, FiTrash } from "react-icons/fi";
 import { deleteRequest } from "@/app/actions/requests";
 import { useToast } from "@/app/components/toaster";
 import { getServiceByTitle } from "@/src/domain/services";
+import { RealtimeLiveBadge } from "../lib/realtime-live-badge";
 import type { StudentRequest, RequestStatus } from "@/src/domain/request";
 
 const statusMeta: Record<
@@ -38,7 +39,13 @@ const statusMeta: Record<
   },
 };
 
-export function RecentActivity({ requests }: { requests: StudentRequest[] }) {
+export function RecentActivity({
+  requests,
+  isLive = false,
+}: {
+  requests: StudentRequest[];
+  isLive?: boolean;
+}) {
   const active = requests.filter(
     (request) => request.status !== "completed",
   ).length;
@@ -79,6 +86,7 @@ export function RecentActivity({ requests }: { requests: StudentRequest[] }) {
             Recent requests
           </h2>
         </div>
+        <RealtimeLiveBadge isLive={isLive} />
       </div>
 
       {requests.length ? (
@@ -128,7 +136,7 @@ export function RecentActivity({ requests }: { requests: StudentRequest[] }) {
                 </div>
 
                 <div className="flex shrink-0 items-center gap-2 self-end order-1 lg:order-last lg:self-center">
-                  {request.status === "pending" ? (
+                  {request.status === "pending" && !request.archivedAt ? (
                     <>
                       <button
                         type="button"
