@@ -98,14 +98,14 @@ function shell(input: {
         <td align="center">
           <div style="max-width:600px;width:100%;margin:0 auto;">
 
-            <table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0" style="background:#ffffff;box-shadow:0 1px 2px rgba(20,45,37,.05),0 16px 40px rgba(20,45,37,.09);">
+            <table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0" style="background:#ffffff;border-radius:28px;box-shadow:0 1px 2px rgba(20,45,37,.05),0 16px 40px rgba(20,45,37,.09);">
               <tr>
-                <td class="email-card" align="left" style="padding:30px 26px;">
+                <td class="email-card" align="left" style="border-radius:28px;padding:30px 26px;">
 
                   <table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0">
                     <tr>
                       <td style="width:54px;vertical-align:middle;">
-                        <img class="email-duck" src="${getAppUrl()}/pose_2.png" width="54" height="54" alt="${escapeHtml(BRAND)} mascot" style="display:block;border:0;width:54px;height:54px;object-fit:cover;" />
+                        <img class="email-duck" src="${getAppUrl()}/pose_2.png" width="54" height="54" alt="${escapeHtml(BRAND)} mascot" style="display:block;border:0;width:54px;height:54px;object-fit:cover;border-radius:18px;" />
                       </td>
                       <td style="padding-left:13px;vertical-align:middle;">
                         <span style="display:block;font-size:11px;font-weight:700;letter-spacing:.16em;text-transform:uppercase;color:#506a5d;">${escapeHtml(INSTITUTION)}</span>
@@ -137,13 +137,13 @@ function shell(input: {
 </html>`;
 }
 
-/** Emerald button, the email&rsquo;s single primary action. */
+/** Rounded emerald button, the email&rsquo;s single primary action. */
 function ctaBlock(href: string, label: string): string {
   return `
     <table role="presentation" cellpadding="0" cellspacing="0" border="0" style="margin-top:26px;">
       <tr>
-        <td style="background:#087a54;">
-          <a href="${escapeHtml(href)}" style="display:inline-block;background:#087a54;color:#ffffff;font-size:15px;font-weight:700;text-decoration:none;padding:14px 30px;">${escapeHtml(label)}</a>
+        <td style="border-radius:14px;background:#087a54;">
+          <a href="${escapeHtml(href)}" style="display:inline-block;border-radius:14px;background:#087a54;color:#ffffff;font-size:15px;font-weight:700;text-decoration:none;padding:14px 30px;box-shadow:0 10px 24px rgba(8,122,84,.26);">${escapeHtml(label)}</a>
         </td>
       </tr>
     </table>`;
@@ -151,7 +151,7 @@ function ctaBlock(href: string, label: string): string {
 
 /** Soft tinted status pill. The label text carries the meaning, not color. */
 function statusPill(label: string, pill: string, text: string): string {
-  return `<span style="display:inline-block;background:${pill};color:${text};font-size:11px;font-weight:800;letter-spacing:.05em;text-transform:uppercase;padding:7px 14px;">${escapeHtml(label)}</span>`;
+  return `<span style="display:inline-block;background:${pill};color:${text};font-size:11px;font-weight:800;letter-spacing:.05em;text-transform:uppercase;border-radius:999px;padding:7px 14px;">${escapeHtml(label)}</span>`;
 }
 
 function statusCard(
@@ -160,7 +160,7 @@ function statusCard(
   queueNumber: number | null | undefined,
 ): string {
   return `
-    <div style="margin-top:22px;background:#f3f8f5;padding:20px 22px;">
+    <div style="margin-top:22px;background:#f3f8f5;border-radius:20px;padding:20px 22px;">
       <table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0">
         <tr>
           <td style="vertical-align:middle;">
@@ -175,7 +175,7 @@ function statusCard(
       <table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0" style="margin-top:16px;padding-top:14px;border-top:1px solid #dfeae3;">
         <tr>
           <td style="width:38px;vertical-align:middle;">
-            <span style="display:block;width:34px;height:34px;background:#e0efe7;color:#087a54;font-size:15px;font-weight:800;line-height:34px;text-align:center;">#</span>
+            <span style="display:block;width:34px;height:34px;border-radius:11px;background:#e0efe7;color:#087a54;font-size:15px;font-weight:800;line-height:34px;text-align:center;">#</span>
           </td>
           <td style="vertical-align:middle;padding-left:12px;">
             <span style="display:block;font-size:10px;font-weight:800;letter-spacing:.12em;text-transform:uppercase;color:#506a5d;">Queue number</span>
@@ -189,7 +189,7 @@ function statusCard(
 function notesBox(notes: string | null | undefined): string {
   if (!notes) return "";
   return `
-    <div style="margin-top:14px;background:#fdf3e2;padding:16px 20px;">
+    <div style="margin-top:14px;background:#fdf3e2;border-radius:18px;padding:16px 20px;">
       <strong style="display:block;font-size:11px;font-weight:800;letter-spacing:.08em;text-transform:uppercase;color:#8a6d1f;">Note from the office</strong>
       <span style="display:block;margin-top:6px;font-size:14px;line-height:1.6;color:#6b5315;">${escapeHtml(notes)}</span>
     </div>`;
@@ -269,8 +269,8 @@ export function sectionBroadcastEmail(input: SectionBroadcastEmailInput): {
       name: firstName,
       subtitle: `<strong>${escapeHtml(input.senderName)}</strong> posted an announcement for <strong>${escapeHtml(input.section)}</strong>.`,
       body: `
-        <div style="margin-top:22px;background:#f3f8f5;padding:22px 24px;">
-          <span style="display:inline-block;background:#e1f2e9;color:#0c6d4b;font-size:11px;font-weight:800;letter-spacing:.08em;text-transform:uppercase;padding:7px 14px;">Section ${escapeHtml(input.section)}</span>
+        <div style="margin-top:22px;background:#f3f8f5;border-radius:20px;padding:22px 24px;">
+          <span style="display:inline-block;background:#e1f2e9;color:#0c6d4b;font-size:11px;font-weight:800;letter-spacing:.08em;text-transform:uppercase;border-radius:999px;padding:7px 14px;">Section ${escapeHtml(input.section)}</span>
           <div style="margin-top:16px;">
             ${toParagraphs(input.message)}
           </div>
