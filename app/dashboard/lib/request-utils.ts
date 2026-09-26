@@ -13,11 +13,24 @@ export type StatusFilter = RequestStatus | "all";
 export type SortOrder = "newest" | "oldest";
 export type ViewMode = "flat" | "section";
 
+/**
+ * Status colour for the admin surfaces.
+ *
+ * These are the same four colours the student dashboard uses, written as
+ * utilities over the shared `--color-*` tokens rather than as hex literals.
+ *
+ * That indirection is the whole point of the file. It used to carry its own
+ * hardcoded palette, and the two drifted: the student's "Processing" chip was
+ * emerald while the admin queue's was blue. Nothing forced them to agree and
+ * nothing failed when they didn't, so the drift sat there unnoticed. Pointing
+ * both at one set of tokens means a status added later gets the brand colour by
+ * default, and a brand change lands everywhere at once.
+ */
 export const statusTone: Record<RequestStatus, string> = {
-  pending: "bg-[#b07b17]",
-  processing: "bg-[#1f6fb2]",
-  completed: "bg-[#087a54]",
-  rejected: "bg-[#b0423c]",
+  pending: "bg-pending",
+  processing: "bg-processing",
+  completed: "bg-completed",
+  rejected: "bg-rejected",
 };
 
 export const statusMeta: Record<
@@ -27,26 +40,26 @@ export const statusMeta: Record<
   pending: {
     label: "Pending review",
     width: 25,
-    bar: "bg-gradient-to-r from-[#c9922b] to-[#b07b17]",
-    text: "text-[#8a5e10]",
+    bar: "bg-gradient-to-r from-pending/45 to-pending",
+    text: "text-pending",
   },
   processing: {
     label: "Being processed",
     width: 65,
-    bar: "bg-gradient-to-r from-[#4fa3e3] to-[#1f6fb2]",
-    text: "text-[#16578f]",
+    bar: "bg-gradient-to-r from-processing/45 to-processing",
+    text: "text-processing",
   },
   completed: {
     label: "Completed",
     width: 100,
-    bar: "bg-gradient-to-r from-[#28b48a] to-[#087a54]",
-    text: "text-[#0a6a49]",
+    bar: "bg-gradient-to-r from-completed/45 to-completed",
+    text: "text-completed",
   },
   rejected: {
     label: "Rejected",
     width: 100,
-    bar: "bg-gradient-to-r from-[#c96a63] to-[#b0423c]",
-    text: "text-[#8f3029]",
+    bar: "bg-gradient-to-r from-rejected/45 to-rejected",
+    text: "text-rejected",
   },
 };
 

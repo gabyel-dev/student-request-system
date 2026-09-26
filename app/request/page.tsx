@@ -1,10 +1,8 @@
-import Link from "next/link";
 import { redirect } from "next/navigation";
-import { FiArrowLeft } from "react-icons/fi";
-import { services } from "@/app/dashboard/data";
 import { isAdminEmail } from "@/src/infrastructure/auth/admin-accounts";
 import { requestRepository, userRepository } from "@/src/server/container";
 import { getSessionTokenUserId } from "@/src/server/session";
+import { BackToDashboard, ServiceOptions } from "./service-options";
 
 export default async function RequestIndexPage() {
   const userId = await getSessionTokenUserId();
@@ -26,11 +24,7 @@ export default async function RequestIndexPage() {
   return (
     <main className="min-h-screen bg-[#f2f6f3] text-[#14251d]">
       <div className="mx-auto w-[calc(100%-32px)] max-w-3xl py-6 sm:w-[calc(100%-42px)] sm:py-8 lg:w-[calc(100%-64px)] lg:py-10">
-        <Link
-          href="/dashboard"
-          className="inline-flex items-center gap-2 text-sm font-medium text-[#087a54] transition hover:opacity-70">
-          <FiArrowLeft /> Back to dashboard
-        </Link>
+        <BackToDashboard />
         <section className="mt-6">
           <h1 className="mt-2 text-2xl font-bold tracking-[-.03em] sm:text-3xl">
             Choose a service
@@ -49,24 +43,7 @@ export default async function RequestIndexPage() {
             </p>
           )}
         </section>
-        <div className="mt-6 grid sm:grid-cols-2 sm:gap-x-12">
-          {services.map(({ slug, title, description, icon: Icon }) => (
-            <Link
-              key={slug}
-              href={`/request/${slug}`}
-              className="group flex items-start gap-3 border-b border-[#dbebe3] py-5 text-left transition hover:bg-white/60 sm:py-6">
-              <Icon className="mt-0.5 shrink-0 text-[#087a54]" />
-              <span>
-                <strong className="block text-sm text-[#14251d] transition-colors group-hover:text-[#087a54]">
-                  {title}
-                </strong>
-                <span className="mt-0.5 block text-xs text-[#5d6f66]">
-                  {description}
-                </span>
-              </span>
-            </Link>
-          ))}
-        </div>
+        <ServiceOptions />
       </div>
     </main>
   );

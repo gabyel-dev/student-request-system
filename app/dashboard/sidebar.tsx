@@ -1,25 +1,33 @@
 "use client";
 
 import Link from "next/link";
+import { usePathname } from "next/navigation";
 import { useEffect, useRef, useState } from "react";
 import {
-  FiActivity,
-  FiArchive,
-  FiChevronDown,
-  FiFileText,
-  FiGrid,
-  FiHelpCircle,
-  FiLogOut,
-  FiMenu,
-  FiPlus,
-  FiSend,
-  FiUser,
-  FiUsers,
-  FiX,
-} from "react-icons/fi";
+  ApplicationMenu,
+  Close,
+  Dashboard,
+  Down,
+  Help,
+  History,
+  Home,
+  List,
+  Logout,
+  Mail,
+  People,
+  Plus,
+  User,
+} from "@icon-park/react";
 import { logout } from "@/app/actions/auth";
 import { useGlobalLoading } from "@/app/components/global-loader";
 import { getInitials } from "./helpers";
+import { Icon } from "./lib/icons";
+import { gsap } from "./lib/motion";
+import {
+  useGsapContext,
+  useIsomorphicLayoutEffect,
+  usePressFeedback,
+} from "./lib/use-gsap-context";
 import type { Student } from "./types";
 
 type SidebarProps = {
@@ -29,11 +37,54 @@ type SidebarProps = {
 
 export function Sidebar({ student, adminMode = false }: SidebarProps) {
   const { start: startLoading, stop: stopLoading } = useGlobalLoading();
+  const pathname = usePathname();
   const [profileOpen, setProfileOpen] = useState(false);
   const [navOpen, setNavOpen] = useState(false);
   const [loggingOut, setLoggingOut] = useState(false);
   const profileRef = useRef<HTMLDivElement>(null);
   const drawerRef = useRef<HTMLElement>(null);
+  const drawerScrimRef = useRef<HTMLDivElement>(null);
+  const drawerCloseRef = useRef<HTMLButtonElement>(null);
+  const drawerTriggerRef = useRef<HTMLButtonElement>(null);
+  const railRef = useRef<HTMLElement>(null);
+  const menuRef = useRef<HTMLDivElement>(null);
+  const chevronRef = useRef<HTMLSpanElement>(null);
+
+  // Two separate instances: `usePressFeedback` binds its `quickTo` tweens to
+  // whatever element its ref points at when it mounts, and the rail and the
+  // drawer copy of the button mount at different times.
+  const railStartRef = useRef<HTMLAnchorElement>(null);
+  const railStartHandlers = usePressFeedback(railStartRef, {
+    nudgeSelector: "[data-start-icon]",
+  });
+  const drawerStartRef = useRef<HTMLAnchorElement>(null);
+  const drawerStartHandlers = usePressFeedback(drawerStartRef, {
+    nudgeSelector: "[data-start-icon]",
+  });
+
+  // The rail settles into place once on first paint. Items rise and fade in
+  // sequence down the rail so the eye is led from the logo to the actions.
+  useGsapContext(
+    railRef,
+    ({ reduced }) => {
+      if (reduced) return;
+      gsap.from("[data-rail-logo]", {
+        autoAlpha: 0,
+        y: -8,
+        duration: 0.3,
+        ease: "power2.out",
+      });
+      gsap.from("[data-nav-item]", {
+        autoAlpha: 0,
+        x: -10,
+        duration: 0.34,
+        ease: "power3.out",
+        stagger: 0.04,
+        delay: 0.04,
+      });
+    },
+    [],
+  );
 
   useEffect(() => {
     function onPointerDown(event: MouseEvent) {
@@ -65,12 +116,102 @@ export function Sidebar({ student, adminMode = false }: SidebarProps) {
     };
   }, [navOpen]);
 
+  // Lock the page behind the drawer, and move focus into it so the keyboard is
+  // not left on the trigger with an open overlay above it.
   useEffect(() => {
     document.body.style.overflow = navOpen ? "hidden" : "";
+    if (navOpen) drawerCloseRef.current?.focus();
     return () => {
       document.body.style.overflow = "";
     };
   }, [navOpen]);
+
+  // The drawer slides in behind the scrim; its items follow a beat later so the
+  // panel settles before the list fills.
+  useIsomorphicLayoutEffect(() => {
+    if (!navOpen) return;
+    const panel = drawerRef.current;
+    if (!panel) return;
+
+    const context = gsap.context(() => {
+      if (window.matchMedia("(prefers-reduced-motion: reduce)").matches) {
+        gsap.set([drawerScrimRef.current, panel], { clearProps: "all" });
+        return;
+      }
+
+      const timeline = gsap.timeline();
+      timeline
+        .fromTo(
+          drawerScrimRef.current,
+          { autoAlpha: 0 },
+          { autoAlpha: 1, duration: 0.2, ease: "power2.out" },
+        )
+        .fromTo(
+          panel,
+          { xPercent: -100 },
+          { xPercent: 0, duration: 0.34, ease: "power3.out" },
+          "<",
+        )
+        .from(
+          "[data-drawer-item]",
+          {
+            autoAlpha: 0,
+            x: -12,
+            duration: 0.28,
+            ease: "power2.out",
+            stagger: 0.035,
+          },
+          "-=0.16",
+        );
+    }, panel);
+
+    return () => context.revert();
+  }, [navOpen]);
+
+  // Give focus back to the trigger when the drawer closes, so keyboard and
+  // screen-reader users are not dropped at the top of the page.
+  useEffect(() => {
+    if (navOpen) return;
+    const wasOpen = document.body.dataset.drawerOpen === "true";
+    if (!wasOpen) return;
+    delete document.body.dataset.drawerOpen;
+    drawerTriggerRef.current?.focus();
+  }, [navOpen]);
+
+  // The profile menu scales out of the button that opened it.
+  useIsomorphicLayoutEffect(() => {
+    const menu = menuRef.current;
+    const context = gsap.context(() => {
+      const reduced = window.matchMedia(
+        "(prefers-reduced-motion: reduce)",
+      ).matches;
+      if (chevronRef.current) {
+        gsap.to(chevronRef.current, {
+          rotation: profileOpen ? 180 : 0,
+          duration: reduced ? 0 : 0.24,
+          ease: "power2.out",
+        });
+      }
+      if (!menu) return;
+      if (reduced) {
+        gsap.set(menu, { clearProps: "all" });
+        return;
+      }
+      gsap.fromTo(
+        menu,
+        { autoAlpha: 0, y: 6, scale: 0.97 },
+        {
+          autoAlpha: 1,
+          y: 0,
+          scale: 1,
+          duration: 0.22,
+          ease: "power3.out",
+          transformOrigin: "bottom left",
+        },
+      );
+    });
+    return () => context.revert();
+  }, [profileOpen]);
 
   async function handleLogout() {
     setLoggingOut(true);
@@ -89,28 +230,46 @@ export function Sidebar({ student, adminMode = false }: SidebarProps) {
 
   const navLinks = adminMode
     ? [
-        { icon: FiGrid, label: "Overview", href: "/dashboard" },
-        { icon: FiActivity, label: "Requests", href: "/dashboard#requests" },
-        { icon: FiUsers, label: "Students", href: "/dashboard/admin/students" },
-        { icon: FiArchive, label: "Archive", href: "/dashboard/admin/archive" },
-        { icon: FiSend, label: "Email", href: "/dashboard#email" },
+        { icon: Dashboard, label: "Overview", href: "/dashboard" },
+        { icon: List, label: "Requests", href: "/dashboard#requests" },
+        { icon: People, label: "Students", href: "/dashboard/admin/students" },
+        { icon: History, label: "Archive", href: "/dashboard/admin/archive" },
+        { icon: Mail, label: "Email", href: "/dashboard#email" },
       ]
     : [
-        { icon: FiFileText, label: "My requests", href: "/dashboard" },
-        { icon: FiUser, label: "My profile", href: "/onboarding" },
-        { icon: FiHelpCircle, label: "Help center", href: "#" },
+        { icon: Home, label: "My requests", href: "/dashboard" },
+        { icon: User, label: "My profile", href: "/onboarding" },
+        { icon: Help, label: "Help center", href: "#" },
       ];
+
+  /**
+   * Marks the current page, but only for links that name a page. The
+   * hash links ("Requests", "Email") all resolve to /dashboard, so marking
+   * them would light up two items at once; they are left unmarked.
+   */
+  function isCurrent(href: string) {
+    if (href.includes("#")) return false;
+    if (href === "#") return false;
+    return pathname === href;
+  }
+
+  function openDrawer() {
+    document.body.dataset.drawerOpen = "true";
+    setNavOpen(true);
+  }
 
   return (
     <>
-      {/* Mobile floating nav trigger */}
+      {/* Mobile floating nav trigger. Sits in the app bar's left inset, so the
+          two read as one control row. */}
       <button
+        ref={drawerTriggerRef}
         type="button"
-        onClick={() => setNavOpen(true)}
+        onClick={openDrawer}
         aria-label="Open navigation"
         aria-expanded={navOpen}
-        className="fixed left-4 top-4 z-40 grid h-11 w-11 place-items-center rounded-xl border border-[#d9e6de] bg-white text-[#0d4a33] shadow-[0_8px_20px_rgba(20,91,62,.14)] transition hover:bg-[#e9f4ee] md:hidden">
-        <FiMenu className="text-lg" />
+        className="fixed left-4 top-[13px] z-40 grid h-9 w-9 place-items-center rounded-control text-ink-soft transition-colors hover:bg-sunken md:hidden">
+        <Icon icon={ApplicationMenu} tone="neutral" size={19} />
       </button>
 
       {/* Mobile drawer */}
@@ -118,74 +277,97 @@ export function Sidebar({ student, adminMode = false }: SidebarProps) {
         <div
           className="fixed inset-0 z-50 md:hidden"
           role="dialog"
-          aria-modal="true">
+          aria-modal="true"
+          aria-label="Navigation">
           <div
-            className="absolute inset-0 bg-[rgba(5,40,30,.5)] backdrop-blur-[2px]"
+            ref={drawerScrimRef}
+            className="absolute inset-0 bg-[rgba(8,40,29,.45)] backdrop-blur-[2px]"
             onClick={() => setNavOpen(false)}
             aria-hidden="true"
           />
           <aside
             ref={drawerRef}
-            className="absolute left-0 top-0 flex h-full w-72 flex-col overflow-hidden bg-[#0d4a33] px-5 py-7 text-[#f5fff9] shadow-[14px_0_40px_rgba(20,91,62,.25)]">
-            <div className="flex items-center justify-between gap-3">
+            className="absolute left-0 top-0 flex h-full w-[19rem] max-w-[86vw] flex-col overflow-y-auto border-r border-rail-line bg-rail px-5 py-7 text-white">
+            <div
+              data-drawer-item
+              className="flex items-center justify-between gap-3">
               <img
                 src="/_logo_white.png"
                 alt="itikQ - Pateros Technological College"
                 className="h-auto w-40 object-contain"
               />
               <button
+                ref={drawerCloseRef}
                 type="button"
                 onClick={() => setNavOpen(false)}
                 aria-label="Close navigation"
-                className="grid h-9 w-9 place-items-center rounded-lg border border-white/20 bg-white/10 text-[#e5faed] transition hover:bg-white/20">
-                <FiX className="text-base" />
+                className="grid h-8 w-8 place-items-center rounded-control text-rail-ink transition-colors hover:bg-white/10 hover:text-white">
+                <Icon icon={Close} tone="inverse" size={16} />
               </button>
             </div>
 
             {!adminMode ? (
               <Link
+                ref={drawerStartRef}
                 href="/request"
+                data-drawer-item
                 onClick={() => setNavOpen(false)}
-                className="mt-8 flex w-full items-center gap-2.5 rounded-xl bg-[#087a54] px-4 py-3 text-[13px] font-bold text-white shadow-[0_8px_18px_rgba(8,122,84,.35)] transition hover:bg-[#066044]">
-                <FiPlus className="text-[15px]" />
+                className="mt-7 flex w-full items-center gap-2.5 rounded-control bg-accent px-4 py-2.5 text-[13px] font-bold text-white transition-colors hover:bg-accent-hover"
+                {...drawerStartHandlers}>
+                <span data-start-icon className="shrink-0">
+                  <Icon icon={Plus} tone="inverse" size={15} />
+                </span>
                 Start a request
               </Link>
             ) : null}
 
-            <div className="mt-8 px-1 text-[9px] font-bold uppercase tracking-[.18em] text-white/45">
+            <div
+              data-drawer-item
+              className="mt-8 px-1 text-[9px] font-bold uppercase tracking-[.18em] text-rail-dim">
               {adminMode ? "Administration" : "Student portal"}
             </div>
             <nav className="mt-3 grid gap-1" aria-label="Mobile navigation">
-              {navLinks.map(({ icon: Icon, label, href }) => (
+              {navLinks.map(({ icon: Glyph, label, href }) => (
                 <Link
                   key={label}
                   href={href}
+                  data-drawer-item
+                  aria-current={isCurrent(href) ? "page" : undefined}
                   onClick={() => setNavOpen(false)}
-                  className="flex w-full items-center gap-3 rounded-lg px-3.5 py-3 text-left text-[13px] text-[#d5f3e3] transition hover:bg-white/15">
-                  <Icon className="text-[15px]" />
+                  className={`flex w-full items-center gap-3 rounded-control px-3.5 py-2.5 text-left text-[13px] font-medium transition-colors hover:bg-white/10 ${
+                    isCurrent(href) ? "bg-white/15 text-white" : "text-rail-ink"
+                  }`}>
+                  <Icon
+                    icon={Glyph}
+                    tone="inverse"
+                    size={17}
+                    className="shrink-0"
+                  />
                   {label}
                 </Link>
               ))}
             </nav>
 
-            <div className="mt-auto border-t border-white/20 pt-5">
+            <div
+              data-drawer-item
+              className="mt-auto border-t border-rail-line pt-5">
               <div className="flex items-center gap-3">
                 {student.profilePictureUrl ? (
                   <img
                     src={student.profilePictureUrl}
                     alt={`${student.name} profile`}
-                    className="h-10 w-10 rounded-full border border-white/25 object-cover"
+                    className="h-10 w-10 shrink-0 rounded-full border border-rail-line object-cover"
                   />
                 ) : (
-                  <span className="grid h-10 w-10 place-items-center rounded-full border border-white/25 bg-white/10 font-mono text-xs font-bold text-[#e5faed]">
+                  <span className="grid h-10 w-10 shrink-0 place-items-center rounded-full border border-rail-line bg-white/10 font-mono text-xs font-bold text-white">
                     {getInitials(student.name)}
                   </span>
                 )}
                 <span className="min-w-0">
-                  <strong className="block truncate text-sm text-white">
+                  <strong className="block truncate text-sm font-semibold text-white">
                     {student.name}
                   </strong>
-                  <span className="block truncate text-[11px] text-[#9fd8bd]">
+                  <span className="block truncate text-[11px] text-rail-dim">
                     {student.email}
                   </span>
                 </span>
@@ -194,9 +376,9 @@ export function Sidebar({ student, adminMode = false }: SidebarProps) {
                 type="button"
                 disabled={loggingOut}
                 onClick={handleLogout}
-                className="mt-4 flex w-full items-center gap-3 rounded-lg px-3.5 py-3 text-left text-[13px] text-[#ffd5d0] transition hover:bg-white/10 disabled:opacity-50">
-                <FiLogOut />
-                {loggingOut ? "Logging out…" : "Log out"}
+                className="mt-4 flex w-full items-center gap-3 rounded-control px-3.5 py-2.5 text-left text-[13px] font-medium text-white transition-colors hover:bg-white/10 disabled:opacity-50">
+                <Icon icon={Logout} tone="inverse" size={16} className="shrink-0" />
+                {loggingOut ? "Logging outâ€¦" : "Log out"}
               </button>
             </div>
           </aside>
@@ -204,44 +386,68 @@ export function Sidebar({ student, adminMode = false }: SidebarProps) {
       ) : null}
 
       {/* Desktop sidebar */}
-      <aside className="fixed left-0 top-0 z-[4] hidden h-screen flex-col bg-[#0d4a33] text-[#f5fff9] shadow-[14px_0_40px_rgba(20,91,62,.12)] md:flex md:w-[84px] md:items-center md:px-3 md:py-[30px] lg:w-60 lg:items-stretch lg:px-[18px] lg:py-[38px]">
-        <div className="relative flex w-full items-center justify-center gap-2 lg:justify-start">
+      <aside
+        ref={railRef}
+        className="sd-rail fixed left-0 top-0 z-[4] hidden h-screen flex-col border-r border-rail-line bg-rail text-white md:flex md:w-[84px] md:items-center md:px-3 md:py-7 lg:w-60 lg:items-stretch lg:px-5 lg:py-9">
+        <div className="flex w-full items-center justify-center lg:justify-start">
           <img
+            data-rail-logo
             src="/_logo_white.png"
             alt="itikQ - Pateros Technological College"
-            className="block h-auto w-[52px] object-contain lg:w-[166px]"
+            className="block h-auto w-[52px] object-contain lg:w-[150px]"
           />
         </div>
 
-        <div className="mb-2 mt-12 hidden w-full px-2 text-[9px] font-bold uppercase tracking-[.18em] text-white/45 lg:block">
+        <div
+          data-nav-item
+          className="mb-2 mt-11 hidden w-full px-2 text-[9px] font-bold uppercase tracking-[.18em] text-rail-dim lg:block">
           {adminMode ? "Administration" : "Student portal"}
         </div>
 
         <nav
-          className={`${adminMode ? "mt-4" : "mt-12"} grid w-full gap-2`}
+          className={`${adminMode ? "mt-4" : "mt-10"} grid w-full gap-1`}
           aria-label="Main navigation">
           {!adminMode ? (
             <Link
+              ref={railStartRef}
               href="/request"
+              data-nav-item
               title="Start a request"
-              className="flex w-full items-center justify-center gap-3 rounded-lg bg-[#087a54] px-3.5 py-3 text-[13px] font-bold text-white shadow-[0_8px_18px_rgba(8,122,84,.3)] transition hover:bg-[#066044] lg:justify-start">
-              <FiPlus className="shrink-0 text-[15px]" />
+              className="flex w-full items-center justify-center gap-2.5 rounded-control bg-accent px-3.5 py-2.5 text-[13px] font-bold text-white transition-colors hover:bg-accent-hover lg:justify-start"
+              {...railStartHandlers}>
+              <span data-start-icon className="shrink-0">
+                <Icon icon={Plus} tone="inverse" size={15} />
+              </span>
               <span className="sr-only lg:not-sr-only">Start a request</span>
             </Link>
           ) : null}
-          {navLinks.map(({ icon: Icon, label, href }) => (
+          {navLinks.map(({ icon: Glyph, label, href }) => (
             <Link
               key={label}
               href={href}
               title={label}
-              className="flex w-full items-center justify-center gap-3 border-b border-white/10 px-3.5 py-3 text-[13px] text-[#bfe4d0] transition hover:bg-white/10 lg:justify-start">
-              <Icon className="shrink-0" />
+              data-nav-item
+              aria-current={isCurrent(href) ? "page" : undefined}
+              className={`group relative flex w-full items-center gap-3 rounded-control px-3.5 py-2.5 text-[13px] font-medium transition-colors lg:justify-start ${
+                isCurrent(href)
+                  ? "bg-white/15 text-white"
+                  : "text-rail-ink hover:bg-white/10 hover:text-white"
+              }`}>
+              {/* Accent rail marking the current page, kept to 2px so it reads
+                  as a marker rather than a block. */}
+              {isCurrent(href) ? (
+                <span
+                  aria-hidden="true"
+                  className="absolute left-0 top-1/2 h-4 w-0.5 -translate-y-1/2 rounded-full bg-accent-line"
+                />
+              ) : null}
+              <Icon icon={Glyph} tone="inverse" size={17} className="shrink-0" />
               <span className="sr-only lg:not-sr-only">{label}</span>
             </Link>
           ))}
         </nav>
 
-        <div className="mt-auto w-full border-t border-white/20 pt-[18px]">
+        <div className="mt-auto w-full border-t border-rail-line pt-4">
           <div className="relative" ref={profileRef}>
             <button
               type="button"
@@ -254,46 +460,49 @@ export function Sidebar({ student, adminMode = false }: SidebarProps) {
                 <img
                   src={student.profilePictureUrl}
                   alt={`${student.name} profile`}
-                  className="h-10 w-10 shrink-0 rounded-full border border-white/25 object-cover"
+                  className="h-10 w-10 shrink-0 rounded-full border border-rail-line object-cover"
                 />
               ) : (
-                <span className="grid h-10 w-10 shrink-0 place-items-center rounded-full border border-white/25 bg-white/10 font-mono text-[11px] font-bold text-[#e5faed]">
+                <span className="grid h-10 w-10 shrink-0 place-items-center rounded-full border border-rail-line bg-white/10 font-mono text-[11px] font-bold text-white">
                   {getInitials(student.name)}
                 </span>
               )}
               <span className="hidden min-w-0 flex-1 lg:block">
-                <strong className="block truncate text-[13px] text-white">
+                <strong className="block truncate text-[13px] font-semibold text-white">
                   {student.name}
                 </strong>
-                <span className="block truncate text-[11px] text-[#9fd8bd]">
+                <span className="block truncate text-[11px] text-rail-dim">
                   {student.section}
                 </span>
               </span>
-              <FiChevronDown
-                className={`hidden shrink-0 text-xs text-[#9fd8bd] transition-transform lg:block ${
-                  profileOpen ? "rotate-180" : ""
-                }`}
-                aria-hidden="true"
-              />
+              {/* The icon component does not forward refs, so the caret rotates
+                  via a wrapper span. */}
+              <span
+                ref={chevronRef}
+                className="hidden shrink-0 lg:inline-flex"
+                aria-hidden="true">
+                <Icon icon={Down} tone="inverse" size={13} />
+              </span>
             </button>
 
             {profileOpen ? (
               <div
+                ref={menuRef}
                 role="menu"
-                className="absolute bottom-full left-full z-50 mb-2 ml-2 w-60 overflow-hidden rounded-md border border-white/10 bg-[#0f5739] shadow-[0_18px_40px_rgba(5,35,25,.4)]">
-                <div className="border-b border-white/10 px-4 py-3">
-                  <strong className="block truncate text-sm text-white">
+                className="absolute bottom-full left-full z-50 mb-2 ml-2 w-60 overflow-hidden rounded-card border border-hairline bg-surface shadow-raised">
+                <div className="border-b border-rule px-4 py-3">
+                  <strong className="block truncate text-sm font-semibold text-ink">
                     {student.name}
                   </strong>
-                  <span className="mt-0.5 block truncate text-xs text-[#9fd8bd]">
+                  <span className="mt-0.5 block truncate text-xs text-muted">
                     {student.email}
                   </span>
                   {!adminMode && student.section ? (
-                    <span className="mt-1.5 block text-[11px] font-semibold text-[#5fd6a4]">
+                    <span className="mt-1.5 block text-[11px] font-semibold text-accent">
                       {student.section}
                       {student.studentNumber ? (
                         <>
-                          {" · "}#{student.studentNumber}
+                          {" Â· "}#{student.studentNumber}
                         </>
                       ) : null}
                     </span>
@@ -303,19 +512,21 @@ export function Sidebar({ student, adminMode = false }: SidebarProps) {
                   {!adminMode ? (
                     <Link
                       href="/onboarding"
+                      role="menuitem"
                       onClick={() => setProfileOpen(false)}
-                      className="flex w-full items-center gap-3 rounded-sm px-3 py-2.5 text-sm text-[#e5faed] transition-colors hover:bg-white/10">
-                      <FiUser className="text-[#5fd6a4]" />
+                      className="flex w-full items-center gap-3 rounded-control px-3 py-2 text-sm font-medium text-ink-soft transition-colors hover:bg-sunken">
+                      <Icon icon={User} tone="accent" size={16} className="shrink-0" />
                       My profile
                     </Link>
                   ) : null}
                   <button
                     type="button"
+                    role="menuitem"
                     disabled={loggingOut}
                     onClick={handleLogout}
-                    className="flex w-full items-center gap-3 rounded-sm px-3 py-2.5 text-sm text-[#ffd5d0] transition-colors hover:bg-white/10 disabled:opacity-50">
-                    <FiLogOut />
-                    {loggingOut ? "Logging out…" : "Log out"}
+                    className="flex w-full items-center gap-3 rounded-control px-3 py-2 text-sm font-medium text-rejected transition-colors hover:bg-rejected-soft disabled:opacity-50">
+                    <Icon icon={Logout} tone="rejected" size={16} className="shrink-0" />
+                    {loggingOut ? "Logging outâ€¦" : "Log out"}
                   </button>
                 </div>
               </div>

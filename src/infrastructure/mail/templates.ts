@@ -34,6 +34,18 @@ function toParagraphs(value: string): string {
     .join("");
 }
 
+/**
+ * Status pill and label colours for the email templates.
+ *
+ * Literal hex, because an email has no stylesheet to inherit from and no
+ * Tailwind to compile against — but the same four values as the app's
+ * `--color-*` tokens, inlined. They are written out rather than imported so a
+ * mail client never depends on a class it cannot resolve.
+ *
+ * Keep these in step with `app/globals.css`. "Processing" was blue here while
+ * the site had already moved to emerald, so a student's inbox disagreed with
+ * the page they were looking at.
+ */
 const statusMeta: Record<
   RequestStatus,
   {
@@ -44,23 +56,23 @@ const statusMeta: Record<
 > = {
   pending: {
     label: "Pending review",
-    pill: "#f7ecd2",
-    text: "#8a5e10",
+    pill: "#fbf3e4",
+    text: "#96690f",
   },
   processing: {
     label: "Being processed",
-    pill: "#e5f0fa",
-    text: "#17588f",
+    pill: "#e6f4ee",
+    text: "#0d7a5b",
   },
   completed: {
     label: "Completed",
-    pill: "#e1f2e9",
-    text: "#0c6d4b",
+    pill: "#e8f2ed",
+    text: "#0b6b4a",
   },
   rejected: {
     label: "Rejected",
-    pill: "#f9e6e3",
-    text: "#9a3a32",
+    pill: "#fbeeed",
+    text: "#a33f39",
   },
 };
 

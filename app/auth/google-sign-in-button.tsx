@@ -7,7 +7,7 @@ const ALLOWED_DOMAIN = "paterostechnologicalcollege.edu.ph";
 const GOOGLE_CLIENT_ID = process.env.NEXT_PUBLIC_GOOGLE_CLIENT_ID!;
 
 /**
- * Google OAuth 2.0 — Authorization Code Flow with PKCE (Step 1 of 4)
+ * Google OAuth 2.0 â€” Authorization Code Flow with PKCE (Step 1 of 4)
  *
  * This button initiates the OAuth 2.0 Authorization Code flow by redirecting
  * the user to Google's authorization server. The URL contains:
@@ -39,7 +39,7 @@ export function GoogleSignInButton() {
     const scope = "openid email profile";
     const url = `https://accounts.google.com/o/oauth2/v2/auth?client_id=${GOOGLE_CLIENT_ID}&redirect_uri=${encodeURIComponent(redirectUri)}&response_type=code&scope=${encodeURIComponent(scope)}&hd=${ALLOWED_DOMAIN}&prompt=select_account&state=${state}`;
 
-    // Show the spinner while leaving to Google — it stays up through the redirect.
+    // Show the spinner while leaving to Google â€” it stays up through the redirect.
     start();
     window.location.href = url;
   }

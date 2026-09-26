@@ -1,9 +1,11 @@
+import { cookies } from "next/headers";
 import { redirect } from "next/navigation";
 import { getSessionTokenUserId } from "@/src/server/session";
 import { userRepository } from "@/src/server/container";
 import { DashboardShell } from "./dashboard-shell";
 import { isAdminEmail } from "@/src/infrastructure/auth/admin-accounts";
 import { requestRepository } from "@/src/server/container";
+import { SPLASH_COOKIE } from "@/src/lib/auth/splash-cookie";
 
 export default async function DashboardPage() {
   const userId = await getSessionTokenUserId();
@@ -30,6 +32,11 @@ export default async function DashboardPage() {
       )
     : [];
 
+  // Decided here rather than in the student dashboard so the splash is part of
+  // the server-rendered HTML. See the note on SPLASH_COOKIE: a splash added
+  // after hydration covers a dashboard the student has already started reading.
+  const splashSeen = (await cookies()).get(SPLASH_COOKIE)?.value === "1";
+
   return (
     <DashboardShell
       student={{
@@ -41,6 +48,7 @@ export default async function DashboardPage() {
       }}
       requests={requests}
       userId={user.id}
+      showSplash={!splashSeen}
       adminData={admin ? { requests, students } : undefined}
     />
   );

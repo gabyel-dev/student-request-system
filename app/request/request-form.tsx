@@ -35,8 +35,8 @@ function SubmitButton({ editing }: { editing: boolean }) {
       className="mt-4 inline-flex min-h-12 w-full items-center justify-center bg-[#0c8f62] px-6 text-sm font-bold text-white transition hover:bg-[#087650] disabled:cursor-wait disabled:opacity-70 sm:w-auto sm:min-w-[12rem]">
       {pending
         ? editing
-          ? "Saving…"
-          : "Submitting…"
+          ? "Savingâ€¦"
+          : "Submittingâ€¦"
         : editing
           ? "Save changes"
           : "Submit request"}
@@ -213,7 +213,7 @@ export function RequestForm({
                 maxLength={500}
                 rows={4}
                 defaultValue={editingRequest?.notes ?? ""}
-                placeholder="Add details that will help staff understand your request — e.g. semester, section, subject, reason, etc."
+                placeholder="Add details that will help staff understand your request â€” e.g. semester, section, subject, reason, etc."
                 className="w-full border border-[#b8d4c6] bg-white px-4 py-3 text-sm text-[#17392d] outline-none transition placeholder:text-[#8aa79a] focus:border-[#0c8f62] focus:ring-2 focus:ring-[#0c8f62]/20"
               />
               <p className="mt-1 text-right text-[11px] text-[#8aa198]">

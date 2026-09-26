@@ -14,19 +14,13 @@ import {
   type MailActionState,
 } from "@/app/actions/mail";
 import { useToast } from "@/app/components/toaster";
+import { statusTone } from "../lib/request-utils";
 import type { StudentRequest, RequestStatus } from "@/src/domain/request";
 import type { User } from "@/src/domain/user";
 
 const initialState: MailActionState = { error: null, success: null };
 
 const ALL_SECTIONS = "__all__";
-
-const statusTone: Record<RequestStatus, string> = {
-  pending: "bg-[#b07b17]",
-  processing: "bg-[#1f6fb2]",
-  completed: "bg-[#087a54]",
-  rejected: "bg-[#b0423c]",
-};
 
 function buildSectionList(students: User[]): string[] {
   return [
@@ -126,7 +120,7 @@ export function EmailPanel({
               required
               className="w-full border border-[#cfddd5] bg-white px-3.5 py-2.5 text-sm text-[#14251d] outline-none transition-colors focus:border-[#087a54]">
               <option value="" disabled>
-                Choose a section…
+                Choose a sectionâ€¦
               </option>
               <option value={ALL_SECTIONS}>
                 All verified students
@@ -169,7 +163,7 @@ export function EmailPanel({
               required
               rows={7}
               maxLength={4000}
-              placeholder="Write the announcement the students will receive…"
+              placeholder="Write the announcement the students will receiveâ€¦"
               className="w-full resize-y border border-[#cfddd5] bg-white px-3.5 py-2.5 text-sm leading-relaxed text-[#14251d] outline-none transition-colors focus:border-[#087a54]"
             />
           </div>
@@ -305,7 +299,7 @@ function SendButton() {
       disabled={pending}
       className="inline-flex min-h-11 w-full items-center justify-center gap-2 bg-[#0c8f62] px-6 text-sm font-bold text-white transition hover:bg-[#087650] disabled:cursor-wait disabled:opacity-70 sm:w-auto sm:min-w-[12rem]">
       <FiSend className="text-sm" aria-hidden="true" />
-      {pending ? "Sending…" : "Send notification"}
+      {pending ? "Sendingâ€¦" : "Send notification"}
     </button>
   );
 }

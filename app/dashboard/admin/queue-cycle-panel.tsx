@@ -93,7 +93,7 @@ export function QueueCyclePanel({ requests }: { requests: StudentRequest[] }) {
           disabled={isPending || !hasActive}
           className="inline-flex items-center gap-2 rounded-full bg-[#087a54] px-4 py-2 text-[12px] font-bold text-white shadow-[0_8px_18px_rgba(8,122,84,.3)] transition hover:bg-[#066044] disabled:cursor-not-allowed disabled:opacity-50">
           <FiCheckSquare aria-hidden="true" />
-          {isPending ? "Completing…" : "Complete queue"}
+          {isPending ? "Completingâ€¦" : "Complete queue"}
         </button>
       </div>
 
@@ -187,7 +187,7 @@ function CompleteQueueDialog({
   isPending: boolean;
 }) {
   const points = [
-    `${recordCount} active request${recordCount === 1 ? "" : "s"} will be archived — nothing is deleted.`,
+    `${recordCount} active request${recordCount === 1 ? "" : "s"} will be archived â€” nothing is deleted.`,
     `The active queue counter of every section resets to 0.`,
     `New requests will start again at Queue 1 for each section.`,
     `Archived records remain accessible, grouped by section and date.`,
@@ -250,7 +250,7 @@ function CompleteQueueDialog({
             onClick={onConfirm}
             disabled={isPending}
             className="inline-flex items-center gap-2 rounded-full bg-[#087a54] px-4 py-2 text-[12px] font-bold text-white shadow-[0_8px_18px_rgba(8,122,84,.3)] transition hover:bg-[#066044] disabled:opacity-50">
-            {isPending ? "Completing…" : "Complete & archive"}
+            {isPending ? "Completingâ€¦" : "Complete & archive"}
           </button>
         </div>
       </div>

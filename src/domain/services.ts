@@ -8,32 +8,32 @@ export const services: ServiceDefinition[] = [
   {
     slug: "certificate-of-registration",
     title: "Certificate of Registration",
-    description: "Request your COR",
+    description: "Confirms your official enrollment for the current term.",
   },
   {
     slug: "transcript-of-records",
     title: "Transcript of Records",
-    description: "Request your TOR",
+    description: "Your complete list of courses and grades from past terms.",
   },
   {
     slug: "certificate-of-grades",
     title: "Certificate of Grades",
-    description: "Request your COG",
+    description: "A summary of the grades for one completed term.",
   },
   {
     slug: "grade-correction",
     title: "Grade Correction",
-    description: "Request a grade correction",
+    description: "Report a grade that needs to be corrected or removed.",
   },
   {
     slug: "subject-request",
     title: "Subject Request",
-    description: "Missing or wrong subjects in Google Classroom",
+    description: "A subject missing from or wrong in your Google Classroom.",
   },
   {
     slug: "others",
     title: "Others",
-    description: "Other requests — ask the registrar",
+    description: "Anything not listed here — ask the registrar.",
   },
 ];
 

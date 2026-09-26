@@ -1,0 +1,405 @@
+@import "tailwindcss";
+
+:root {
+  --background: #ffffff;
+  --foreground: #171717;
+}
+
+@theme inline {
+  --color-background: var(--background);
+  --color-foreground: var(--foreground);
+  --font-sans: var(--font-manrope);
+  --font-mono: var(--font-dm-mono);
+}
+
+@media (prefers-color-scheme: dark) {
+  :root {
+    --background: #0a0a0a;
+    --foreground: #ededed;
+  }
+}
+
+body {
+  background: var(--background);
+  color: var(--foreground);
+  font-family: var(--font-manrope), sans-serif;
+}
+
+@keyframes toast-in {
+  from {
+    opacity: 0;
+    transform: translateY(-8px) scale(0.97);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0) scale(1);
+  }
+}
+
+.google-button {
+  width: 40em;
+  height: 3em;
+  border-radius: 30em;
+  font-size: 15px;
+  font-family: inherit;
+  border: none;
+  position: relative;
+  overflow: hidden;
+  z-index: 1;
+  box-shadow:
+    6px 6px 12px #c5c5c5,
+    -6px -6px 12px #ffffff;
+}
+
+.google-button::before {
+  content: "";
+  width: 0;
+  height: 3em;
+  border-radius: 30em;
+  position: absolute;
+  top: 0;
+  left: 0;
+  background-image: linear-gradient(to right, #ffffff 0%, #ddfff4 100%);
+  transition: 1s ease;
+  display: block;
+  z-index: -1;
+}
+
+.google-button:hover::before {
+  width: 40em;
+}
+
+@media (min-width: 768px) {
+  .desktop-login {
+    background: #dff1e9;
+  }
+
+  .desktop-login__texture {
+    filter: blur(1px) saturate(0.72);
+    opacity: 0.26;
+    transform: scale(1.05);
+  }
+
+  .desktop-login__shade {
+    background: linear-gradient(
+      110deg,
+      rgba(5, 50, 38, 0.83),
+      rgba(20, 125, 88, 0.24) 58%,
+      rgba(206, 247, 225, 0.35)
+    );
+  }
+
+  .desktop-login__blob {
+    position: absolute;
+    border-radius: 999px;
+    filter: blur(3px);
+    opacity: 0.66;
+  }
+
+  .desktop-login__blob--one {
+    right: -8vw;
+    top: 13vh;
+    width: 32vw;
+    height: 58vh;
+    background: #9cdec0;
+    transform: rotate(34deg);
+  }
+
+  .desktop-login__blob--two {
+    bottom: -20vh;
+    left: 17vw;
+    width: 38vw;
+    height: 42vh;
+    background: #8ed4b5;
+    transform: rotate(-19deg);
+  }
+
+  .desktop-login__wave {
+    position: absolute;
+    left: -12vw;
+    width: 62vw;
+    border-radius: 0 0 48% 52% / 0 0 30% 28%;
+  }
+
+  .desktop-login__wave--back {
+    top: -25vh;
+    height: 82vh;
+    background: rgba(9, 92, 68, 0.92);
+    transform: rotate(-8deg);
+  }
+
+  .desktop-login__wave--front {
+    top: -16vh;
+    height: 66vh;
+    background: rgba(33, 164, 113, 0.82);
+    transform: rotate(8deg);
+  }
+
+  .desktop-login__card {
+    border: 1px solid rgba(255, 255, 255, 0.72);
+    border-radius: 30px;
+    background: rgba(245, 255, 250, 0.84);
+    box-shadow: 18px 24px 60px rgba(5, 45, 34, 0.24);
+    backdrop-filter: blur(20px);
+    transform: perspective(1200px) rotateY(-3deg) rotateX(1deg);
+  }
+
+  .desktop-login .google-button {
+    width: 100%;
+    height: 3.35rem;
+    border: 1px solid rgba(255, 255, 255, 0.76);
+    background: rgba(255, 255, 255, 0.62);
+    box-shadow: 0 8px 20px rgba(30, 105, 78, 0.12);
+    color: #28554a;
+  }
+
+  .desktop-login .google-button::before {
+    height: 3.35rem;
+    background: linear-gradient(
+      to right,
+      rgba(255, 255, 255, 0.72),
+      rgba(221, 255, 244, 0.84)
+    );
+  }
+
+  .desktop-login .google-button:hover::before {
+    width: 100%;
+  }
+
+  .desktop-login__footer {
+    min-height: 64px;
+    background: #13845f;
+    clip-path: ellipse(34% 95% at 50% 100%);
+  }
+}
+
+/* ==================== Student dashboard (itikQ) skin ==================== */
+
+.dash-hero {
+  position: relative;
+  background: #09201e;
+}
+
+.dash-hero__texture {
+  position: absolute;
+  inset: 0;
+  height: 100%;
+  width: 100%;
+  object-fit: cover;
+  filter: blur(1px) saturate(0.68);
+  opacity: 0.22;
+  transform: scale(1.05);
+}
+
+.dash-hero__shade {
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(
+    110deg,
+    rgba(5, 50, 38, 0.86),
+    rgba(21, 128, 90, 0.3) 55%,
+    rgba(206, 247, 225, 0.16)
+  );
+}
+
+.dash-hero__wave {
+  position: absolute;
+  left: -12vw;
+  width: 64vw;
+  border-radius: 0 0 48% 52% / 0 0 32% 30%;
+}
+
+.dash-hero__wave--back {
+  top: -16vh;
+  height: 36vh;
+  background: rgba(9, 92, 68, 0.92);
+  transform: rotate(-8deg);
+}
+
+.dash-hero__wave--front {
+  top: -10vh;
+  height: 28vh;
+  background: rgba(36, 173, 119, 0.78);
+  transform: rotate(8deg);
+}
+
+.dash-hero__blob {
+  position: absolute;
+  border-radius: 999px;
+  filter: blur(3px);
+  opacity: 0.5;
+}
+
+.dash-hero__blob--one {
+  right: -3vw;
+  top: -4vh;
+  width: 30vw;
+  height: 52vh;
+  background: #1f9c6d;
+  transform: rotate(34deg);
+}
+
+.dash-hero__blob--two {
+  bottom: -14vh;
+  left: 8vw;
+  width: 34vw;
+  height: 42vh;
+  background: #54c795;
+  transform: rotate(-19deg);
+}
+
+.dash-glass {
+  border: 1px solid rgba(255, 255, 255, 0.78);
+  background: rgba(247, 255, 251, 0.88);
+  box-shadow: 18px 24px 70px rgba(0, 0, 0, 0.4);
+  backdrop-filter: blur(20px);
+}
+
+.dash-skew {
+  transform: perspective(1200px) rotateY(-3deg) rotateX(1deg);
+  transition: transform 0.45s ease;
+}
+
+.dash-skew:hover {
+  transform: perspective(1400px) rotateY(-1deg) rotateX(0.5deg);
+}
+
+.dash-tilt {
+  transform: perspective(900px) rotateY(0deg) rotateX(0deg);
+  transition: transform 0.35s ease;
+}
+
+.dash-tilt--left {
+  transform: perspective(900px) rotateY(-1.6deg) rotateX(0.6deg);
+}
+
+.dash-tilt--right {
+  transform: perspective(900px) rotateY(1.6deg) rotateX(0.6deg);
+}
+
+.dash-tilt:hover {
+  transform: perspective(900px) rotateY(0deg) rotateX(0deg);
+}
+
+@keyframes dash-progress-shine {
+  from {
+    transform: translateX(-120%) skewX(-12deg);
+  }
+  to {
+    transform: translateX(420%) skewX(-12deg);
+  }
+}
+
+.dash-progress {
+  position: relative;
+  overflow: hidden;
+}
+
+.dash-progress--active::after {
+  content: "";
+  position: absolute;
+  top: 0;
+  bottom: 0;
+  left: 0;
+  width: 45%;
+  background: linear-gradient(
+    90deg,
+    transparent,
+    rgba(255, 255, 255, 0.65),
+    transparent
+  );
+  animation: dash-progress-shine 2.4s ease-in-out infinite;
+}
+
+@media (max-width: 767px) {
+  .mobile-login {
+    background: #dff1e9;
+  }
+
+  .mobile-login__texture {
+    filter: blur(5px) saturate(0.7);
+    opacity: 0.17;
+    transform: scale(1.08);
+  }
+
+  .mobile-login__blob {
+    position: absolute;
+    border-radius: 999px;
+    filter: blur(2px);
+    opacity: 0.55;
+  }
+
+  .mobile-login__blob--one {
+    top: 220px;
+    left: -70px;
+    width: 190px;
+    height: 250px;
+    background: #bce8d2;
+    transform: rotate(28deg);
+  }
+
+  .mobile-login__blob--two {
+    right: -88px;
+    bottom: 105px;
+    width: 210px;
+    height: 285px;
+    background: #a4ddc1;
+    transform: rotate(-25deg);
+  }
+
+  .mobile-login__wave {
+    position: absolute;
+    left: -14%;
+    width: 128%;
+    border-radius: 0 0 48% 52% / 0 0 35% 30%;
+    transform: rotate(-3deg);
+  }
+
+  .mobile-login__wave--back {
+    top: -70px;
+    height: 224px;
+    background: #0d6951;
+    transform: rotate(5deg);
+  }
+
+  .mobile-login__wave--middle {
+    top: -58px;
+    height: 310px;
+    background: #16936c;
+    transform: rotate(-4deg);
+  }
+
+  .mobile-login__wave--front {
+    top: -40px;
+    height: 300px;
+    background: #54c795;
+    transform: rotate(10deg);
+  }
+
+  .mobile-login .google-button {
+    width: 100%;
+    height: 3.35rem;
+    border: 1px solid rgba(255, 255, 255, 0.75);
+    background: rgba(255, 255, 255, 0.58);
+    box-shadow: 0 8px 20px rgba(30, 105, 78, 0.12);
+    color: #28554a;
+  }
+
+  .mobile-login .google-button::before {
+    height: 3.35rem;
+    background: linear-gradient(
+      to right,
+      rgba(255, 255, 255, 0.72),
+      rgba(221, 255, 244, 0.84)
+    );
+  }
+
+  .mobile-login .google-button:hover::before {
+    width: 100%;
+  }
+
+  .mobile-login__footer {
+    background: #13845f;
+    clip-path: ellipse(92% 88% at 22% 100%);
+  }
+}

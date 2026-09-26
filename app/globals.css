@@ -1,5 +1,14 @@
 @import "tailwindcss";
 
+/* The design-history snapshots under `backup/` are full copies of the old UI,
+   and Tailwind's automatic content detection walks them. Every class they
+   mention is therefore compiled into the shipped stylesheet even though nothing
+   renders it — which is both dead weight and a trap: the retired blue status
+   colours were still present in the built CSS long after they were gone from
+   the source, so grepping the build to confirm a colour change gave the wrong
+   answer. Paths are relative to this file. */
+@source not "../backup";
+
 :root {
   --background: #ffffff;
   --foreground: #171717;
@@ -10,6 +19,84 @@
   --color-foreground: var(--foreground);
   --font-sans: var(--font-manrope);
   --font-mono: var(--font-dm-mono);
+}
+
+/* ------------------------------------------------------------------ *
+ * itikQ dashboard tokens
+ *
+ * A quiet administrative palette: a near-neutral ground, white surfaces,
+ * hairline rules, three steps of ink, and a single emerald accent. The
+ * UI is written against these names (`bg-surface`, `text-muted`,
+ * `border-hairline`) so no hex value is scattered through components.
+ *
+ * Restraint is the point. Two radii, two shadows, one accent. Request
+ * status is the only place colour carries meaning, and it is always
+ * paired with a written label so state is never colour-alone.
+ * ------------------------------------------------------------------ */
+@theme {
+  /* Surfaces */
+  --color-ground: #f3f5f4;
+  --color-surface: #ffffff;
+  --color-sunken: #f8faf9;
+
+  /* Lines */
+  --color-rule: #e6eae8;
+  --color-hairline: #dbe1de;
+  --color-rule-strong: #d5dcd9;
+
+  /* Ink */
+  --color-ink: #16211c;
+  --color-ink-soft: #43524b;
+  --color-muted: #6a7871;
+
+  /* Accent - the only interactive colour in the system */
+  --color-accent: #0b6b4a;
+  --color-accent-hover: #085539;
+  --color-accent-soft: #e8f2ed;
+  --color-accent-line: #bcd7c9;
+
+  /* Chrome - the navigation rail, the one dark surface in the product */
+  --color-rail: #123a2c;
+  --color-rail-line: rgba(255, 255, 255, 0.1);
+  --color-rail-ink: #c3ddd0;
+  --color-rail-dim: #86ab9a;
+
+  /* Hero atmosphere. The requesting hero is the only place in the product
+     that is allowed to be dark and saturated, so its colours are named here
+     rather than mixed inline. Kept as three mesh stops plus two inks: enough
+     for depth, not a palette to browse. */
+  --color-mesh-deep: #06281c;
+  --color-mesh-mid: #0b3a28;
+  --color-mesh-bright: #14a06f;
+  --color-hero-ink: #eaf7f0;
+  --color-hero-ink-soft: rgba(234, 247, 240, 0.74);
+  --color-glass-line: rgba(255, 255, 255, 0.22);
+
+  /* Request status */
+  --color-pending: #96690f;
+  --color-pending-soft: #fbf3e4;
+  --color-processing: #0d7a5b;
+  --color-processing-soft: #e6f4ee;
+  --color-completed: #0b6b4a;
+  --color-completed-soft: #e8f2ed;
+  --color-rejected: #a33f39;
+  --color-rejected-soft: #fbeeed;
+
+  /* Radius - two values for controls and cards, plus the tile. The tile is
+     the hero and the grouped service panel: the only two objects on the page
+     large enough to need their own corner. */
+  --radius-control: 8px;
+  --radius-card: 10px;
+  --radius-tile: 14px;
+
+  /* Depth - a hairline for resting surfaces, one soft lift for the few
+     things that genuinely float (menus, dialogs), a barely-there shadow for
+     tiles, and the hero's cast shadow so the dark panel sits above the
+     ground rather than on it. */
+  --shadow-card: 0 1px 2px rgba(16, 33, 26, 0.06);
+  --shadow-raised: 0 4px 14px -4px rgba(16, 33, 26, 0.12);
+  --shadow-tile: 0 1px 3px rgba(6, 40, 28, 0.05), 0 10px 28px -18px rgba(6, 40, 28, 0.22);
+  --shadow-hero: 0 28px 64px -34px rgba(6, 40, 28, 0.6);
 }
 
 @media (prefers-color-scheme: dark) {
@@ -401,5 +488,228 @@ body {
   .mobile-login__footer {
     background: #13845f;
     clip-path: ellipse(92% 88% at 22% 100%);
+  }
+}
+
+/* ==================== Student dashboard atmosphere ====================
+ *
+ * The hero is the one place in the product with atmosphere, so the effects
+ * that produce it live together here instead of being scattered through the
+ * component. Everything is decorative and `aria-hidden` at the call site.
+ *
+ * These are the only decorative layers in the codebase. If something else
+ * needs depth, it should get a hairline and whitespace rather than a new
+ * effect here.
+ */
+
+/* Layered emerald ground: three radial pools over a vertical wash. The pools
+   are wide and soft so the surface reads as lit rather than patterned. */
+.sd-mesh {
+  background-color: var(--color-mesh-deep);
+  background-image:
+    radial-gradient(120% 90% at 12% 6%, rgba(20, 160, 111, 0.55) 0%, transparent 55%),
+    radial-gradient(90% 80% at 88% 2%, rgba(8, 122, 84, 0.5) 0%, transparent 58%),
+    radial-gradient(120% 120% at 68% 112%, rgba(13, 74, 51, 0.95) 0%, transparent 62%),
+    linear-gradient(180deg, var(--color-mesh-mid) 0%, var(--color-mesh-deep) 100%);
+}
+
+/* Drifting glow. GSAP translates these on a long linear loop, so the motion
+   reads as a slow current rather than a pulse. */
+.sd-orb {
+  position: absolute;
+  border-radius: 9999px;
+  filter: blur(58px);
+  pointer-events: none;
+  will-change: transform;
+}
+.sd-orb--a {
+  width: 26rem;
+  height: 26rem;
+  top: -9rem;
+  left: -7rem;
+  background: radial-gradient(circle, rgba(52, 211, 153, 0.72), transparent 70%);
+}
+.sd-orb--b {
+  width: 20rem;
+  height: 20rem;
+  top: 1rem;
+  right: -5rem;
+  background: radial-gradient(circle, rgba(16, 185, 129, 0.58), transparent 70%);
+}
+.sd-orb--c {
+  width: 30rem;
+  height: 30rem;
+  bottom: -16rem;
+  left: 28%;
+  background: radial-gradient(circle, rgba(13, 148, 136, 0.5), transparent 70%);
+}
+
+/* Once the WebGL field is running it draws the same pools of light, so the CSS
+   ones would only double up and muddy it. `HeroCanvas` sets `data-webgl` on the
+   hero section just before it fades in, which means the orbs are already gone by
+   the time any WebGL pixel is visible — no pop, and a plain no-WebGL client
+   never sees this rule apply. The grain and the grid stay either way: the grain
+   is what keeps the gradient off the banding threshold, and the field has no
+   equivalent. */
+[data-webgl="on"] .sd-orb {
+  display: none;
+}
+
+/* Faint engineering grid, masked away from the centre so it only shows near
+   the edges where it gives the flat area some structure. */
+.sd-mesh-grid {
+  position: absolute;
+  inset: 0;
+  background-image:
+    linear-gradient(90deg, rgba(255, 255, 255, 0.06) 1px, transparent 1px),
+    linear-gradient(rgba(255, 255, 255, 0.06) 1px, transparent 1px);
+  background-size: 56px 56px;
+  -webkit-mask-image: radial-gradient(125% 100% at 50% 0, #000 18%, transparent 76%);
+  mask-image: radial-gradient(125% 100% at 50% 0, #000 18%, transparent 76%);
+}
+
+/* Film grain. Breaks up the gradient banding that large dark washes show on
+   8-bit displays; `overlay` blending keeps it from lifting the blacks. */
+.sd-grain {
+  position: absolute;
+  inset: 0;
+  opacity: 0.15;
+  mix-blend-mode: overlay;
+  pointer-events: none;
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='180' height='180'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.85' numOctaves='3' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='180' height='180' filter='url(%23n)' opacity='0.5'/%3E%3C/svg%3E");
+  background-size: 180px 180px;
+}
+
+/* Glass panel. The blur and saturation lift are what make the hero's copy
+   hold up against the moving mesh behind it. */
+.sd-glass {
+  border: 1px solid var(--color-glass-line);
+  background: linear-gradient(150deg, rgba(255, 255, 255, 0.17), rgba(255, 255, 255, 0.05));
+  -webkit-backdrop-filter: blur(18px) saturate(150%);
+  backdrop-filter: blur(18px) saturate(150%);
+}
+
+/* Cursor spotlight. Only mounted for devices with a fine pointer. */
+.sd-spotlight {
+  position: absolute;
+  width: 34rem;
+  height: 34rem;
+  margin: -17rem 0 0 -17rem;
+  border-radius: 9999px;
+  background: radial-gradient(circle, rgba(255, 255, 255, 0.11), transparent 62%);
+  pointer-events: none;
+  will-change: transform;
+}
+
+/* A raised surface: one border, one radius, one shadow. Grouped content uses
+   this for the whole group and separates cells with 1px gaps, so a list of
+   six items reads as one object rather than six cards. */
+.sd-panel {
+  background: var(--color-surface);
+  border: 1px solid var(--color-hairline);
+  border-radius: var(--radius-tile);
+  box-shadow: var(--shadow-tile);
+  overflow: hidden;
+}
+
+/* A single pass of light across a cell on hover. Transform-only, so it
+   composites without touching layout. */
+.sd-sweep::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  background: linear-gradient(100deg, transparent 18%, rgba(8, 122, 84, 0.08) 50%, transparent 82%);
+  transform: translateX(-100%);
+  transition: transform 0.55s cubic-bezier(0.22, 1, 0.36, 1);
+}
+.sd-sweep:hover::after,
+.sd-sweep:focus-within::after {
+  transform: translateX(100%);
+}
+
+/* The one looping animation outside the admin queue: a slow ring on the
+   hero's queue count, so a student can see there is something in flight
+   without the page announcing it in words. */
+@keyframes sd-pulse {
+  0%,
+  100% {
+    box-shadow: 0 0 0 0 rgba(8, 122, 84, 0.4);
+  }
+  70% {
+    box-shadow: 0 0 0 6px rgba(8, 122, 84, 0);
+  }
+}
+.sd-pulse {
+  animation: sd-pulse 2.2s ease-in-out infinite;
+}
+
+/* ==================== Dashboard foundations ====================
+ *
+ * Intentionally short. Layout is built from alignment, hairlines and
+ * whitespace; CSS here only covers what is genuinely global.
+ */
+
+/* One focus treatment for every interactive element. Per-component
+   `focus-visible:` rings get missed, and a screen full of hairline rules
+   needs a clearly visible keyboard affordance. */
+:where(a, button, input, select, textarea, summary, [role="button"]):focus-visible {
+  outline: 2px solid var(--color-accent);
+  outline-offset: 2px;
+  border-radius: 3px;
+}
+
+/* The rail is the one dark surface, so its focus ring inverts to stay
+   visible against it. */
+.sd-rail :where(a, button, [role="button"]):focus-visible {
+  outline-color: #7fd8b0;
+}
+
+::selection {
+  background: var(--color-accent-soft);
+  color: var(--color-ink);
+}
+
+html {
+  /* Reserves the scrollbar so opening the mobile drawer cannot shift the
+     content sideways. */
+  scrollbar-gutter: stable;
+  scrollbar-color: var(--color-rule-strong) transparent;
+}
+
+::-webkit-scrollbar {
+  width: 10px;
+  height: 10px;
+}
+::-webkit-scrollbar-track {
+  background: transparent;
+}
+::-webkit-scrollbar-thumb {
+  background: var(--color-rule-strong);
+  border: 3px solid var(--color-ground);
+  border-radius: 999px;
+}
+::-webkit-scrollbar-thumb:hover {
+  background: var(--color-hairline);
+}
+
+/* Entrance states are set by GSAP in a layout effect, never here, so the
+   server-rendered HTML stays fully visible when JavaScript is slow or the
+   animation chunk fails to load. */
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    transition-duration: 0.01ms !important;
+    transition-delay: 0ms !important;
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    scroll-behavior: auto !important;
+  }
+
+  /* The admin queue indicator reports system state rather than decorating,
+     so it keeps its one non-essential animation. */
+  .dash-progress--active::after {
+    animation: none !important;
   }
 }

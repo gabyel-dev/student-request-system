@@ -56,7 +56,7 @@ export function AdminDashboard({
 
   const { requests, isLive } = useRealtimeRequests({
     initialRequests,
-    // Admins watch the whole table — every student request flows in live.
+    // Admins watch the whole table â€” every student request flows in live.
     filter: undefined,
     resolveUser,
   });
@@ -191,7 +191,7 @@ export function AdminDashboard({
               </span>
             </h1>
             <p className="mt-2 text-sm leading-5 text-[#52706a] sm:mt-3 sm:text-[15px] sm:leading-6">
-              Review, process, and track student document requests — or send
+              Review, process, and track student document requests â€” or send
               section-wide updates.
             </p>
             <div className="mt-5 flex flex-wrap items-center gap-2.5 sm:mt-6 sm:gap-3">

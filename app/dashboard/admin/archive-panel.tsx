@@ -209,7 +209,7 @@ function DateGroup({
                     {studentNumberByEmail.get(
                       request.studentEmail.toLowerCase(),
                     )
-                      ? ` · ${studentNumberByEmail.get(
+                      ? ` Â· ${studentNumberByEmail.get(
                           request.studentEmail.toLowerCase(),
                         )}`
                       : ""}
@@ -240,7 +240,7 @@ function DateGroup({
                     Completed {
                       request.archivedAt
                         ? formatTime(request.archivedAt)
-                        : "—"
+                        : "â€”"
                     }
                   </span>
                 </span>

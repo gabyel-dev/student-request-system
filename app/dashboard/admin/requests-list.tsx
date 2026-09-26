@@ -34,14 +34,14 @@ function lookupStudentNumber(context: RequestListContext, email: string) {
   return context.emailMaps.studentNumberByEmail.get(email.toLowerCase()) ?? null;
 }
 
-/** Human-range label for a student's queue numbers, e.g. "#001–#003". */
+/** Human-range label for a student's queue numbers, e.g. "#001â€“#003". */
 function queueRangeLabel(requests: StudentRequest[]): string {
   const queues = requests
     .map((request) => request.queueNumber)
     .sort((a, b) => a - b);
   const first = String(queues[0]).padStart(3, "0");
   const last = String(queues[queues.length - 1]).padStart(3, "0");
-  return queues.length > 1 && first !== last ? `#${first}–#${last}` : `#${first}`;
+  return queues.length > 1 && first !== last ? `#${first}â€“#${last}` : `#${first}`;
 }
 
 /** Desktop-only table with expandable detail rows. */

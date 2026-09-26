@@ -1,18 +1,14 @@
 "use client";
 
-import Link from "next/link";
 import { useMemo } from "react";
-import {
-  FiArrowUpRight,
-  FiCheckCircle,
-  FiClock,
-  FiLayers,
-  FiPlus,
-} from "react-icons/fi";
-import { DuckMascot } from "./duck-mascot";
+import { DashboardHeader } from "./dashboard-header";
+import { HowItWorks } from "./how-it-works";
 import { QuickActions } from "./quick-actions";
 import { RecentActivity } from "./recent-activity";
+import { RequestHero } from "./hero";
+import { ScrollProgress } from "./scroll-progress";
 import { StudentDetails } from "./student-details";
+import { isInFlight } from "./status-pill";
 import { useRealtimeRequests } from "../lib/use-realtime-requests";
 import type { Student } from "../types";
 import type { StudentRequest } from "@/src/domain/request";
@@ -21,6 +17,28 @@ function getFirstName(name: string) {
   return name.trim().split(/\s+/)[0] ?? name;
 }
 
+/**
+ * The student home, ordered by the one job it exists for: follow a request, and
+ * start the next one.
+ *
+ *   hero          who and where the request stands, above the fold
+ *   requests      what is in flight — the reason to come back to this page
+ *   services      choose the document to request next
+ *   how it works  what happens next, stated once
+ *   strip         profile and totals, demoted to a reference bar
+ *
+ * The tracker used to sit below the services grid and the explainer. That made
+ * the page read as a brochure that also had a list on it: a returning student
+ * had to scroll past two sections of setup to reach the queue number they came
+ * for. It is now second, directly under the hero.
+ *
+ * The hero owns the atmosphere and the request panel owns the elevation;
+ * everything between them is deliberately quiet so those two read as the peaks.
+ *
+ * The page does not display the Realtime connection state. The hook stays
+ * wired up because the list genuinely updates by itself, but a student cares
+ * that their request moved, not which transport moved it.
+ */
 export function StudentDashboard({
   student,
   userId,
@@ -31,15 +49,15 @@ export function StudentDashboard({
   requests: StudentRequest[];
 }) {
   // Realtime keeps this dashboard in sync with the student's own requests:
-  // it seeds from the server-rendered list, then applies live changes as they
+  // it seeds from the server-rendered list, then applies changes as they
   // happen (e.g. the registrar marks a request "completed" -> the tracker and
-  // counts below update instantly).
+  // the hero's queue count update instantly).
   const resolveUser = useMemo(
     () => () => ({ fullName: student.name, email: student.email }),
     [student.name, student.email],
   );
 
-  const { requests, isLive } = useRealtimeRequests({
+  const { requests } = useRealtimeRequests({
     initialRequests,
     // Students only receive events for rows belonging to them.
     // (For admins, this filter is omitted so all requests come through.)
@@ -47,109 +65,62 @@ export function StudentDashboard({
     resolveUser,
   });
 
-  const active = requests.filter(
-    (request) =>
-      !request.archivedAt &&
-      (request.status === "pending" || request.status === "processing"),
-  ).length;
-  const completed = requests.filter(
-    (request) => request.status === "completed",
-  ).length;
+  // One pass for both figures, so the hero's summary and the tracker's split
+  // can never disagree about what is in flight.
+  const { active, completed, featured } = useMemo(() => {
+    let activeCount = 0;
+    let completedCount = 0;
+    let newestOpen: StudentRequest | undefined;
 
-  const overview = [
-    {
-      label: "Total requests",
-      value: requests.length,
-      icon: FiLayers,
-      tilt: "dash-tilt--left",
-    },
-    { label: "Active in queue", value: active, icon: FiClock, tilt: "" },
-    {
-      label: "Completed",
-      value: completed,
-      icon: FiCheckCircle,
-      tilt: "dash-tilt--right",
-    },
-  ];
+    for (const request of requests) {
+      if (request.status === "completed") completedCount += 1;
+      if (!isInFlight(request.status) || request.archivedAt) continue;
+      activeCount += 1;
+      // Newest of the open ones, so the hero promotes the request a student
+      // most likely came back for rather than whichever row landed first.
+      if (
+        !newestOpen ||
+        Date.parse(request.createdAt) > Date.parse(newestOpen.createdAt)
+      ) {
+        newestOpen = request;
+      }
+    }
+
+    return {
+      active: activeCount,
+      completed: completedCount,
+      featured: newestOpen
+        ? {
+            queueNumber: newestOpen.queueNumber,
+            documentType: newestOpen.documentType,
+            status: newestOpen.status,
+          }
+        : undefined,
+    };
+  }, [requests]);
 
   return (
-    <div className="space-y-4 sm:space-y-8">
-      <section className="dash-hero relative overflow-hidden rounded-tr-4xl rounded-bl-4xl shadow-[0_24px_60px_rgba(5,45,34,.16)]">
-        <img
-          src="/bg.webp"
-          alt=""
-          aria-hidden="true"
-          className="dash-hero__texture pointer-events-none"
-        />
-        <div className="dash-hero__shade pointer-events-none" />
-        <div className="dash-hero__wave dash-hero__wave--back" />
-        <div className="dash-hero__wave dash-hero__wave--front" />
-        <div className="dash-hero__blob dash-hero__blob--one" />
-        <div className="dash-hero__blob dash-hero__blob--two" />
+    <div className="flex flex-col gap-14 pt-14 lg:gap-16">
+      <ScrollProgress />
+      <DashboardHeader />
 
-        <DuckMascot />
+      <RequestHero
+        firstName={getFirstName(student.name)}
+        activeCount={active}
+        featured={featured}
+      />
 
-        <div className="relative z-10 px-4 py-6 sm:px-9 sm:py-12 lg:pr-52 lg:pl-12 xl:pr-60">
-          <div className="dash-glass z-20 rounded-tr-3xl rounded-bl-3xl  dash-skew relative max-w-lg px-5 py-6 sm:px-8 sm:py-9">
-            <span className="absolute -top-3.5 left-8 rounded-full border border-white/70 bg-[#087a54] px-3.5 py-1.5 text-[10px] font-bold uppercase tracking-[0.16em] text-white shadow-[0_6px_14px_rgba(8,122,84,.35)]">
-              Itik Q
-            </span>
-            <h1 className="text-[22px] font-bold leading-[1.12] tracking-[-0.045em] text-[#123b32] sm:text-[36px]">
-              Hello, {getFirstName(student.name)}.
-              <span className="block font-medium text-[#4a7a6a]">
-                How can we help today?
-              </span>
-            </h1>
-            <p className="mt-2 text-sm leading-5 text-[#52706a] sm:mt-3 sm:text-[15px] sm:leading-6">
-              Start a new request, or follow along below as it moves through the
-              queue.
-            </p>
-            <div className="mt-5 flex flex-wrap items-center gap-2.5 sm:mt-6 sm:gap-3">
-              <Link
-                href="/request"
-                className="group inline-flex items-center gap-2 rounded-full bg-[#087a54] px-5 py-2.5 text-[13px] font-bold text-white shadow-[0_10px_24px_rgba(8,122,84,.35)] transition hover:bg-[#066044] sm:px-6 sm:py-3 sm:text-sm">
-                <FiPlus className="text-[14px] sm:text-[15px]" />
-                Start a request
-              </Link>
-              <Link
-                href="#requests"
-                className="inline-flex items-center gap-2 rounded-full border border-[#0d6951]/25 bg-white/50 px-5 py-2.5 text-[13px] font-bold text-[#24574a] backdrop-blur transition hover:border-[#0d6951]/40 hover:bg-white/80 sm:px-6 sm:py-3 sm:text-sm">
-                Track requests
-                <FiArrowUpRight className="text-lg transition-transform group-hover:translate-x-0.5" />
-              </Link>
-            </div>
-          </div>
-        </div>
-      </section>
-      <div className="flex w-full flex-col gap-4 min-w-0  lg:flex-row md:items-stretch lg:gap-1">
-        <section className="min-w-0">
-          <section className="grid gap-1 grid-cols-1 md:grid-cols-1 lg:grid-cols-3 w-full pb-1">
-            {overview.map(({ label, value, icon: Icon, tilt }, index) => (
-              <div
-                key={label}
-                className={`dash-glass ${index === 0 ? "lg:rounded-tl-4xl" : ""} dash-tilt flex items-center gap-3 px-4 py-4 sm:gap-4 sm:px-5 sm:py-5 ${tilt}`}>
-                <span className="grid h-10 w-10 shrink-0 place-items-center rounded-2xl bg-gradient-to-br from-[#e3f5ee] to-[#cdeeda] text-[#087a54] sm:h-11 sm:w-11">
-                  <Icon className="text-lg sm:text-xl" />
-                </span>
-                <span>
-                  <strong className="block text-xl font-bold tabular-nums tracking-tight text-[#123b32] sm:text-2xl">
-                    {value}
-                  </strong>
-                  <span className="text-[11px] font-semibold text-[#5d6f66] sm:text-xs">
-                    {label}
-                  </span>
-                </span>
-              </div>
-            ))}
-          </section>
+      <RecentActivity requests={requests} />
 
-          <QuickActions />
-        </section>
+      <QuickActions />
+      <HowItWorks />
 
-        <RecentActivity requests={requests} isLive={isLive} />
-      </div>
-
-      <StudentDetails student={student} />
+      <StudentDetails
+        student={student}
+        total={requests.length}
+        active={active}
+        completed={completed}
+      />
     </div>
   );
 }
