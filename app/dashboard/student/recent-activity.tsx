@@ -16,6 +16,11 @@ import { ConfirmDialog } from "./confirm-dialog";
 import { StatusPill, isInFlight } from "./status-pill";
 import { gsap } from "../lib/motion";
 import {
+  APP_TIME_ZONE,
+  formatDateTime as formatSharedDateTime,
+  parseDatabaseDate,
+} from "../lib/format";
+import {
   useGsapContext,
   useIsomorphicLayoutEffect,
   usePressFeedback,
@@ -461,27 +466,20 @@ function Detail({ label, value }: { label: string; value: string }) {
 }
 
 const DATE_FORMAT = new Intl.DateTimeFormat("en-PH", {
+  timeZone: APP_TIME_ZONE,
   day: "numeric",
   month: "short",
   year: "numeric",
-});
-
-const DATE_TIME_FORMAT = new Intl.DateTimeFormat("en-PH", {
-  day: "numeric",
-  month: "short",
-  year: "numeric",
-  hour: "numeric",
-  minute: "2-digit",
 });
 
 function formatDate(value: string) {
-  const date = new Date(value);
+  const date = parseDatabaseDate(value);
   return Number.isNaN(date.getTime()) ? "recently" : DATE_FORMAT.format(date);
 }
 
 function formatDateTime(value: string) {
-  const date = new Date(value);
-  return Number.isNaN(date.getTime()) ? "—" : DATE_TIME_FORMAT.format(date);
+  const formatted = formatSharedDateTime(value);
+  return formatted === "Date unavailable" ? "—" : formatted;
 }
 
 function EmptyState() {

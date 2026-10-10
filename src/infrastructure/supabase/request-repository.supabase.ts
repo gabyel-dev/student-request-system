@@ -170,9 +170,7 @@ export function createRequestRepository() {
       return count ?? 0;
     },
 
-    async findLastByUser(
-      userId: string,
-    ): Promise<StudentRequest | null> {
+    async findLastByUser(userId: string): Promise<StudentRequest | null> {
       const { data, error } = await client
         .from("requests")
         .select(requestSelect)
@@ -195,11 +193,12 @@ export function createRequestRepository() {
      * `section` is null is part of the cycle too), so this can never silently
      * no-op.
      */
-    async archiveActiveQueue() {
+    async archiveActiveQueue(statuses: RequestStatus[]): Promise<void> {
       const { error } = await client
         .from("requests")
         .update({ archived_at: new Date().toISOString() })
-        .is("archived_at", null);
+        .is("archived_at", null)
+        .in("status", statuses);
 
       if (error) throw error;
     },

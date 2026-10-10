@@ -2,6 +2,7 @@ import { redirect } from "next/navigation";
 import { isAdminEmail } from "@/src/infrastructure/auth/admin-accounts";
 import { requestRepository, userRepository } from "@/src/server/container";
 import { getSessionTokenUserId } from "@/src/server/session";
+import { getStartOfTodayInAppTimeZone } from "@/app/dashboard/lib/format";
 import { BackToDashboard, ServiceOptions } from "./service-options";
 
 const DAILY_LIMIT = 5;
@@ -16,8 +17,7 @@ export default async function RequestIndexPage() {
   if (!user.section || user.studentNumber === null) redirect("/onboarding");
 
   const requests = await requestRepository.findByUserId(userId);
-  const today = new Date();
-  today.setHours(0, 0, 0, 0);
+  const today = getStartOfTodayInAppTimeZone();
   const todayCount = requests.filter(
     (r) => new Date(r.createdAt).getTime() >= today.getTime(),
   ).length;

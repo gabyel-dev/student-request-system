@@ -3,19 +3,22 @@
 import { useMemo, useState } from "react";
 import { FiCalendar, FiChevronDown, FiChevronRight } from "react-icons/fi";
 import type { StudentRequest } from "@/src/domain/request";
+import { APP_TIME_ZONE, parseDatabaseDate } from "../lib/format";
 
 function formatArchiveDate(value: string): string {
   return new Intl.DateTimeFormat("en-US", {
+    timeZone: APP_TIME_ZONE,
     month: "long",
     day: "numeric",
     year: "numeric",
-  }).format(new Date(value));
+  }).format(parseDatabaseDate(value));
 }
 function formatTime(value: string): string {
   return new Intl.DateTimeFormat("en-US", {
+    timeZone: APP_TIME_ZONE,
     hour: "numeric",
     minute: "2-digit",
-  }).format(new Date(value));
+  }).format(parseDatabaseDate(value));
 }
 
 const statusPill: Record<string, string> = {

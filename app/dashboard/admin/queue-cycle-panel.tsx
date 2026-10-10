@@ -32,6 +32,11 @@ function buildSectionStats(requests: StudentRequest[]): SectionStats[] {
     .sort((a, b) => a.section.localeCompare(b.section));
 }
 
+/** Only finished requests leave the active queue on cycle completion. */
+function isArchivable(status: StudentRequest["status"]) {
+  return status === "completed" || status === "rejected";
+}
+
 export function QueueCyclePanel({ requests }: { requests: StudentRequest[] }) {
   const router = useRouter();
   const [isPending, startTransition] = useTransition();
@@ -40,6 +45,9 @@ export function QueueCyclePanel({ requests }: { requests: StudentRequest[] }) {
 
   const sections = buildSectionStats(requests);
   const hasActive = sections.length > 0;
+  const archivableCount = requests.filter((r) => isArchivable(r.status)).length;
+  const carriedCount = requests.length - archivableCount;
+  const canComplete = archivableCount > 0;
 
   function handleComplete() {
     setConfirmOpen(false);
@@ -71,7 +79,12 @@ export function QueueCyclePanel({ requests }: { requests: StudentRequest[] }) {
         <button
           type="button"
           onClick={() => setConfirmOpen(true)}
-          disabled={isPending || !hasActive}
+          disabled={isPending || !canComplete}
+          title={
+            canComplete
+              ? undefined
+              : "Only completed or rejected requests can be archived"
+          }
           className="shrink-0 rounded-full border border-[#DDE5E0] px-3.5 py-1.5 text-xs font-semibold text-[#17211B] transition hover:border-[#0B6B4A]/40 disabled:opacity-50">
           {isPending ? "Completing…" : "Complete cycle"}
         </button>
@@ -134,10 +147,15 @@ export function QueueCyclePanel({ requests }: { requests: StudentRequest[] }) {
             </div>
             <ul className="mt-4 space-y-2 text-[13px] leading-5 text-[#3E4B44]">
               <li>
-                · {requests.length} active request(s) will be archived. Nothing
-                is deleted.
+                · {archivableCount} completed/rejected request(s) will be
+                archived. Nothing is deleted.
               </li>
-              <li>· Every section restarts at Queue 1.</li>
+              {carriedCount > 0 ? (
+                <li>
+                  · {carriedCount} pending/processing request(s) stay active and
+                  keep their queue numbers.
+                </li>
+              ) : null}
               <li>· Archived records stay accessible in the Archive.</li>
             </ul>
             <div className="mt-5 flex gap-2">

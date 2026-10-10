@@ -215,9 +215,6 @@ export function HelpCenter() {
 
   return (
     <div className="mx-auto w-full max-w-3xl px-4 py-8 sm:px-6 sm:py-10">
-      <p className="text-[11px] font-bold uppercase tracking-[0.16em] text-accent">
-        Help center
-      </p>
       <h1 className="mt-2 text-3xl font-bold tracking-[-0.02em] text-ink sm:text-4xl">
         How can we help?
       </h1>

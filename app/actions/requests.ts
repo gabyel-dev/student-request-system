@@ -44,8 +44,10 @@ async function assertCanCreateRequest(
   userId: string,
   documentType: string,
 ): Promise<string | null> {
-  const activeDuplicate =
-    await requestRepository.findActiveByUserAndType(userId, documentType);
+  const activeDuplicate = await requestRepository.findActiveByUserAndType(
+    userId,
+    documentType,
+  );
   if (activeDuplicate) {
     return `You already have an active ${documentType} request. Wait for it to be completed or rejected before requesting again.`;
   }
@@ -100,9 +102,10 @@ export async function submitRequest(
     return { error: "Choose a valid document type.", success: null };
   }
 
-  const notes = String(formData.get("notes") ?? "")
-    .trim()
-    .slice(0, MAX_NOTES_LENGTH) || null;
+  const notes =
+    String(formData.get("notes") ?? "")
+      .trim()
+      .slice(0, MAX_NOTES_LENGTH) || null;
 
   const proofFile = formData.get("proof");
   let proofUrl: string | null = null;
@@ -132,7 +135,8 @@ export async function submitRequest(
       proofUrl = await storeRequestProof({ userId, file: proofFile });
     } catch {
       return {
-        error: "Your proof could not be uploaded. Check the file and try again.",
+        error:
+          "Your proof could not be uploaded. Check the file and try again.",
         success: null,
       };
     }
@@ -235,8 +239,7 @@ export async function deleteRequest(
     };
 
   const request = await requestRepository.findById(requestId);
-  if (!request)
-    return { error: "Request not found.", success: null };
+  if (!request) return { error: "Request not found.", success: null };
   if (request.userId !== userId)
     return { error: "You can only delete your own requests.", success: null };
   if (request.archivedAt)
@@ -279,8 +282,7 @@ export async function updateRequest(
     };
 
   const request = await requestRepository.findById(requestId);
-  if (!request)
-    return { error: "Request not found.", success: null };
+  if (!request) return { error: "Request not found.", success: null };
   if (request.userId !== userId)
     return {
       error: "You can only edit your own requests.",
@@ -294,9 +296,10 @@ export async function updateRequest(
       success: null,
     };
 
-  const notes = String(formData.get("notes") ?? "")
-    .trim()
-    .slice(0, MAX_NOTES_LENGTH) || null;
+  const notes =
+    String(formData.get("notes") ?? "")
+      .trim()
+      .slice(0, MAX_NOTES_LENGTH) || null;
 
   const proofFile = formData.get("proof");
   let proofUrl = request.proofUrl;
@@ -318,7 +321,8 @@ export async function updateRequest(
       proofUrl = await storeRequestProof({ userId, file: proofFile });
     } catch {
       return {
-        error: "Your proof could not be uploaded. Check the file and try again.",
+        error:
+          "Your proof could not be uploaded. Check the file and try again.",
         success: null,
       };
     }
@@ -346,12 +350,13 @@ export async function updateRequest(
 }
 
 /**
- * Archives the current queue cycle and resets every section's active queue.
+ * Archives finished requests and closes the current queue cycle.
  *
  * This is the admin's "Complete Queue" action:
- *  - every active request is archived (preserved, not deleted),
- *  - the active queue of each section becomes empty,
- *  - the next request in any section starts again at Queue 1.
+ *  - only completed and rejected requests are archived (preserved, not deleted),
+ *  - pending and processing requests stay active and keep their queue numbers,
+ *  - sections left with no active requests start again at Queue 1; otherwise
+ *    numbering continues from the highest active queue number in the section.
  *
  * Historical records stay in the archive grouped by section and completed date.
  */
@@ -368,12 +373,12 @@ export async function completeQueueCycle(): Promise<RequestActionState> {
     return { error: "Admin access is required.", success: null };
 
   try {
-    await requestRepository.archiveActiveQueue();
+    await requestRepository.archiveActiveQueue(["completed", "rejected"]);
     revalidatePath("/dashboard");
     return {
       error: null,
       success:
-        "Queue cycle completed. Active requests were archived and the queue reset — new requests start again at Queue 1 per section.",
+        "Queue cycle completed. Completed and rejected requests were archived — pending and processing requests stay active.",
     };
   } catch {
     return {
