@@ -122,7 +122,7 @@ export function AdminDashboard({
     return (userId: string) => byId.get(userId);
   }, [students]);
 
-  const { requests, isLive } = useRealtimeRequests({
+  const { requests } = useRealtimeRequests({
     initialRequests,
     filter: undefined,
     resolveUser,

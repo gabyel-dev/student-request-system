@@ -12,7 +12,7 @@ import {
   FiShield,
 } from "react-icons/fi";
 import { services } from "../data";
-import { usePressFeedback } from "../lib/use-gsap-context";
+import { usePressFeedback } from "../lib/use-motion-helpers";
 import { useScrollReveal } from "../lib/use-scroll-reveal";
 
 type FeatherIcon = typeof FiFileText;

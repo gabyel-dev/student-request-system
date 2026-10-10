@@ -1,8 +1,6 @@
 "use client";
 
-import { useRef } from "react";
-import { gsap } from "../lib/motion";
-import { useGsapContext } from "../lib/use-gsap-context";
+import { motion, useScroll } from "framer-motion";
 
 /**
  * A hairline reading-progress bar for the top of the viewport.
@@ -19,40 +17,15 @@ import { useGsapContext } from "../lib/use-gsap-context";
  * during render, so there is no server/client mismatch either way.
  */
 export function ScrollProgress() {
-  const fillRef = useRef<HTMLDivElement>(null);
-
-  useGsapContext(
-    fillRef,
-    ({ reduced }) => {
-      const fill = fillRef.current;
-      if (!fill || reduced) return;
-
-      gsap.fromTo(
-        fill,
-        { scaleX: 0 },
-        {
-          scaleX: 1,
-          ease: "none",
-          transformOrigin: "left center",
-          scrollTrigger: {
-            trigger: document.documentElement,
-            start: "top top",
-            end: "bottom bottom",
-            scrub: 0.3,
-          },
-        },
-      );
-    },
-    [],
-  );
+  const { scrollYProgress } = useScroll();
 
   return (
     <div
       aria-hidden="true"
       className="pointer-events-none fixed left-0 right-0 top-0 z-[60] h-0.5 md:left-[76px] lg:left-60">
-      <div
-        ref={fillRef}
-        className="h-full w-full origin-left scale-x-0 bg-gradient-to-r from-accent via-mesh-bright to-accent"
+      <motion.div
+        className="h-full w-full origin-left bg-gradient-to-r from-accent via-mesh-bright to-accent"
+        style={{ scaleX: scrollYProgress }}
       />
     </div>
   );

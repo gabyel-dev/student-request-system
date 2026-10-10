@@ -2,8 +2,6 @@
 
 import { useRef } from "react";
 import { FiFileText, FiHash, FiRefreshCw } from "react-icons/fi";
-import { gsap } from "../lib/motion";
-import { useIsomorphicLayoutEffect } from "../lib/use-gsap-context";
 import { useScrollReveal } from "../lib/use-scroll-reveal";
 
 /**
@@ -42,37 +40,7 @@ const STEPS = [
 
 export function HowItWorks() {
   const rootRef = useRef<HTMLElement>(null);
-  const lineRef = useRef<HTMLSpanElement>(null);
   useScrollReveal(rootRef, { distance: 18, stagger: 0.08 });
-
-  useIsomorphicLayoutEffect(() => {
-    const line = lineRef.current;
-    if (!line) return;
-
-    const context = gsap.context(() => {
-      if (window.matchMedia("(prefers-reduced-motion: reduce)").matches) {
-        gsap.set(line, { scaleX: 1 });
-        return;
-      }
-
-      gsap.fromTo(
-        line,
-        { scaleX: 0 },
-        {
-          scaleX: 1,
-          ease: "none",
-          scrollTrigger: {
-            trigger: rootRef.current,
-            start: "top 78%",
-            end: "top 38%",
-            scrub: 0.6,
-          },
-        },
-      );
-    }, line);
-
-    return () => context.revert();
-  }, []);
 
   return (
     <section
@@ -94,9 +62,8 @@ export function HowItWorks() {
       <div className="relative mt-8">
         {/* Connector, sitting behind the nodes on wide screens only. */}
         <span
-          ref={lineRef}
           aria-hidden="true"
-          className="absolute left-0 right-0 top-6 hidden h-px origin-left bg-gradient-to-r from-accent-line via-accent-line to-rule-strong lg:block"
+          className="absolute left-0 right-0 top-6 hidden h-px bg-gradient-to-r from-accent-line via-accent-line to-rule-strong lg:block"
         />
 
         <ol className="grid gap-8 lg:grid-cols-3 lg:gap-10">

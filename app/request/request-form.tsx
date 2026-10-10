@@ -92,9 +92,6 @@ export function RequestForm({
 
         <section className="mt-6 overflow-hidden rounded-2xl border border-hairline bg-surface shadow-[0_1px_2px_rgba(18,28,22,0.06)]">
           <div className="border-b border-rule px-5 py-6 sm:px-8">
-            <p className="text-[11px] font-bold uppercase tracking-[0.16em] text-accent">
-              {editing ? "Edit request" : "New request"}
-            </p>
             <h1 className="mt-2 text-2xl font-bold tracking-[-0.02em] text-ink">
               {service.title}
             </h1>

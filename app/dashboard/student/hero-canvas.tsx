@@ -1,11 +1,12 @@
 "use client";
 
 import { useEffect, useRef } from "react";
-import { gsap, REDUCED_MOTION_QUERY, ScrollTrigger } from "../lib/motion";
 import type { HeroField } from "../lib/hero-field";
 
+const REDUCED_MOTION_QUERY = "(prefers-reduced-motion: reduce)";
+
 /**
- * Mounts the WebGL hero backdrop and drives it with GSAP.
+ * Mounts and drives the WebGL hero backdrop.
  *
  * Three.js is loaded with a dynamic `import()` rather than a static one, so it
  * arrives in its own chunk after the page has already painted. The hero is
@@ -70,88 +71,75 @@ export function HeroCanvas() {
       hero?.setAttribute("data-webgl", "on");
       teardown.push(() => hero?.removeAttribute("data-webgl"));
 
-      gsap.to(canvas, {
-        opacity: 1,
-        duration: reducedMotion ? 0 : 0.8,
-        ease: "power2.out",
-        overwrite: true,
-      });
+      canvas.style.opacity = "1";
 
       if (reducedMotion) {
         // Nothing to drive. The still frame is already the finished image.
         return;
       }
 
-      const context = gsap.context(() => {
-        // Scroll progress through the hero. Dims and lowers the light so the
-        // page below takes over instead of being upstaged by the backdrop.
-        ScrollTrigger.create({
-          trigger: hero ?? canvas,
-          start: "top top",
-          end: "bottom top",
-          onUpdate: (self) => field.setScroll(self.progress),
-        });
+      {
+        const target = hero ?? canvas;
+        const observer = new IntersectionObserver(
+          ([entry]) => field.setPaused(!entry.isIntersecting || document.hidden),
+          { threshold: [0, 1] },
+        );
+        observer.observe(target);
+        teardown.push(() => observer.disconnect());
 
         if (finePointer) {
           // Smoothed rather than mapped straight to the uniform: a raw
           // position makes the whole field twitch with every mouse sample.
           const pointer = { x: 0.5, y: 0.5 };
-          const glideX = gsap.quickTo(pointer, "x", {
-            duration: 0.7,
-            ease: "power3.out",
-          });
-          const glideY = gsap.quickTo(pointer, "y", {
-            duration: 0.7,
-            ease: "power3.out",
-          });
+          const targetPointer = { x: 0.5, y: 0.5 };
 
           const onMove = (event: PointerEvent) => {
             const rect = canvas.getBoundingClientRect();
             if (!rect.width || !rect.height) return;
-            glideX((event.clientX - rect.left) / rect.width);
-            glideY(1 - (event.clientY - rect.top) / rect.height);
+            targetPointer.x = (event.clientX - rect.left) / rect.width;
+            targetPointer.y = 1 - (event.clientY - rect.top) / rect.height;
           };
           // Returns the light to the middle of the field on exit, so it never
           // sits under one edge of the layout after the cursor leaves.
           const onLeave = () => {
-            glideX(0.5);
-            glideY(0.5);
+            targetPointer.x = 0.5;
+            targetPointer.y = 0.5;
           };
           // One uniform write per frame, independent of the render loop's own
           // frame rate, so the light stays smooth at 30fps.
-          const push = () => field.setPointer(pointer.x, pointer.y);
+          const push = () => {
+            pointer.x += (targetPointer.x - pointer.x) * 0.08;
+            pointer.y += (targetPointer.y - pointer.y) * 0.08;
+            field.setPointer(pointer.x, pointer.y);
+          };
 
           window.addEventListener("pointermove", onMove, { passive: true });
           document.addEventListener("pointerleave", onLeave);
-          gsap.ticker.add(push);
+          let frame = 0;
+          const animatePointer = () => {
+            push();
+            frame = requestAnimationFrame(animatePointer);
+          };
+          frame = requestAnimationFrame(animatePointer);
 
           teardown.push(() => {
             window.removeEventListener("pointermove", onMove);
             document.removeEventListener("pointerleave", onLeave);
-            gsap.ticker.remove(push);
+            cancelAnimationFrame(frame);
           });
         }
 
         // A backgrounded tab and a hero scrolled past both mean nobody is
         // looking at the field, so it stops asking for frames.
-        let inView = true;
-        const sync = () => field.setPaused(document.hidden || !inView);
+        const sync = () => field.setPaused(document.hidden);
         const onVisibility = () => sync();
 
-        const observer = new IntersectionObserver((entries) => {
-          inView = entries[entries.length - 1]?.isIntersecting ?? true;
-          sync();
-        });
-        observer.observe(canvas);
         document.addEventListener("visibilitychange", onVisibility);
 
         teardown.push(() => {
-          observer.disconnect();
           document.removeEventListener("visibilitychange", onVisibility);
         });
-      }, hero ?? canvas);
-
-      teardown.push(() => context.revert());
+      }
     })();
 
     return () => {

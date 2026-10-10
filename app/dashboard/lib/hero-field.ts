@@ -21,7 +21,7 @@ import {
  * What it draws is the same emerald depth the CSS layer draws â€” a vertical
  * wash, a few soft pools of light, and fine filaments â€” but the light moves
  * with a domain-warped noise field instead of stepping between keyframes, and
- * GSAP can drive it continuously (see `hero-canvas.tsx`).
+ * The canvas renderer drives it continuously (see `hero-canvas.tsx`).
  *
  * The colours are read from the same CSS custom properties the fallback layer
  * uses, so the two can never drift apart: change `--color-mesh-mid` in

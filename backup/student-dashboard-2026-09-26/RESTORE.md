@@ -1,11 +1,11 @@
 # Restore the original Student Dashboard
 
-Snapshot of the Student Dashboard as it existed **before** the GSAP redesign.
+Snapshot of the Student Dashboard before the motion redesign.
 
 - **Taken:** 2026-09-26
 - **Git commit:** `ee88d61` (`update: email message redesigned`)
 - **Git branch:** `backup/student-dashboard-original`
-- **Git tag:** `pre-gsap-redesign-2026-09-26`
+- **Git tag:** `pre-motion-redesign-2026-09-26`
 - **Contents:** all 30 files of `app/dashboard/**`, `app/globals.css`, `package.json`, `package-lock.json`
 - **Integrity:** every file is listed in `MANIFEST.sha256` (SHA-256). All 34 verified identical to the working tree at snapshot time.
 
@@ -33,13 +33,13 @@ npm install
 ```
 
 The four new files introduced by the redesign (`app/dashboard/lib/motion.ts`,
-`app/dashboard/lib/use-gsap-context.ts`, `app/dashboard/lib/use-scroll-reveal.ts`,
+`app/dashboard/lib/use-motion-helpers.ts`, `app/dashboard/lib/use-scroll-reveal.ts`,
 `app/dashboard/lib/use-count-up.ts`, plus `app/dashboard/student/status-pill.tsx`
 and `app/dashboard/student/confirm-dialog.tsx`) are **not** tracked by that
 checkout, so delete them to get back to an identical tree:
 
 ```powershell
-Remove-Item -Force app\dashboard\lib\motion.ts, app\dashboard\lib\use-gsap-context.ts, `
+Remove-Item -Force app\dashboard\lib\use-motion-helpers.ts, `
   app\dashboard\lib\use-scroll-reveal.ts, app\dashboard\lib\use-count-up.ts, `
   app\dashboard\student\status-pill.tsx, app\dashboard\student\confirm-dialog.tsx
 ```

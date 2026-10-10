@@ -5,15 +5,6 @@ import { FiChevronDown, FiChevronRight, FiSearch } from "react-icons/fi";
 import type { User } from "@/src/domain/user";
 import Avatar from "@/app/dashboard/lib/avatar";
 
-function getInitials(name: string) {
-  return name
-    .split(" ")
-    .map((part) => part[0])
-    .slice(0, 2)
-    .join("")
-    .toUpperCase();
-}
-
 /** "BSIT 3H" -> "3", "BSIT 3HL" -> "3", null -> null */
 function parseYear(section: string | null | undefined): string | null {
   if (!section) return null;

@@ -2,6 +2,7 @@
 
 import { useRouter } from "next/navigation";
 import { useMemo, useRef, useState, useTransition } from "react";
+import { motion } from "framer-motion";
 import {
   FiChevronDown,
   FiEdit2,
@@ -14,17 +15,14 @@ import { useToast } from "@/app/components/toaster";
 import { getServiceByTitle } from "@/src/domain/services";
 import { ConfirmDialog } from "./confirm-dialog";
 import { StatusPill, isInFlight } from "./status-pill";
-import { gsap } from "../lib/motion";
 import {
   APP_TIME_ZONE,
   formatDateTime as formatSharedDateTime,
   parseDatabaseDate,
 } from "../lib/format";
 import {
-  useGsapContext,
-  useIsomorphicLayoutEffect,
   usePressFeedback,
-} from "../lib/use-gsap-context";
+} from "../lib/use-motion-helpers";
 import type { StudentRequest } from "@/src/domain/request";
 
 /**
@@ -55,8 +53,6 @@ import type { StudentRequest } from "@/src/domain/request";
 type PendingDeletion = { id: string; documentType: string } | null;
 
 export function RecentActivity({ requests }: { requests: StudentRequest[] }) {
-  const panelRef = useRef<HTMLDivElement>(null);
-  const closedRef = useRef<HTMLDivElement>(null);
   const closedToggleRef = useRef<HTMLButtonElement>(null);
   const closedHandlers = usePressFeedback(closedToggleRef, { scale: 0.99 });
   const [showClosed, setShowClosed] = useState(false);
@@ -81,99 +77,6 @@ export function RecentActivity({ requests }: { requests: StudentRequest[] }) {
     () => ordered.filter((request) => !isInFlight(request.status)),
     [ordered],
   );
-
-  useGsapContext(
-    panelRef,
-    ({ reduced }) => {
-      if (reduced) return;
-      gsap
-        .timeline({ defaults: { ease: "power3.out" } })
-        .from("[data-panel-head]", { autoAlpha: 0, y: 12, duration: 0.36 })
-        .from(
-          "[data-request-row]",
-          { autoAlpha: 0, y: 14, duration: 0.38, stagger: 0.07 },
-          "-=0.2",
-        );
-    },
-    [requests.length],
-  );
-
-  const previousStatusRef = useRef<Record<string, StudentRequest["status"]>>(
-    {},
-  );
-
-  useIsomorphicLayoutEffect(() => {
-    const panel = panelRef.current;
-    if (!panel) return;
-
-    const previous = previousStatusRef.current;
-    const next: Record<string, StudentRequest["status"]> = {};
-    const changed: HTMLElement[] = [];
-
-    for (const request of requests) {
-      next[request.id] = request.status;
-      if (previous[request.id] && previous[request.id] !== request.status) {
-        const row = panel.querySelector<HTMLElement>(
-          `[data-request-row="${CSS.escape(request.id)}"]`,
-        );
-        if (row) changed.push(row);
-      }
-    }
-    previousStatusRef.current = next;
-
-    if (!changed.length) return;
-
-    const context = gsap.context(() => {
-      if (window.matchMedia("(prefers-reduced-motion: reduce)").matches) {
-        return;
-      }
-      for (const row of changed) {
-        gsap.fromTo(
-          row,
-          { backgroundColor: "rgba(233, 246, 240, 1)" },
-          {
-            backgroundColor: "rgba(233, 246, 240, 0)",
-            duration: 1.4,
-            ease: "power2.out",
-            clearProps: "backgroundColor",
-          },
-        );
-      }
-    }, panel);
-
-    return () => context.revert();
-  }, [requests]);
-
-  useIsomorphicLayoutEffect(() => {
-    const group = closedRef.current;
-    if (!group) return;
-
-    const context = gsap.context(() => {
-      if (window.matchMedia("(prefers-reduced-motion: reduce)").matches) {
-        gsap.set(group, {
-          height: showClosed ? "auto" : 0,
-          autoAlpha: showClosed ? 1 : 0,
-        });
-        return;
-      }
-      gsap.fromTo(
-        group,
-        {
-          height: showClosed ? 0 : group.scrollHeight,
-          autoAlpha: showClosed ? 0 : 1,
-        },
-        {
-          height: showClosed ? "auto" : 0,
-          autoAlpha: showClosed ? 1 : 0,
-          duration: 0.34,
-          ease: "power2.inOut",
-          overwrite: true,
-        },
-      );
-    }, group);
-
-    return () => context.revert();
-  }, [showClosed]);
 
   function confirmDelete() {
     if (!pendingDeletion) return;
@@ -224,10 +127,8 @@ export function RecentActivity({ requests }: { requests: StudentRequest[] }) {
       id="requests"
       aria-labelledby="requests-title"
       className="scroll-mt-24">
-      <div ref={panelRef} className="sd-panel">
-        <div
-          data-panel-head
-          className="flex flex-wrap items-end justify-between gap-3 border-b border-rule bg-sunken px-5 py-5 sm:px-7 sm:py-6">
+      <div className="sd-panel">
+        <div className="flex flex-wrap items-end justify-between gap-3 border-b border-rule bg-sunken px-5 py-5 sm:px-7 sm:py-6">
           <div className="min-w-0">
             <h2
               id="requests-title"
@@ -276,12 +177,13 @@ export function RecentActivity({ requests }: { requests: StudentRequest[] }) {
                 />
               </span>
             </button>
-            <div
+            <motion.div
               id="requests-closed"
-              ref={closedRef}
+              initial={false}
+              animate={{ height: showClosed ? "auto" : 0, opacity: showClosed ? 1 : 0 }}
               className="overflow-hidden">
               <ul>{closed.map(renderRow)}</ul>
-            </div>
+            </motion.div>
           </>
         ) : null}
 
@@ -349,7 +251,10 @@ function RequestRow({
   const canModify = request.status === "pending" && !request.archivedAt;
 
   return (
-    <li
+    <motion.li
+      initial={{ opacity: 0, y: 14 }}
+      animate={{ opacity: 1, y: 0 }}
+      transition={{ duration: 0.38 }}
       data-request-row={request.id}
       className={`border-b border-rule transition-colors last:border-b-0 ${
         expanded ? "bg-sunken/70" : "hover:bg-sunken"
@@ -450,7 +355,7 @@ function RequestRow({
           )}
         </div>
       ) : null}
-    </li>
+    </motion.li>
   );
 }
 

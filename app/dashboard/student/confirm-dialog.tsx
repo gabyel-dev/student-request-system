@@ -4,11 +4,10 @@ import { useEffect, useId, useRef } from "react";
 import { createPortal } from "react-dom";
 import { Alarm } from "@icon-park/react";
 import { Icon } from "../lib/icons";
-import { gsap } from "../lib/motion";
 import {
   useIsomorphicLayoutEffect,
   usePressFeedback,
-} from "../lib/use-gsap-context";
+} from "../lib/use-motion-helpers";
 
 type ConfirmDialogProps = {
   open: boolean;
@@ -74,31 +73,24 @@ export function ConfirmDialog({
     // Cancel first: the safe action is the one a keyboard lands on.
     cancelRef.current?.focus();
 
-    const context = gsap.context(() => {
-      const scrim = panel.querySelector("[data-dialog-scrim]");
-      const card = panel.querySelector("[data-dialog-body]");
-
-      if (window.matchMedia("(prefers-reduced-motion: reduce)").matches) {
-        gsap.set([scrim, card], { clearProps: "all" });
-        return;
-      }
-
-      const timeline = gsap.timeline();
-      timeline
-        .fromTo(
-          scrim,
-          { autoAlpha: 0 },
-          { autoAlpha: 1, duration: 0.18, ease: "power2.out" },
-        )
-        .fromTo(
-          card,
-          { autoAlpha: 0, y: 14, scale: 0.97 },
-          { autoAlpha: 1, y: 0, scale: 1, duration: 0.28, ease: "power3.out" },
-          "-=0.06",
-        );
-    }, panel);
-
-    return () => context.revert();
+    const scrim = panel.querySelector<HTMLElement>("[data-dialog-scrim]");
+    const card = panel.querySelector<HTMLElement>("[data-dialog-body]");
+    if (window.matchMedia("(prefers-reduced-motion: reduce)").matches) return;
+    const animations = [
+      scrim?.animate([{ opacity: 0 }, { opacity: 1 }], {
+        duration: 180,
+        easing: "ease-out",
+        fill: "both",
+      }),
+      card?.animate(
+        [
+          { opacity: 0, transform: "translateY(14px) scale(.97)" },
+          { opacity: 1, transform: "translateY(0) scale(1)" },
+        ],
+        { duration: 280, delay: 60, easing: "cubic-bezier(.16,1,.3,1)", fill: "both" },
+      ),
+    ];
+    return () => animations.forEach((animation) => animation?.cancel());
   }, [open]);
 
   // Return focus, but only if it is still focusable â€” the row that opened the

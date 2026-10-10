@@ -5,7 +5,7 @@ import { useRef } from "react";
 import { ArrowRight } from "@icon-park/react";
 import { Icon } from "../lib/icons";
 import { useCountUp } from "../lib/use-count-up";
-import { usePressFeedback } from "../lib/use-gsap-context";
+import { usePressFeedback } from "../lib/use-motion-helpers";
 import { useScrollReveal } from "../lib/use-scroll-reveal";
 import { getInitials } from "../helpers";
 import type { Student } from "../types";

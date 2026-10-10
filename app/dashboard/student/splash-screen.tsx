@@ -2,8 +2,7 @@
 
 import { useRef } from "react";
 import { DuckMascot } from "./duck-mascot";
-import { gsap } from "../lib/motion";
-import { useIsomorphicLayoutEffect } from "../lib/use-gsap-context";
+import { useIsomorphicLayoutEffect } from "../lib/use-motion-helpers";
 import {
   SPLASH_COOKIE,
   SPLASH_COOKIE_MAX_AGE,
@@ -68,13 +67,10 @@ export function SplashScreen({ onDone }: { onDone: () => void }) {
     function lift() {
       if (exiting || finished) return;
       exiting = true;
-      gsap.to(root, {
-        autoAlpha: 0,
-        yPercent: -3,
-        duration: LIFT_MS,
-        ease: "power2.in",
-        onComplete: finish,
-      });
+      root!.animate(
+        [{ opacity: 1, transform: "translateY(0)" }, { opacity: 0, transform: "translateY(-3%)" }],
+        { duration: LIFT_MS * 1000, easing: "ease-in", fill: "forwards" },
+      ).finished.then(finish);
     }
 
     dismissRef.current = reduced ? finish : lift;
@@ -83,45 +79,24 @@ export function SplashScreen({ onDone }: { onDone: () => void }) {
     // the page underneath it.
     root.focus({ preventScroll: true });
 
-    const context = gsap.context(() => {
-      if (reduced) {
-        gsap.delayedCall(REDUCED_HOLD_MS / 1000, finish);
-        return;
-      }
-
-      gsap
-        .timeline({ defaults: { ease: "power3.out" } })
-        .from(
-          "[data-splash-mascot]",
-          {
-            autoAlpha: 0,
-            y: 30,
-            scale: 0.9,
-            rotate: -3,
-            duration: 0.62,
-            ease: "back.out(1.6)",
-          },
-        )
-        .from(
-          "[data-splash-word]",
-          { autoAlpha: 0, y: 14, duration: 0.4 },
-          "-=0.36",
-        )
-        .from(
-          "[data-splash-rule]",
-          { scaleX: 0, duration: 0.52, ease: "power3.inOut" },
-          "-=0.3",
-        )
-        .from(
-          "[data-splash-sub]",
-          { autoAlpha: 0, y: 8, duration: 0.36 },
-          "-=0.32",
-        );
-
-      gsap.delayedCall(HOLD_MS / 1000, lift);
-    }, root);
-
-    return () => context.revert();
+    if (reduced) {
+      const timeout = window.setTimeout(finish, REDUCED_HOLD_MS);
+      return () => window.clearTimeout(timeout);
+    }
+    const animations = [
+      ["[data-splash-mascot]", { transform: "translateY(30px) scale(.9) rotate(-3deg)" }],
+      ["[data-splash-word]", { transform: "translateY(14px)" }],
+      ["[data-splash-rule]", { transform: "scaleX(0)" }],
+      ["[data-splash-sub]", { transform: "translateY(8px)" }],
+    ] as const;
+    animations.forEach(([selector, keyframes], index) => {
+      root.querySelector<HTMLElement>(selector)?.animate(
+        [{ opacity: 0, ...keyframes }, { opacity: 1, transform: "none" }],
+        { duration: 360 + index * 80, delay: index * 70, easing: "cubic-bezier(.16,1,.3,1)", fill: "both" },
+      );
+    });
+    const timeout = window.setTimeout(lift, HOLD_MS);
+    return () => window.clearTimeout(timeout);
   }, [onDone]);
 
   return (

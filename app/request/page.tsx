@@ -33,9 +33,6 @@ export default async function RequestIndexPage() {
         <BackToDashboard />
 
         <header className="mt-8">
-          <p className="text-[11px] font-bold uppercase tracking-[0.16em] text-accent">
-            New request
-          </p>
           <h1 className="mt-2 text-3xl font-bold tracking-[-0.03em] text-ink sm:text-4xl">
             Choose a service
           </h1>

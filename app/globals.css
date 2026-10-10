@@ -513,7 +513,7 @@ body {
     linear-gradient(180deg, var(--color-mesh-mid) 0%, var(--color-mesh-deep) 100%);
 }
 
-/* Drifting glow. GSAP translates these on a long linear loop, so the motion
+/* Drifting glow. CSS translates these on a long linear loop, so the motion
    reads as a slow current rather than a pulse. */
 .sd-orb {
   position: absolute;
@@ -693,7 +693,7 @@ html {
   background: var(--color-hairline);
 }
 
-/* Entrance states are set by GSAP in a layout effect, never here, so the
+/* Entrance states are set by the component animation, never here, so the
    server-rendered HTML stays fully visible when JavaScript is slow or the
    animation chunk fails to load. */
 @media (prefers-reduced-motion: reduce) {

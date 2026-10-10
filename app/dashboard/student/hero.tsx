@@ -7,12 +7,7 @@ import { DuckMascot } from "./duck-mascot";
 import { HeroCanvas } from "./hero-canvas";
 import { StatusPill } from "./status-pill";
 import { Icon } from "../lib/icons";
-import { gsap } from "../lib/motion";
-import {
-  useGsapContext,
-  useIsomorphicLayoutEffect,
-  usePressFeedback,
-} from "../lib/use-gsap-context";
+import { usePressFeedback } from "../lib/use-motion-helpers";
 import type { RequestStatus } from "@/src/domain/request";
 
 /**
@@ -30,11 +25,6 @@ import type { RequestStatus } from "@/src/domain/request";
  * The whole ticket links to the tracker, so the number is one tap away from
  * its context.
  *
- * The choreography is authored rather than reused from the sections below. The
- * headline wipes up from behind its own descenders; the mascot rises with a
- * slight overshoot and only then starts floating; the mesh parallaxes against
- * the scroll. Nothing here is scroll-gated — the headline has to be readable
- * the instant the page paints.
  */
 
 /** The in-flight request worth showing above the fold, if there is one. */
@@ -53,203 +43,12 @@ export function RequestHero({
   activeCount: number;
   featured?: FeaturedRequest;
 }) {
-  const rootRef = useRef<HTMLElement>(null);
-  const spotlightRef = useRef<HTMLDivElement>(null);
   const primaryRef = useRef<HTMLAnchorElement>(null);
   const primaryHandlers = usePressFeedback(primaryRef, { scale: 0.97 });
-  const ticketRef = useRef<HTMLAnchorElement>(null);
 
-  useGsapContext(
-    rootRef,
-    ({ reduced }) => {
-      const root = rootRef.current;
-      if (!root) return;
-
-      const teardown: Array<() => void> = [];
-
-      if (!reduced) {
-        const intro = gsap.timeline({ defaults: { ease: "power3.out" } });
-
-        intro
-          .from("[data-hero-mesh]", {
-            autoAlpha: 0,
-            duration: 0.6,
-            ease: "power2.out",
-          })
-          .from(
-            "[data-hero-line]",
-            {
-              yPercent: 118,
-              rotate: 2,
-              duration: 0.62,
-              stagger: 0.07,
-              ease: "power4.out",
-            },
-            "-=0.34",
-          )
-          .from(
-            "[data-hero-sub]",
-            { autoAlpha: 0, y: 12, filter: "blur(6px)", duration: 0.45 },
-            "-=0.36",
-          )
-          .from(
-            "[data-hero-action]",
-            { autoAlpha: 0, y: 14, scale: 0.96, duration: 0.4, stagger: 0.07 },
-            "-=0.3",
-          )
-          .from(
-            "[data-hero-mascot]",
-            {
-              autoAlpha: 0,
-              y: 46,
-              scale: 0.86,
-              rotate: -4,
-              duration: 0.72,
-              ease: "back.out(1.5)",
-            },
-            "-=0.5",
-          );
-
-        intro.eventCallback("onComplete", () => {
-          gsap.to("[data-hero-mascot]", {
-            y: -10,
-            rotate: 1.6,
-            duration: 4.6,
-            ease: "sine.inOut",
-            repeat: -1,
-            yoyo: true,
-          });
-        });
-
-        const orbDrift = gsap.to("[data-orb]", {
-          xPercent: (index: number) => (index % 2 ? 16 : -12),
-          yPercent: (index: number) => (index % 2 ? 12 : -14),
-          scale: 1.14,
-          duration: 22,
-          ease: "none",
-          repeat: -1,
-          yoyo: true,
-          stagger: 3,
-        });
-
-        const webglWatch = new MutationObserver(() => {
-          if (root.getAttribute("data-webgl") !== "on") return;
-          orbDrift.kill();
-          webglWatch.disconnect();
-        });
-        webglWatch.observe(root, {
-          attributes: true,
-          attributeFilter: ["data-webgl"],
-        });
-        teardown.push(() => webglWatch.disconnect());
-        gsap.to("[data-grain]", {
-          y: 24,
-          duration: 9,
-          ease: "none",
-          repeat: -1,
-          yoyo: true,
-        });
-
-        const scrub = {
-          trigger: root,
-          start: "top top",
-          end: "bottom top",
-          scrub: true,
-        } as const;
-
-        gsap.to("[data-hero-mesh]", {
-          yPercent: 16,
-          ease: "none",
-          scrollTrigger: scrub,
-        });
-        gsap.to("[data-hero-mascot]", {
-          yPercent: -22,
-          ease: "none",
-          scrollTrigger: scrub,
-        });
-        gsap.to("[data-hero-panel]", {
-          yPercent: 10,
-          autoAlpha: 0.3,
-          ease: "none",
-          scrollTrigger: scrub,
-        });
-      }
-
-      const spotlight = spotlightRef.current;
-      if (
-        spotlight &&
-        window.matchMedia("(hover: hover) and (pointer: fine)").matches
-      ) {
-        const moveX = gsap.quickTo(spotlight, "x", {
-          duration: 0.7,
-          ease: "power3.out",
-        });
-        const moveY = gsap.quickTo(spotlight, "y", {
-          duration: 0.7,
-          ease: "power3.out",
-        });
-
-        function onPointerMove(event: PointerEvent) {
-          const box = root!.getBoundingClientRect();
-          moveX(event.clientX - box.left);
-          moveY(event.clientY - box.top);
-        }
-
-        root.addEventListener("pointermove", onPointerMove);
-        teardown.push(() =>
-          root.removeEventListener("pointermove", onPointerMove),
-        );
-      }
-
-      return () => {
-        for (const fn of teardown) fn();
-      };
-    },
-    [],
-  );
-
-  // Ticket tilt: a subtle 3D follow on fine pointers. Skipped entirely for
-  // reduced motion and touch, where it would be either unwelcome or invisible.
-  useIsomorphicLayoutEffect(() => {
-    const el = ticketRef.current;
-    if (!el) return;
-    if (window.matchMedia("(prefers-reduced-motion: reduce)").matches) return;
-    if (!window.matchMedia("(hover: hover) and (pointer: fine)").matches)
-      return;
-
-    gsap.set(el, { transformPerspective: 900 });
-    const rX = gsap.quickTo(el, "rotationX", {
-      duration: 0.6,
-      ease: "power3.out",
-    });
-    const rY = gsap.quickTo(el, "rotationY", {
-      duration: 0.6,
-      ease: "power3.out",
-    });
-
-    function onMove(event: PointerEvent) {
-      const box = el!.getBoundingClientRect();
-      const px = (event.clientX - box.left) / box.width - 0.5;
-      const py = (event.clientY - box.top) / box.height - 0.5;
-      rY(px * 8);
-      rX(-py * 8);
-    }
-    function onLeave() {
-      rX(0);
-      rY(0);
-    }
-
-    el.addEventListener("pointermove", onMove);
-    el.addEventListener("pointerleave", onLeave);
-    return () => {
-      el.removeEventListener("pointermove", onMove);
-      el.removeEventListener("pointerleave", onLeave);
-    };
-  }, [featured]);
 
   return (
     <section
-      ref={rootRef}
       data-hero
       aria-labelledby="hero-title"
       className="relative isolate overflow-hidden rounded-tile bg-mesh-deep shadow-hero">
@@ -258,12 +57,6 @@ export function RequestHero({
       <div data-orb className="sd-orb sd-orb--a" aria-hidden="true" />
       <div data-orb className="sd-orb sd-orb--b" aria-hidden="true" />
       <div data-orb className="sd-orb sd-orb--c" aria-hidden="true" />
-      <div
-        ref={spotlightRef}
-        data-hero-spotlight
-        className="sd-spotlight"
-        aria-hidden="true"
-      />
       <div className="sd-mesh-grid" aria-hidden="true" />
       <div data-grain className="sd-grain" aria-hidden="true" />
 
@@ -308,7 +101,6 @@ export function RequestHero({
           <div data-hero-action className="mt-7">
             {featured ? (
               <Link
-                ref={ticketRef}
                 href="#requests"
                 aria-label={`Track your ${featured.documentType} request, queue number ${featured.queueNumber}`}
                 className="group relative block w-full max-w-md overflow-hidden rounded-2xl border border-white/15 bg-white/[0.07] p-5 shadow-[0_24px_60px_-24px_rgba(0,0,0,0.65)] backdrop-blur-md transition-colors hover:border-white/25">
