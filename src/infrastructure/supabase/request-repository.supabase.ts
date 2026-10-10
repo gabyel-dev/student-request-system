@@ -193,14 +193,22 @@ export function createRequestRepository() {
      * `section` is null is part of the cycle too), so this can never silently
      * no-op.
      */
-    async archiveActiveQueue(statuses: RequestStatus[]): Promise<void> {
-      const { error } = await client
+    async archiveActiveQueue(): Promise<void> {
+      const { data, error } = await client
         .from("requests")
         .update({ archived_at: new Date().toISOString() })
         .is("archived_at", null)
-        .in("status", statuses);
+        .or("status.eq.completed,status.eq.rejected")
+        .select("id, status");
 
       if (error) throw error;
+      if (
+        data?.some(
+          (row) => row.status !== "completed" && row.status !== "rejected",
+        )
+      ) {
+        throw new Error("An active request had an invalid archive status.");
+      }
     },
 
     async updateStatus(id: string, status: RequestStatus) {

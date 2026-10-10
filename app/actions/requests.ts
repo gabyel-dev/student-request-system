@@ -106,6 +106,12 @@ export async function submitRequest(
     String(formData.get("notes") ?? "")
       .trim()
       .slice(0, MAX_NOTES_LENGTH) || null;
+  if (documentType === "Others" && !notes) {
+    return {
+      error: "Please explain your request before submitting.",
+      success: null,
+    };
+  }
 
   const proofFile = formData.get("proof");
   let proofUrl: string | null = null;
@@ -300,6 +306,12 @@ export async function updateRequest(
     String(formData.get("notes") ?? "")
       .trim()
       .slice(0, MAX_NOTES_LENGTH) || null;
+  if (request.documentType === "Others" && !notes) {
+    return {
+      error: "Please explain your request before saving.",
+      success: null,
+    };
+  }
 
   const proofFile = formData.get("proof");
   let proofUrl = request.proofUrl;
@@ -373,7 +385,7 @@ export async function completeQueueCycle(): Promise<RequestActionState> {
     return { error: "Admin access is required.", success: null };
 
   try {
-    await requestRepository.archiveActiveQueue(["completed", "rejected"]);
+    await requestRepository.archiveActiveQueue();
     revalidatePath("/dashboard");
     return {
       error: null,

@@ -27,9 +27,14 @@ function buildSectionStats(requests: StudentRequest[]): SectionStats[] {
     if (r.status === "pending" || r.status === "processing") s.waiting += 1;
     bySection.set(key, s);
   }
-  return [...bySection.entries()]
-    .map(([section, s]) => ({ section, ...s }))
-    .sort((a, b) => a.section.localeCompare(b.section));
+  return (
+    [...bySection.entries()]
+      .map(([section, s]) => ({ section, ...s }))
+      // Most waiting first — the sections that need attention lead.
+      .sort(
+        (a, b) => b.waiting - a.waiting || a.section.localeCompare(b.section),
+      )
+  );
 }
 
 /** Only finished requests leave the active queue on cycle completion. */
@@ -48,6 +53,8 @@ export function QueueCyclePanel({ requests }: { requests: StudentRequest[] }) {
   const archivableCount = requests.filter((r) => isArchivable(r.status)).length;
   const carriedCount = requests.length - archivableCount;
   const canComplete = archivableCount > 0;
+  const totalWaiting = sections.reduce((n, s) => n + s.waiting, 0);
+  const maxWaiting = Math.max(1, ...sections.map((s) => s.waiting));
 
   function handleComplete() {
     setConfirmOpen(false);
@@ -66,13 +73,13 @@ export function QueueCyclePanel({ requests }: { requests: StudentRequest[] }) {
   }
 
   return (
-    <section className="flex h-full flex-col overflow-hidden rounded-2xl border border-[#E6ECE8] bg-white shadow-[0_1px_2px_rgba(18,28,22,0.06)]">
-      <div className="flex items-start justify-between gap-3 border-b border-[#EEF2EF] px-4 py-3.5 sm:px-5">
+    <section className="flex h-full flex-col overflow-hidden rounded-2xl bg-[#0A3527] p-6 shadow-[0_16px_40px_-20px_rgba(10,53,39,0.5)]">
+      <div className="flex items-start justify-between gap-4">
         <div>
-          <h2 className="text-[15px] font-semibold tracking-[-0.01em] text-[#17211B]">
+          <h2 className="text-xl font-semibold tracking-[-0.02em] text-white">
             Active queues
           </h2>
-          <p className="mt-0.5 text-xs text-[#62716A]">
+          <p className="mt-1 text-[13px] leading-5 text-white/50">
             Each section numbers its own queue independently.
           </p>
         </div>
@@ -85,37 +92,66 @@ export function QueueCyclePanel({ requests }: { requests: StudentRequest[] }) {
               ? undefined
               : "Only completed or rejected requests can be archived"
           }
-          className="shrink-0 rounded-full border border-[#DDE5E0] px-3.5 py-1.5 text-xs font-semibold text-[#17211B] transition hover:border-[#0B6B4A]/40 disabled:opacity-50">
+          className="shrink-0 rounded-full border border-white/20 px-4 py-1.5 text-xs font-semibold text-white/90 transition hover:border-white/40 hover:bg-white/10 disabled:opacity-40">
           {isPending ? "Completing…" : "Complete cycle"}
         </button>
       </div>
 
       {hasActive ? (
-        <ul className="divide-y divide-[#EEF2EF] px-4 sm:px-5">
-          {sections.map(({ section, currentQueue, waiting, total }) => (
-            <li
-              key={section}
-              className="flex items-center justify-between gap-3 py-3">
-              <div className="min-w-0">
-                <p className="truncate text-sm font-medium text-[#17211B]">
-                  {section}
-                </p>
-                <p className="text-xs text-[#62716A]">
-                  {waiting} waiting · {total} this cycle
-                </p>
-              </div>
-              <span className="shrink-0 rounded-full bg-[#F1F5F2] px-2.5 py-1 font-mono text-xs tabular-nums text-[#17211B]">
-                #{String(currentQueue).padStart(3, "0")}
-              </span>
-            </li>
-          ))}
-        </ul>
+        <>
+          <div className="mt-6 flex items-end gap-3">
+            <p className="font-mono text-[44px] font-semibold tabular-nums leading-none tracking-tight text-[#8FD8AE]">
+              {totalWaiting}
+            </p>
+            <p className="pb-1 text-[13px] leading-5 text-white/50">
+              {totalWaiting === 1 ? "request" : "requests"} waiting
+              <br />
+              across {sections.length}{" "}
+              {sections.length === 1 ? "section" : "sections"}
+            </p>
+          </div>
+
+          <ul className="mt-6 space-y-2">
+            {sections.map(({ section, waiting, total }) => {
+              const idle = waiting === 0;
+              return (
+                <li
+                  key={section}
+                  className={`rounded-xl px-4 py-3 transition ${
+                    idle ? "opacity-45" : "bg-white/[0.05]"
+                  }`}>
+                  <div className="flex items-baseline justify-between gap-4">
+                    <p className="min-w-0 truncate text-sm font-semibold text-white">
+                      {section}
+                    </p>
+                    <p className="shrink-0 font-mono text-lg font-semibold tabular-nums text-[#8FD8AE]">
+                      {waiting}
+                      <span className="ml-1.5 font-sans text-[10px] font-semibold uppercase tracking-[0.12em] text-white/40">
+                        waiting
+                      </span>
+                    </p>
+                  </div>
+                  <div
+                    className="mt-2.5 h-1 overflow-hidden rounded-full bg-white/10"
+                    role="img"
+                    aria-label={`${waiting} of ${maxWaiting} waiting in ${section}`}>
+                    <div
+                      className="h-full rounded-full bg-[#8FD8AE]"
+                      style={{ width: `${(waiting / maxWaiting) * 100}%` }}
+                    />
+                  </div>
+                  <p className="mt-2 text-[11px] tabular-nums text-white/35">
+                    {total} this cycle
+                  </p>
+                </li>
+              );
+            })}
+          </ul>
+        </>
       ) : (
-        <div className="px-4 py-8 text-center sm:px-6">
-          <p className="text-sm font-medium text-[#17211B]">
-            No active requests
-          </p>
-          <p className="mt-1 text-xs text-[#62716A]">
+        <div className="py-10 text-center">
+          <p className="text-sm font-semibold text-white">No active requests</p>
+          <p className="mt-1 text-xs text-white/50">
             New submissions will start at Queue 1.
           </p>
         </div>

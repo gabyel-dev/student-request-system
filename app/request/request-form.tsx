@@ -137,6 +137,30 @@ export function RequestForm({
                 />
               ) : null}
 
+              {service.title === "Others" ? (
+                <div className="mb-5">
+                  <label
+                    htmlFor="request-notes"
+                    className="text-[11px] font-bold uppercase tracking-[0.14em] text-muted">
+                    Explain your request
+                  </label>
+                  <textarea
+                    id="request-notes"
+                    name="notes"
+                    defaultValue={editingRequest?.notes ?? ""}
+                    required
+                    maxLength={500}
+                    rows={5}
+                    placeholder="Tell the registrar what you need help with."
+                    className="mt-2 w-full resize-y rounded-xl border border-hairline bg-white px-3.5 py-3 text-sm leading-6 text-ink outline-none transition placeholder:text-muted/70 focus:border-accent focus:ring-2 focus:ring-accent/15"
+                  />
+                  <p className="mt-1.5 text-xs leading-5 text-muted">
+                    Please provide enough detail for the registrar to review
+                    your request.
+                  </p>
+                </div>
+              ) : null}
+
               <SubmitButton editing={editing} />
               <p className="mt-3 text-xs leading-5 text-muted">
                 {editing
