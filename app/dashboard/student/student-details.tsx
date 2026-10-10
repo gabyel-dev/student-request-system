@@ -17,7 +17,7 @@ import type { Student } from "../types";
  * slim bar rather than a section of their own. The counts are small and inline
  * rather than a row of large figures, which keeps the numbers from pretending
  * to be the point of the page. Every figure here is counted from the student's
- * own requests â€” nothing is estimated or projected.
+ * own requests — nothing is estimated or projected.
  */
 export function StudentDetails({
   student,
@@ -48,11 +48,14 @@ export function StudentDetails({
         {student.profilePictureUrl ? (
           <img
             src={student.profilePictureUrl}
-            alt=""
-            className="h-10 w-10 shrink-0 rounded-full object-cover"
+            alt={`${student.name}'s profile photo`}
+            loading="lazy"
+            className="h-10 w-10 shrink-0 rounded-full bg-accent-soft object-cover"
           />
         ) : (
-          <span className="grid h-10 w-10 shrink-0 place-items-center rounded-full bg-accent-soft font-mono text-[12px] font-bold text-accent">
+          <span
+            aria-hidden="true"
+            className="grid h-10 w-10 shrink-0 place-items-center rounded-full bg-accent-soft font-mono text-[12px] font-bold text-accent">
             {getInitials(student.name)}
           </span>
         )}

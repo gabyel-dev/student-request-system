@@ -1,6 +1,6 @@
 "use client";
 
-import { FiFilter, FiRotateCw, FiSearch } from "react-icons/fi";
+import { FiRotateCw, FiSearch } from "react-icons/fi";
 import type { SortOrder, ViewMode } from "../lib/request-utils";
 
 export function Toolbar({
@@ -20,77 +20,51 @@ export function Toolbar({
   onSort: (order: SortOrder) => void;
   onRefresh: () => void;
 }) {
-
   return (
-    <div className="flex flex-wrap items-center gap-x-5 gap-y-2">
-      <div className="flex items-center gap-1 rounded-sm border border-[#d3e1d9] bg-[#f7fbf9] p-0.5">
-        <ViewToggle
-          active={viewMode === "flat"}
-          label="Flat"
-          onClick={() => onViewMode("flat")}
-        />
-        <ViewToggle
-          active={viewMode === "section"}
-          label="By section"
-          onClick={() => onViewMode("section")}
-        />
+    <div className="flex flex-wrap items-center gap-2">
+      <div className="flex items-center rounded-full border border-[#E6ECE8] bg-[#F7F9F8] p-1">
+        {(["flat", "section"] as ViewMode[]).map((mode) => (
+          <button
+            key={mode}
+            type="button"
+            onClick={() => onViewMode(mode)}
+            className={`rounded-full px-3 py-1 text-xs font-medium transition ${
+              viewMode === mode
+                ? "bg-white text-[#17211B] shadow-[0_1px_2px_rgba(18,28,22,0.08)]"
+                : "text-[#62716A] hover:text-[#17211B]"
+            }`}>
+            {mode === "flat" ? "Flat" : "By section"}
+          </button>
+        ))}
       </div>
 
-      <label className="flex items-center gap-2">
-        <FiSearch className="text-[#6f8579]" aria-hidden="true" />
+      <label className="flex items-center gap-2 rounded-full border border-[#E6ECE8] bg-white px-3 py-1.5">
+        <FiSearch className="text-[#62716A]" aria-hidden="true" />
         <span className="sr-only">Search requests</span>
         <input
-          className="w-40 border-b border-[#cfddd5] bg-transparent py-1 text-sm text-[#14251d] outline-none transition-colors placeholder:text-[#8ba196] focus:border-[#087a54] sm:w-52"
           value={search}
-          onChange={(event) => onSearch(event.target.value)}
+          onChange={(e) => onSearch(e.target.value)}
           placeholder="Search name, doc, section"
+          className="w-40 bg-transparent text-[13px] text-[#17211B] outline-none placeholder:text-[#8A9A92] sm:w-48"
         />
       </label>
 
-      <label className="flex items-center gap-1.5">
-        <FiFilter className="text-[#6f8579]" aria-hidden="true" />
-        <span className="sr-only">Sort requests</span>
-        <select
-          className="border-0 bg-transparent py-1 text-sm text-[#14251d] outline-none focus:ring-0"
-          value={sortBy}
-          onChange={(event) => onSort(event.target.value as SortOrder)}>
-          <option value="newest">Newest first</option>
-          <option value="oldest">Oldest first</option>
-        </select>
-      </label>
+      <select
+        value={sortBy}
+        onChange={(e) => onSort(e.target.value as SortOrder)}
+        aria-label="Sort requests"
+        className="rounded-full border border-[#E6ECE8] bg-white px-3 py-1.5 text-[13px] text-[#17211B] outline-none">
+        <option value="newest">Newest first</option>
+        <option value="oldest">Oldest first</option>
+      </select>
 
-      <div className="flex items-center gap-1.5 text-xs text-[#5d6f66]">
-        <button
-          type="button"
-          onClick={onRefresh}
-          className="inline-flex items-center gap-1 font-semibold text-[#087a54] hover:underline">
-          <FiRotateCw className="text-[11px]" aria-hidden="true" />
-          Refresh
-        </button>
-      </div>
+      <button
+        type="button"
+        onClick={onRefresh}
+        className="inline-flex items-center gap-1.5 rounded-full px-3 py-1.5 text-[13px] font-medium text-[#0B6B4A] hover:bg-[#0B6B4A]/5">
+        <FiRotateCw className="text-xs" aria-hidden="true" />
+        Refresh
+      </button>
     </div>
-  );
-}
-
-function ViewToggle({
-  active,
-  label,
-  onClick,
-}: {
-  active: boolean;
-  label: string;
-  onClick: () => void;
-}) {
-  return (
-    <button
-      type="button"
-      onClick={onClick}
-      className={`px-2.5 py-1 text-[11px] font-semibold transition-colors ${
-        active
-          ? "bg-[#087a54] text-white"
-          : "text-[#5d6f66] hover:text-[#14251d]"
-      }`}>
-      {label}
-    </button>
   );
 }

@@ -8,6 +8,10 @@ export type ProfileFormState = {
   error: string | null;
 };
 
+/** The registrar's standard issue format, e.g. 24BSIT-0123. */
+const STANDARD_ID_PATTERN = /^(\d{2})([A-Z]{4})-(\d{4})$/;
+const CUSTOM_ID_MAX_LENGTH = 32;
+
 export async function saveStudentProfile(
   _previousState: ProfileFormState,
   formData: FormData,
@@ -24,6 +28,7 @@ export async function saveStudentProfile(
   const sectionCode = String(formData.get("sectionCode") ?? "")
     .trim()
     .toUpperCase();
+  const idFormat = String(formData.get("idFormat") ?? "standard").trim();
   const studentNumberValue = String(formData.get("studentNumber") ?? "")
     .trim()
     .toUpperCase();
@@ -40,14 +45,29 @@ export async function saveStudentProfile(
     return { error: "Enter a section code using 1 to 3 letters." };
   }
 
-  const studentIdMatch = /^(\d{2})([A-Z]{4})-(\d{4})$/.exec(studentNumberValue);
-  if (!studentIdMatch) {
-    return { error: "Enter a valid student ID, such as 24BSIT-0345." };
+  if (!studentNumberValue) {
+    return { error: "Enter your student number." };
   }
 
-  if (studentIdMatch[2] !== course) {
-    return { error: "The course must match the course in your student ID." };
+  if (studentNumberValue.length > CUSTOM_ID_MAX_LENGTH) {
+    return {
+      error: "That student number looks too long. Check it and try again.",
+    };
   }
+
+  if (idFormat !== "custom") {
+    const studentIdMatch = STANDARD_ID_PATTERN.exec(studentNumberValue);
+    if (!studentIdMatch) {
+      return { error: "Enter a valid student ID, such as 24BSIT-0345." };
+    }
+
+    if (studentIdMatch[2] !== course) {
+      return { error: "The course must match the course in your student ID." };
+    }
+  }
+  // Custom-issued IDs skip the pattern and course-match checks — they don't
+  // necessarily encode the course, so they're accepted as entered,
+  // normalized to uppercase like every other stored student number.
 
   const section = `${course} ${year}${sectionCode}`;
 

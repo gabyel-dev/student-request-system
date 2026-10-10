@@ -49,7 +49,7 @@ export function ScrollProgress() {
   return (
     <div
       aria-hidden="true"
-      className="pointer-events-none fixed left-0 right-0 top-0 z-[60] h-0.5 md:left-[84px] lg:left-60">
+      className="pointer-events-none fixed left-0 right-0 top-0 z-[60] h-0.5 md:left-[76px] lg:left-60">
       <div
         ref={fillRef}
         className="h-full w-full origin-left scale-x-0 bg-gradient-to-r from-accent via-mesh-bright to-accent"

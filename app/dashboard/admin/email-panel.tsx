@@ -14,20 +14,16 @@ import {
   type MailActionState,
 } from "@/app/actions/mail";
 import { useToast } from "@/app/components/toaster";
-import { statusTone } from "../lib/request-utils";
 import type { StudentRequest, RequestStatus } from "@/src/domain/request";
 import type { User } from "@/src/domain/user";
 
 const initialState: MailActionState = { error: null, success: null };
-
 const ALL_SECTIONS = "__all__";
 
 function buildSectionList(students: User[]): string[] {
   return [
     ...new Set(
-      students
-        .map((student) => student.section)
-        .filter((section): section is string => Boolean(section)),
+      students.map((s) => s.section).filter((s): s is string => Boolean(s)),
     ),
   ].sort((a, b) => a.localeCompare(b));
 }
@@ -40,9 +36,12 @@ export function EmailPanel({
   requests: StudentRequest[];
 }) {
   const { success: toastSuccess, error: toastError } = useToast();
-  const [section, setSection] = useState<string>("");
+  const [section, setSection] = useState("");
   const messageRef = useRef<HTMLTextAreaElement>(null);
-  const [state, formAction] = useActionState(sendSectionAnnouncement, initialState);
+  const [state, formAction] = useActionState(
+    sendSectionAnnouncement,
+    initialState,
+  );
 
   useEffect(() => {
     if (state.success) {
@@ -56,17 +55,20 @@ export function EmailPanel({
   const sections = useMemo(() => buildSectionList(students), [students]);
 
   const profiles = useMemo(() => {
-    const perUser = new Map<string, { active: number; completed: number; last: RequestStatus | null }>();
-    for (const request of requests) {
-      const entry = perUser.get(request.userId) ?? {
+    const perUser = new Map<
+      string,
+      { active: number; completed: number; last: RequestStatus | null }
+    >();
+    for (const r of requests) {
+      const e = perUser.get(r.userId) ?? {
         active: 0,
         completed: 0,
         last: null as RequestStatus | null,
       };
-      if (request.status === "pending" || request.status === "processing") entry.active += 1;
-      if (request.status === "completed") entry.completed += 1;
-      entry.last = request.status;
-      perUser.set(request.userId, entry);
+      if (r.status === "pending" || r.status === "processing") e.active += 1;
+      if (r.status === "completed") e.completed += 1;
+      e.last = r.status;
+      perUser.set(r.userId, e);
     }
     return perUser;
   }, [requests]);
@@ -74,57 +76,52 @@ export function EmailPanel({
   const targeted = useMemo(() => {
     if (!section) return [];
     return students
-      .filter((student) =>
-        section === ALL_SECTIONS
-          ? Boolean(student.section)
-          : student.section === section,
+      .filter((s) =>
+        section === ALL_SECTIONS ? Boolean(s.section) : s.section === section,
       )
       .sort((a, b) => a.fullName.localeCompare(b.fullName));
   }, [section, students]);
 
-  const verified = targeted.filter((s) => Boolean(s.section && s.studentNumber));
+  const verified = targeted.filter((s) =>
+    Boolean(s.section && s.studentNumber),
+  );
   const incomplete = targeted.filter((s) => !s.section || !s.studentNumber);
 
   return (
     <section
       id="email"
-      className="dash-glass scroll-mt-24 px-4 py-5 sm:px-8 sm:py-7 lg:rounded-tr-4xl lg:rounded-bl-4xl">
-      <div className="flex items-baseline justify-between gap-3">
-        <div>
-          <h2 className="flex items-center gap-2 text-xl font-bold tracking-[-.03em] text-[#123b32]">
-            <FiMail className="text-[#087a54]" aria-hidden="true" />
-            Email students
-          </h2>
-          <p className="mt-1 text-xs text-[#5d6f66]">
-            Send an announcement to a whole section, or to every verified
-            student. Verify each student&rsquo;s status before you send.
-          </p>
-        </div>
+      className="scroll-mt-24 rounded-2xl border border-[#E6ECE8] bg-white p-4 shadow-[0_1px_2px_rgba(18,28,22,0.06)] sm:p-6">
+      <div className="flex items-center gap-2">
+        <FiMail className="text-[#0B6B4A]" aria-hidden="true" />
+        <h2 className="text-[17px] font-semibold tracking-[-0.01em] text-[#17211B]">
+          Email students
+        </h2>
       </div>
+      <p className="mt-1 text-[13px] text-[#62716A]">
+        Send an announcement to a whole section, or to every verified student.
+      </p>
 
       <form
         action={formAction}
-        className="mt-4 grid gap-5 rounded-2xl border border-[#dbeadf] bg-white/60 p-4 sm:p-6 lg:grid-cols-[minmax(0,1fr)_340px]">
-        <div className="grid min-w-0 content-start gap-4">
+        className="mt-4 grid gap-5 lg:grid-cols-[minmax(0,1fr)_320px]">
+        <div className="grid content-start gap-4">
           <div>
             <label
               htmlFor="email-section"
-              className="mb-1.5 block text-xs font-bold uppercase tracking-[.08em] text-[#14251d]">
+              className="mb-1.5 block text-xs font-semibold text-[#17211B]">
               Section
             </label>
             <select
               id="email-section"
               name="section"
               value={section}
-              onChange={(event) => setSection(event.target.value)}
+              onChange={(e) => setSection(e.target.value)}
               required
-              className="w-full border border-[#cfddd5] bg-white px-3.5 py-2.5 text-sm text-[#14251d] outline-none transition-colors focus:border-[#087a54]">
+              className="w-full rounded-xl border border-[#DDE5E0] bg-white px-3.5 py-2.5 text-sm outline-none focus:border-[#0B6B4A]">
               <option value="" disabled>
-                Choose a sectionâ€¦
+                Choose a section…
               </option>
-              <option value={ALL_SECTIONS}>
-                All verified students
-              </option>
+              <option value={ALL_SECTIONS}>All verified students</option>
               {sections.map((item) => (
                 <option key={item} value={item}>
                   {item}
@@ -132,11 +129,10 @@ export function EmailPanel({
               ))}
             </select>
           </div>
-
           <div>
             <label
               htmlFor="email-subject"
-              className="mb-1.5 block text-xs font-bold uppercase tracking-[.08em] text-[#14251d]">
+              className="mb-1.5 block text-xs font-semibold text-[#17211B]">
               Subject
             </label>
             <input
@@ -146,14 +142,13 @@ export function EmailPanel({
               required
               maxLength={120}
               placeholder="e.g. Ready to claim your document"
-              className="w-full border border-[#cfddd5] bg-white px-3.5 py-2.5 text-sm text-[#14251d] outline-none transition-colors focus:border-[#087a54]"
+              className="w-full rounded-xl border border-[#DDE5E0] bg-white px-3.5 py-2.5 text-sm outline-none focus:border-[#0B6B4A]"
             />
           </div>
-
           <div>
             <label
               htmlFor="email-message"
-              className="mb-1.5 block text-xs font-bold uppercase tracking-[.08em] text-[#14251d]">
+              className="mb-1.5 block text-xs font-semibold text-[#17211B]">
               Message
             </label>
             <textarea
@@ -163,24 +158,22 @@ export function EmailPanel({
               required
               rows={7}
               maxLength={4000}
-              placeholder="Write the announcement the students will receiveâ€¦"
-              className="w-full resize-y border border-[#cfddd5] bg-white px-3.5 py-2.5 text-sm leading-relaxed text-[#14251d] outline-none transition-colors focus:border-[#087a54]"
+              placeholder="Write the announcement the students will receive…"
+              className="w-full resize-y rounded-xl border border-[#DDE5E0] bg-white px-3.5 py-2.5 text-sm leading-relaxed outline-none focus:border-[#0B6B4A]"
             />
           </div>
-
           <SendButton />
         </div>
 
-        <aside className="min-w-0 rounded-lg border border-[#e7efea] bg-[#f7fbf9] p-4">
-          <div className="flex items-center justify-between gap-2">
-            <strong className="text-xs font-bold uppercase tracking-[.08em] text-[#2c4036]">
+        <aside className="rounded-xl border border-[#EEF2EF] bg-[#FAFBFA] p-4">
+          <div className="flex items-center justify-between">
+            <strong className="text-xs font-semibold uppercase tracking-wide text-[#3E4B44]">
               Recipients
             </strong>
-            <span className="font-mono text-xs tabular-nums text-[#087a54]">
+            <span className="font-mono text-xs tabular-nums text-[#0B6B4A]">
               {verified.length} ready
             </span>
           </div>
-
           {section ? (
             targeted.length ? (
               <>
@@ -192,97 +185,69 @@ export function EmailPanel({
                     return (
                       <li
                         key={student.id}
-                        className={`flex items-start justify-between gap-2 rounded-md border px-3 py-2 text-xs ${
+                        className={`flex items-start justify-between gap-2 rounded-xl border px-3 py-2 ${
                           incompleteProfile
-                            ? "border-[#ecd3a4] bg-[#fdf5ee]"
-                            : entry && entry.active > 0
-                              ? "border-[#f0e0ae] bg-[#fdf6e3]"
-                              : "border-[#d9e6de] bg-white"
+                            ? "border-amber-200 bg-amber-50/50"
+                            : "border-[#EEF2EF] bg-white"
                         }`}>
                         <div className="min-w-0">
-                          <span className="block truncate font-semibold text-[#14251d]">
+                          <span className="block truncate text-[13px] font-medium text-[#17211B]">
                             {student.fullName}
                           </span>
-                          <span className="block truncate text-[#5d6f66]">
+                          <span className="block truncate text-xs text-[#62716A]">
                             {student.email}
                           </span>
-                          {entry ? (
-                            <span className="mt-1 flex flex-wrap items-center gap-2">
-                              <span
-                                className={`inline-block h-2 w-2 rounded-full ${statusTone[entry.last!]}`}
-                                aria-hidden="true"
-                              />
-                              <span className="font-mono text-[10px] uppercase tracking-wide text-[#5d6f66]">
-                                {entry.active > 0
-                                  ? `${entry.active} active request${entry.active === 1 ? "" : "s"}`
-                                  : "No active requests"}
-                              </span>
-                              {entry.completed > 0 ? (
-                                <span className="font-mono text-[10px] uppercase tracking-wide text-[#087a54]">
-                                  {entry.completed} completed
-                                </span>
-                              ) : null}
-                              {entry.last === "completed" ? (
-                                <span className="font-mono text-[10px] uppercase tracking-wide text-[#087a54]">
-                                  ready to pay
-                                </span>
-                              ) : null}
-                            </span>
-                          ) : (
-                            <span className="mt-1 block text-[10px] uppercase tracking-wide text-[#5d6f66]">
-                              No requests yet
-                            </span>
-                          )}
+                          <span className="mt-1 block text-[11px] text-[#62716A]">
+                            {entry
+                              ? entry.active > 0
+                                ? `${entry.active} active`
+                                : entry.completed > 0
+                                  ? `${entry.completed} completed`
+                                  : "No active requests"
+                              : "No requests yet"}
+                          </span>
                         </div>
                         {incompleteProfile ? (
-                          <span
-                            className="shrink-0 text-[#b07b17]"
-                            title="Incomplete profile">
-                            <FiUserX aria-hidden="true" />
-                          </span>
+                          <FiUserX
+                            className="mt-1 shrink-0 text-amber-700"
+                            aria-label="Incomplete profile"
+                          />
                         ) : (
-                          <span
-                            className="shrink-0 text-[#087a54]"
-                            title="Verified profile">
-                            <FiUserCheck aria-hidden="true" />
-                          </span>
+                          <FiUserCheck
+                            className="mt-1 shrink-0 text-[#0B6B4A]"
+                            aria-label="Verified profile"
+                          />
                         )}
                       </li>
                     );
                   })}
                 </ul>
-
-                <div className="mt-3 flex items-center gap-4 border-t border-[#e7efea] pt-3 text-[11px] text-[#5d6f66]">
+                <div className="mt-3 flex items-center gap-4 border-t border-[#EEF2EF] pt-3 text-[11px] text-[#62716A]">
                   <span className="flex items-center gap-1.5">
-                    <FiUserCheck className="text-[#087a54]" aria-hidden="true" />
+                    <FiUserCheck className="text-[#0B6B4A]" />
                     {verified.length} verified
                   </span>
                   <span className="flex items-center gap-1.5">
-                    <FiUserX className="text-[#b07b17]" aria-hidden="true" />
+                    <FiUserX className="text-amber-700" />
                     {incomplete.length} incomplete
                   </span>
                 </div>
                 {incomplete.length > 0 ? (
-                  <p className="mt-2 flex items-start gap-1.5 rounded-md bg-[#fdf5ee] px-3 py-2 text-[11px] leading-relaxed text-[#7a4a13]">
-                    <FiAlertCircle
-                      className="mt-0.5 shrink-0"
-                      aria-hidden="true"
-                    />
-                    Students with an incomplete profile are skipped and will not
-                    receive the email.
+                  <p className="mt-2 flex items-start gap-1.5 rounded-xl bg-amber-50 px-3 py-2 text-[11px] leading-relaxed text-amber-900">
+                    <FiAlertCircle className="mt-0.5 shrink-0" /> Incomplete
+                    profiles are skipped automatically.
                   </p>
                 ) : null}
               </>
             ) : (
-              <p className="mt-3 text-xs text-[#5d6f66]">
+              <p className="mt-3 text-xs text-[#62716A]">
                 No students in this section yet.
               </p>
             )
           ) : (
-            <div className="mt-3 grid place-items-center rounded-md border border-dashed border-[#d3e1d9] bg-white px-4 py-8 text-center text-xs text-[#5d6f66]">
-              <FiMail className="mb-2 text-xl text-[#5d6f66]" aria-hidden="true" />
-              Choose a section above to preview the students who will be
-              notified.
+            <div className="mt-3 grid place-items-center rounded-xl border border-dashed border-[#DDE5E0] bg-white px-4 py-8 text-center text-xs text-[#62716A]">
+              <FiMail className="mb-2 text-xl" aria-hidden="true" />
+              Choose a section to preview recipients.
             </div>
           )}
         </aside>
@@ -297,9 +262,9 @@ function SendButton() {
     <button
       type="submit"
       disabled={pending}
-      className="inline-flex min-h-11 w-full items-center justify-center gap-2 bg-[#0c8f62] px-6 text-sm font-bold text-white transition hover:bg-[#087650] disabled:cursor-wait disabled:opacity-70 sm:w-auto sm:min-w-[12rem]">
+      className="inline-flex min-h-11 w-full items-center justify-center gap-2 rounded-full bg-[#0B6B4A] px-6 text-sm font-semibold text-white hover:bg-[#095a3e] disabled:opacity-70 sm:w-auto">
       <FiSend className="text-sm" aria-hidden="true" />
-      {pending ? "Sendingâ€¦" : "Send notification"}
+      {pending ? "Sending…" : "Send notification"}
     </button>
   );
 }

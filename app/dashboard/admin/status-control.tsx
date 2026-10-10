@@ -1,8 +1,14 @@
 "use client";
 
-import { FiActivity } from "react-icons/fi";
-import { statusMeta, statusTone } from "../lib/request-utils";
+import { FiLoader } from "react-icons/fi";
 import type { StudentRequest, RequestStatus } from "@/src/domain/request";
+
+const dot: Record<RequestStatus, string> = {
+  pending: "bg-amber-500",
+  processing: "bg-blue-500",
+  completed: "bg-emerald-600",
+  rejected: "bg-neutral-400",
+};
 
 export function StatusControl({
   request,
@@ -15,48 +21,32 @@ export function StatusControl({
   updatingId: string | null;
   onChangeStatus: (id: string, status: RequestStatus) => void;
 }) {
-  const meta = statusMeta[request.status];
-  const isActive =
-    request.status === "pending" || request.status === "processing";
-
+  const busy = isPending && updatingId === request.id;
   return (
-    <div className="flex min-w-28 flex-col gap-1.5">
-      <span className="flex items-center gap-1.5">
-        <span aria-hidden="true" className={`h-2 w-2 ${statusTone[request.status]}`} />
-        <select
-          className="border-b border-[#cfddd5] bg-transparent py-1 pr-6 text-xs font-semibold capitalize text-[#2c4036] outline-none transition-colors focus:border-[#087a54]"
-          value={request.status}
-          onChange={(event) =>
-            onChangeStatus(request.id, event.target.value as RequestStatus)
-          }
-          disabled={isPending && updatingId === request.id}
-          aria-label={`Update status for ${request.studentName}'s ${request.documentType} request`}>
-          <option value="pending">Pending</option>
-          <option value="processing">Processing</option>
-          <option value="completed">Completed</option>
-          <option value="rejected">Rejected</option>
-        </select>
-        {updatingId === request.id ? (
-          <FiActivity
-            className="animate-spin text-xs text-[#5d6f66]"
-            aria-label="Saving"
-            aria-live="polite"
-          />
-        ) : null}
-      </span>
-      <span className="flex items-center gap-2">
-        <span className="h-1.5 w-24 shrink-0 overflow-hidden rounded-full bg-[#e3efe9]">
-          <span
-            className={`dash-progress block h-full rounded-full ${meta.bar} ${
-              isActive ? "dash-progress--active" : ""
-            }`}
-            style={{ width: `${meta.width}%` }}
-          />
-        </span>
-        <span className={`font-mono text-[10px] tabular-nums ${meta.text}`}>
-          {request.status === "rejected" ? "Closed" : `${meta.width}%`}
-        </span>
-      </span>
-    </div>
+    <span className="inline-flex items-center gap-2">
+      <span
+        className={`h-2 w-2 rounded-full ${dot[request.status]}`}
+        aria-hidden="true"
+      />
+      <select
+        value={request.status}
+        disabled={busy}
+        onChange={(e) =>
+          onChangeStatus(request.id, e.target.value as RequestStatus)
+        }
+        aria-label={`Update status for ${request.studentName}'s ${request.documentType} request`}
+        className="rounded-full border border-[#DDE5E0] bg-white py-1 pl-2.5 pr-7 text-xs font-medium capitalize text-[#17211B] outline-none hover:border-[#0B6B4A]/40 focus:border-[#0B6B4A] disabled:opacity-60">
+        <option value="pending">Pending</option>
+        <option value="processing">Processing</option>
+        <option value="completed">Completed</option>
+        <option value="rejected">Rejected</option>
+      </select>
+      {busy ? (
+        <FiLoader
+          className="animate-spin text-xs text-[#62716A]"
+          aria-label="Saving"
+        />
+      ) : null}
+    </span>
   );
 }

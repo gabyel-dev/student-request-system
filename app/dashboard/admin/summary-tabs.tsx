@@ -1,3 +1,5 @@
+"use client";
+
 import { filterTabs, type StatusFilter } from "../lib/request-utils";
 
 export function SummaryTabs({
@@ -10,25 +12,22 @@ export function SummaryTabs({
   onSelect: (status: StatusFilter) => void;
 }) {
   return (
-    <div className="flex flex-wrap items-center gap-x-5 gap-y-1">
+    <div className="flex items-center gap-1 rounded-full border border-[#E6ECE8] bg-[#F7F9F8] p-1">
       {filterTabs.map((tab) => {
         const isActive = active === tab.value;
         return (
           <button
-            className={`pb-1.5 text-[13px] font-semibold transition-colors ${
-              isActive
-                ? "border-b-2 border-[#087a54] text-[#087a54]"
-                : "border-b-2 border-transparent text-[#5d6f66] hover:text-[#14251d]"
-            }`}
-            type="button"
             key={tab.value}
+            type="button"
             onClick={() => onSelect(tab.value)}
-            aria-pressed={isActive}>
+            aria-pressed={isActive}
+            className={`rounded-full px-3 py-1.5 text-[13px] font-medium transition ${
+              isActive
+                ? "bg-white text-[#17211B] shadow-[0_1px_2px_rgba(18,28,22,0.08)]"
+                : "text-[#62716A] hover:text-[#17211B]"
+            }`}>
             {tab.label}{" "}
-            <span
-              className={`ml-0.5 font-mono text-xs tabular-nums ${
-                isActive ? "text-[#087a54]" : "text-[#6f8579]"
-              }`}>
+            <span className="font-mono text-xs tabular-nums">
               {counts[tab.value]}
             </span>
           </button>

@@ -4,11 +4,6 @@ import { userRepository } from "@/src/server/container";
 import { isAdminEmail } from "@/src/infrastructure/auth/admin-accounts";
 import { Sidebar } from "../sidebar";
 
-/**
- * Shared shell for admin-only sub-pages (Students, Archive). Keeps the same
- * sidebar + content frame as the main dashboard, but enforces the admin role
- * at the route level so the pages themselves don't repeat the guard.
- */
 export default async function AdminLayout({
   children,
 }: {
@@ -19,11 +14,10 @@ export default async function AdminLayout({
 
   const user = await userRepository.findById(userId);
   if (!user) redirect("/login");
-
   if (!isAdminEmail(user.email)) redirect("/dashboard");
 
   return (
-    <main className="relative min-h-screen overflow-x-hidden bg-[#f2f6f3] text-[#14251d]">
+    <main className="min-h-screen overflow-x-clip bg-[#F6F7F6] text-[#17211B]">
       <Sidebar
         student={{
           name: user.fullName,
@@ -34,8 +28,9 @@ export default async function AdminLayout({
         }}
         adminMode
       />
-      <div className="relative z-1 min-h-screen transition-[margin] duration-300 md:ml-[84px] lg:ml-60">
-        <div className="mx-auto w-[calc(100%-32px)] max-w-295 py-6 sm:w-[calc(100%-42px)] sm:py-8 lg:w-[calc(100%-64px)] lg:py-12">
+      {/* Matches the sidebar: 76px icon rail on md, 240px full sidebar on lg. */}
+      <div className="md:pl-[76px] lg:pl-60">
+        <div className="mx-auto w-full max-w-[1200px] px-4 py-6 sm:px-6 lg:px-8 lg:py-10">
           {children}
         </div>
       </div>

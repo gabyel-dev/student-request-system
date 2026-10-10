@@ -21,9 +21,9 @@ function ExpandButton({
       type="button"
       onClick={onToggle}
       aria-expanded={expanded}
-      className="grid h-6 w-6 place-items-center rounded-sm text-[#6f8579] transition-colors hover:text-[#087a54]">
+      className="grid h-7 w-7 place-items-center rounded-lg text-[#62716A] hover:bg-black/5">
       <FiChevronRight
-        className={`text-[14px] transition-transform ${expanded ? "rotate-90" : ""}`}
+        className={`text-[15px] transition-transform ${expanded ? "rotate-90" : ""}`}
         aria-hidden="true"
       />
     </button>
@@ -31,20 +31,20 @@ function ExpandButton({
 }
 
 function lookupStudentNumber(context: RequestListContext, email: string) {
-  return context.emailMaps.studentNumberByEmail.get(email.toLowerCase()) ?? null;
+  return (
+    context.emailMaps.studentNumberByEmail.get(email.toLowerCase()) ?? null
+  );
 }
 
-/** Human-range label for a student's queue numbers, e.g. "#001â€“#003". */
 function queueRangeLabel(requests: StudentRequest[]): string {
-  const queues = requests
-    .map((request) => request.queueNumber)
-    .sort((a, b) => a - b);
+  const queues = requests.map((r) => r.queueNumber).sort((a, b) => a - b);
   const first = String(queues[0]).padStart(3, "0");
   const last = String(queues[queues.length - 1]).padStart(3, "0");
-  return queues.length > 1 && first !== last ? `#${first}â€“#${last}` : `#${first}`;
+  return queues.length > 1 && first !== last
+    ? `#${first}–#${last}`
+    : `#${first}`;
 }
 
-/** Desktop-only table with expandable detail rows. */
 export function RequestTable({
   requests,
   context,
@@ -53,21 +53,20 @@ export function RequestTable({
   context: RequestListContext;
 }) {
   const groups = useMemo(() => groupRequestsByStudent(requests), [requests]);
-
   return (
     <div className="hidden overflow-x-auto md:block">
       <table className="w-full text-left text-sm">
         <thead>
-          <tr className="border-b border-[#e7efea] text-[11px] font-semibold uppercase tracking-[.08em] text-[#5d6f66]">
+          <tr className="border-b border-[#EEF2EF] text-[11px] font-semibold uppercase tracking-[0.08em] text-[#62716A]">
             <th className="w-12 px-4 py-3">
               <span className="sr-only">Details</span>
             </th>
-            <th className="py-3">Queue</th>
-            <th className="py-3">Student</th>
-            <th className="py-3">Section</th>
-            <th className="py-3">Document</th>
-            <th className="py-3">Submitted</th>
-            <th className="px-6 py-3">Status</th>
+            <th className="py-3 pr-4 font-semibold">Queue</th>
+            <th className="py-3 pr-4 font-semibold">Student</th>
+            <th className="py-3 pr-4 font-semibold">Section</th>
+            <th className="py-3 pr-4 font-semibold">Document</th>
+            <th className="py-3 pr-4 font-semibold">Submitted</th>
+            <th className="px-4 py-3 font-semibold">Status</th>
           </tr>
         </thead>
         <tbody>
@@ -92,10 +91,6 @@ export function RequestTable({
   );
 }
 
-/**
- * Header row for a student who has several requests. Collapsed by default so
- * the queue stays readable; expanding shows the student's individual rows.
- */
 function StudentGroupRow({
   requests,
   context,
@@ -105,38 +100,37 @@ function StudentGroupRow({
 }) {
   const [open, setOpen] = useState(false);
   const first = requests[0];
-
   return (
     <Fragment>
-      <tr className="border-b border-[#e7efea] bg-[#fbfdfc] transition-colors hover:bg-[#f1f8f4]">
-        <td className="px-4 py-3.5">
+      <tr className="border-b border-[#EEF2EF] bg-[#FAFBFA] hover:bg-[#F4F7F5]">
+        <td className="px-4 py-3">
           <ExpandButton expanded={open} onToggle={() => setOpen(!open)} />
         </td>
-        <td className="py-3.5 font-mono font-bold tabular-nums text-[#087a54]">
+        <td className="py-3 pr-4 font-mono text-[13px] tabular-nums text-[#17211B]">
           {queueRangeLabel(requests)}
         </td>
-        <td className="max-w-55 py-3.5">
-          <strong className="block truncate font-medium text-[#14251d]">
+        <td className="max-w-[220px] py-3 pr-4">
+          <p className="truncate font-medium text-[#17211B]">
             {first.studentName}
-          </strong>
-          <span className="block truncate text-xs text-[#5d6f66]">
+          </p>
+          <p className="truncate text-xs text-[#62716A]">
             {first.studentEmail}
-          </span>
+          </p>
         </td>
-        <td className="max-w-32 truncate py-3.5 text-xs text-[#5d6f66]">
+        <td className="max-w-[140px] truncate py-3 pr-4 text-[13px] text-[#62716A]">
           {first.section ?? "Unknown"}
         </td>
-        <td className="max-w-40 truncate py-3.5 text-[#41584c]">
-          {requests.length} {requests.length === 1 ? "document" : "documents"}
+        <td className="py-3 pr-4 text-[13px] text-[#3E4B44]">
+          {requests.length} documents
         </td>
-        <td className="py-3.5" />
-        <td className="px-6 py-3.5 text-xs font-semibold text-[#5d6f66]">
-          {requests.length} request{requests.length === 1 ? "" : "s"}
+        <td className="py-3 pr-4" />
+        <td className="px-4 py-3 text-xs text-[#62716A]">
+          {requests.length} requests
         </td>
       </tr>
       {open
-        ? requests.map((request) => (
-            <RequestTableRow key={request.id} request={request} context={context} />
+        ? requests.map((r) => (
+            <RequestTableRow key={r.id} request={r} context={context} />
           ))
         : null}
     </Fragment>
@@ -147,44 +141,43 @@ function RequestTableRow({ request, context }: RequestListItemProps) {
   const { expandedId, onToggleRequest } = context;
   const expanded = expandedId === request.id;
   const studentNumber = lookupStudentNumber(context, request.studentEmail);
-
   return (
     <Fragment>
-      <tr className="border-b border-[#e7efea] transition-colors hover:bg-[#f7fbf9]">
-        <td className="px-4 py-3.5">
+      <tr className="border-b border-[#EEF2EF] hover:bg-[#FAFBFA]">
+        <td className="px-4 py-3">
           <ExpandButton
             expanded={expanded}
             onToggle={() => onToggleRequest(expanded ? null : request.id)}
           />
         </td>
-        <td className="py-3.5 font-mono font-bold tabular-nums text-[#087a54]">
+        <td className="py-3 pr-4 font-mono text-[13px] tabular-nums text-[#17211B]">
           #{String(request.queueNumber).padStart(3, "0")}
         </td>
-        <td className="max-w-55 py-3.5">
-          <strong className="block truncate font-medium text-[#14251d]">
+        <td className="max-w-[220px] py-3 pr-4">
+          <p className="truncate font-medium text-[#17211B]">
             {request.studentName}
-          </strong>
-          <span className="block truncate text-xs text-[#5d6f66]">
+          </p>
+          <p className="truncate text-xs text-[#62716A]">
             {request.studentEmail}
-          </span>
+          </p>
         </td>
-        <td className="max-w-32 truncate py-3.5 text-xs text-[#5d6f66]">
+        <td className="max-w-[140px] truncate py-3 pr-4 text-[13px] text-[#62716A]">
           {request.section ?? "Unknown"}
         </td>
-        <td className="max-w-40 truncate py-3.5 text-[#41584c]">
+        <td className="max-w-[180px] truncate py-3 pr-4 text-[13px] text-[#3E4B44]">
           {request.documentType}
         </td>
-        <td className="py-3.5">
-          <span className="text-xs tabular-nums text-[#5d6f66]">
+        <td className="py-3 pr-4">
+          <span className="text-[13px] tabular-nums text-[#62716A]">
             {formatAge(request.createdAt)}
           </span>
           {isOverdue(request) ? (
-            <span className="ml-2 border border-[#ecd3a4] px-1 py-0.5 text-[10px] font-bold uppercase tracking-wide text-[#8a5a16]">
+            <span className="ml-2 rounded-full border border-amber-200 bg-amber-50 px-1.5 py-0.5 text-[10px] font-semibold uppercase tracking-wide text-amber-800">
               Overdue
             </span>
           ) : null}
         </td>
-        <td className="px-6 py-3.5">
+        <td className="px-4 py-3">
           <StatusControl
             request={request}
             isPending={context.isPending}
@@ -194,9 +187,14 @@ function RequestTableRow({ request, context }: RequestListItemProps) {
         </td>
       </tr>
       {expanded ? (
-        <tr key={`${request.id}-details`} id={`request-detail-${request.id}`}>
-          <td colSpan={7} className="border-b border-[#e7efea] bg-[#f7fbf9] px-6 py-4">
-            <RequestDetailGrid request={request} studentNumber={studentNumber} />
+        <tr>
+          <td
+            colSpan={7}
+            className="border-b border-[#EEF2EF] bg-[#FAFBFA] px-6 py-4">
+            <RequestDetailGrid
+              request={request}
+              studentNumber={studentNumber}
+            />
           </td>
         </tr>
       ) : null}
@@ -204,28 +202,26 @@ function RequestTableRow({ request, context }: RequestListItemProps) {
   );
 }
 
-/** Compact card layout used on mobile and inside section groups. */
 export function RequestCard({ request, context }: RequestListItemProps) {
   const { expandedId, onToggleRequest } = context;
   const expanded = expandedId === request.id;
   const studentNumber = lookupStudentNumber(context, request.studentEmail);
-
   return (
-    <article className={`px-4 py-4 sm:px-6 ${expanded ? "bg-[#f7fbf9]" : ""}`}>
+    <article className="px-4 py-4 sm:px-5">
       <div className="flex items-start justify-between gap-3">
         <div className="min-w-0">
-          <span className="font-mono text-xs font-bold tabular-nums text-[#087a54]">
+          <span className="font-mono text-xs tabular-nums text-[#62716A]">
             #{String(request.queueNumber).padStart(3, "0")}
           </span>
-          <strong className="ml-2 text-sm text-[#14251d]">
+          <span className="ml-2 text-sm font-medium text-[#17211B]">
             {request.studentName}
-          </strong>
-          <span className="ml-2 text-xs text-[#5d6f66]">
+          </span>
+          <span className="block truncate text-xs text-[#62716A]">
             {request.studentEmail}
           </span>
         </div>
-        <div className="flex shrink-0 items-center gap-2">
-          <span className="text-xs tabular-nums text-[#5d6f66]">
+        <div className="flex shrink-0 items-center gap-1">
+          <span className="text-xs tabular-nums text-[#62716A]">
             {formatAge(request.createdAt)}
           </span>
           <ExpandButton
@@ -234,8 +230,8 @@ export function RequestCard({ request, context }: RequestListItemProps) {
           />
         </div>
       </div>
-      <div className="mt-2 flex items-center justify-between gap-3">
-        <span className="truncate text-sm text-[#41584c]">
+      <div className="mt-2.5 flex items-center justify-between gap-3">
+        <span className="truncate text-sm text-[#3E4B44]">
           {request.documentType}
         </span>
         <StatusControl
@@ -246,9 +242,7 @@ export function RequestCard({ request, context }: RequestListItemProps) {
         />
       </div>
       {expanded ? (
-        <div
-          id={`request-detail-${request.id}`}
-          className="mt-3 border-t border-[#dbebe3] pt-3">
+        <div className="mt-3 border-t border-[#EEF2EF] pt-3">
           <RequestDetailGrid request={request} studentNumber={studentNumber} />
         </div>
       ) : null}
@@ -256,7 +250,6 @@ export function RequestCard({ request, context }: RequestListItemProps) {
   );
 }
 
-/** Stacked card list for small screens and section-group views. */
 export function RequestCardList({
   requests,
   context,
@@ -265,9 +258,8 @@ export function RequestCardList({
   context: RequestListContext;
 }) {
   const groups = useMemo(() => groupRequestsByStudent(requests), [requests]);
-
   return (
-    <div className="divide-y divide-[#dbebe3]">
+    <div className="divide-y divide-[#EEF2EF]">
       {groups.map((group) =>
         group.length === 1 ? (
           <RequestCard key={group[0].id} request={group[0]} context={context} />
@@ -283,7 +275,6 @@ export function RequestCardList({
   );
 }
 
-/** Card-list version of the per-student dropdown header. */
 function StudentCardGroup({
   requests,
   context,
@@ -293,39 +284,36 @@ function StudentCardGroup({
 }) {
   const [open, setOpen] = useState(false);
   const first = requests[0];
-
   return (
     <div>
       <button
         type="button"
-        onClick={() => setOpen((value) => !value)}
+        onClick={() => setOpen((v) => !v)}
         aria-expanded={open}
-        className="flex w-full items-center gap-3 bg-[#fbfdfc] px-4 py-3 text-left transition hover:bg-[#f1f8f4] sm:px-6">
+        className="flex w-full items-center gap-3 bg-[#FAFBFA] px-4 py-3 text-left hover:bg-[#F4F7F5] sm:px-5">
         <span className="min-w-0 flex-1">
-          <strong className="block truncate text-sm text-[#14251d]">
+          <span className="block truncate text-sm font-medium text-[#17211B]">
             {first.studentName}
-          </strong>
-          <span className="block truncate text-xs text-[#5d6f66]">
+          </span>
+          <span className="block truncate text-xs text-[#62716A]">
             {first.studentEmail}
           </span>
         </span>
-        <span className="shrink-0 font-mono text-xs font-bold tabular-nums text-[#087a54]">
+        <span className="font-mono text-xs tabular-nums text-[#62716A]">
           {queueRangeLabel(requests)}
         </span>
-        <span className="shrink-0 rounded-full bg-[#e7efe9] px-2 py-0.5 font-mono text-[11px] font-semibold tabular-nums text-[#5d6f66]">
+        <span className="rounded-full bg-[#EEF2EF] px-2 py-0.5 font-mono text-[11px] tabular-nums text-[#3E4B44]">
           {requests.length}
         </span>
-        <span className="grid h-6 w-6 shrink-0 place-items-center text-[#6f8579]">
-          <FiChevronRight
-            className={`text-[14px] transition-transform ${open ? "rotate-90" : ""}`}
-            aria-hidden="true"
-          />
-        </span>
+        <FiChevronRight
+          className={`text-[#62716A] transition-transform ${open ? "rotate-90" : ""}`}
+          aria-hidden="true"
+        />
       </button>
       {open ? (
-        <div className="divide-y divide-[#dbebe3] bg-white">
-          {requests.map((request) => (
-            <RequestCard key={request.id} request={request} context={context} />
+        <div className="divide-y divide-[#EEF2EF] bg-white">
+          {requests.map((r) => (
+            <RequestCard key={r.id} request={r} context={context} />
           ))}
         </div>
       ) : null}
