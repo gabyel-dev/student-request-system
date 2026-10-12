@@ -3,7 +3,7 @@
 import { useActionState, useCallback, useEffect } from "react";
 import { useRouter } from "next/navigation";
 import { useFormStatus } from "react-dom";
-import { FiArrowLeft } from "react-icons/fi";
+import { FiArrowLeft, FiChevronLeft, FiChevronRight } from "react-icons/fi";
 import {
   submitRequest,
   updateRequest,
@@ -82,15 +82,14 @@ export function RequestForm({
         aria-hidden="true"
         className="h-1 bg-gradient-to-r from-accent via-accent/50 to-transparent"
       />
-      <div className="mx-auto w-full max-w-2xl px-4 py-6 sm:px-6 sm:py-10">
+      <div className="mx-auto w-full max-w-2xl md:x-4 md:py-6 sm:px-6 sm:py-10">
         <a
           href="/dashboard"
-          className="inline-flex items-center gap-2 text-sm font-medium text-accent transition hover:text-accent-hover">
-          <FiArrowLeft size={16} aria-hidden="true" />
-          Back to dashboard
+          className="inline-flex ml-4 mt-6  md:ml-0 md:mt-0 items-center gap-2 text-sm font-medium text-accent transition hover:text-accent-hover">
+          <FiChevronLeft size={16} aria-hidden="true" />
         </a>
 
-        <section className="mt-6 overflow-hidden rounded-2xl border border-hairline bg-surface shadow-[0_1px_2px_rgba(18,28,22,0.06)]">
+        <section className="mt-6 overflow-hidden rounded-2xl md:border md:border-hairline md:bg-surface shadow-[0_1px_2px_rgba(18,28,22,0.06)]">
           <div className="border-b border-rule px-5 py-6 sm:px-8">
             <h1 className="mt-2 text-2xl font-bold tracking-[-0.02em] text-ink">
               {service.title}
@@ -114,7 +113,7 @@ export function RequestForm({
               <Detail label="Email" value={student.email} />
             </dl>
 
-            <div className="mt-6 rounded-2xl bg-sunken p-4">
+            <div className="mt-6  rounded-2xl bg-white border border-dashed border-slate-300 p-4">
               <p className="text-[13px] leading-6 text-muted">
                 <strong className="font-semibold text-ink">
                   What happens next:
@@ -159,11 +158,6 @@ export function RequestForm({
               ) : null}
 
               <SubmitButton editing={editing} />
-              <p className="mt-3 text-xs leading-5 text-muted">
-                {editing
-                  ? "Only pending requests can be edited."
-                  : "You can edit or delete this request while it is still pending."}
-              </p>
             </form>
           </div>
         </section>

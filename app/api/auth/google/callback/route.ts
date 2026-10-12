@@ -88,7 +88,7 @@ export async function GET(request: NextRequest) {
         : "/onboarding";
     const response = NextResponse.redirect(new URL(destination, request.url));
 
-    // Clear the CSRF state cookie (one-time use)
+    // Clear the CSRF state cookie
     response.cookies.delete("oauth_state");
 
     response.cookies.set(ACCESS_TOKEN_COOKIE, accessToken, {

@@ -76,8 +76,7 @@ export function Icon({
     <Glyph
       theme="two-tone"
       size={size}
-      primaryColor={primary}
-      secondaryColor={secondary}
+      fill={[primary, secondary]}
       className={className}
       role={label ? "img" : undefined}
       aria-label={label}

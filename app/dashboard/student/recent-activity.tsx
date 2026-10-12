@@ -20,9 +20,7 @@ import {
   formatDateTime as formatSharedDateTime,
   parseDatabaseDate,
 } from "../lib/format";
-import {
-  usePressFeedback,
-} from "../lib/use-motion-helpers";
+import { usePressFeedback } from "../lib/use-motion-helpers";
 import type { StudentRequest } from "@/src/domain/request";
 
 /**
@@ -180,7 +178,10 @@ export function RecentActivity({ requests }: { requests: StudentRequest[] }) {
             <motion.div
               id="requests-closed"
               initial={false}
-              animate={{ height: showClosed ? "auto" : 0, opacity: showClosed ? 1 : 0 }}
+              animate={{
+                height: showClosed ? "auto" : 0,
+                opacity: showClosed ? 1 : 0,
+              }}
               className="overflow-hidden">
               <ul>{closed.map(renderRow)}</ul>
             </motion.div>
@@ -308,10 +309,7 @@ function RequestRow({
               label="Submitted"
               value={formatDateTime(request.createdAt)}
             />
-            <Detail
-              label="Last updated"
-              value={formatDateTime(request.updatedAt)}
-            />
+            <Detail label="updated" value={formatDateTime(request.updatedAt)} />
             <Detail label="Section" value={request.section ?? "—"} />
           </dl>
 
@@ -323,27 +321,28 @@ function RequestRow({
 
           {canModify ? (
             <div className="mt-4 flex flex-wrap gap-2">
-              <button
-                ref={editRef}
-                type="button"
-                disabled={disabled}
-                onClick={onEdit}
-                className="inline-flex items-center gap-1.5 rounded-full border border-hairline bg-surface px-3.5 py-2 text-[12px] font-semibold text-ink-soft transition-colors hover:border-accent-line hover:bg-accent-soft hover:text-accent disabled:opacity-50"
-                aria-label={`Edit ${request.documentType} request`}
-                {...editHandlers}>
-                <FiEdit2 size={14} aria-hidden="true" className="shrink-0" />
-                Edit
-              </button>
+              {request.documentType === "Others" && (
+                <button
+                  ref={editRef}
+                  type="button"
+                  disabled={request.documentType !== "Others"}
+                  onClick={onEdit}
+                  className={`inline-flex  items-center gap-1.5 rounded-full border border-hairline bg-surface px-2 py-2 text-[12px] font-semibold text-ink-soft transition-colors hover:border-accent-line hover:bg-accent-soft hover:text-accent disabled:opacity-50`}
+                  aria-label={`Edit ${request.documentType} request`}
+                  {...editHandlers}>
+                  <FiEdit2 size={14} aria-hidden="true" className="shrink-0" />
+                </button>
+              )}
               <button
                 ref={removeRef}
                 type="button"
                 disabled={disabled}
                 onClick={onDelete}
-                className="inline-flex items-center gap-1.5 rounded-full border border-hairline bg-surface px-3.5 py-2 text-[12px] font-semibold text-muted transition-colors hover:border-rejected/40 hover:bg-rejected-soft hover:text-rejected disabled:opacity-50"
+                className="inline-flex items-center gap-1.5 rounded-full border border-rejected bg-surface px-2 py-2 text-[12px] font-semibold text-rejected transition-colors hover:border-rejected/40 hover:bg-rejected-soft hover:text-rejected disabled:opacity-50"
                 aria-label={`Delete ${request.documentType} request`}
                 {...removeHandlers}>
                 <FiTrash2 size={14} aria-hidden="true" className="shrink-0" />
-                Delete
+                remove
               </button>
             </div>
           ) : (

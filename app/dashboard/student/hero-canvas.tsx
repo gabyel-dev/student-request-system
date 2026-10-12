@@ -3,25 +3,10 @@
 import { useEffect, useRef } from "react";
 import type { HeroField } from "../lib/hero-field";
 
-const REDUCED_MOTION_QUERY = "(prefers-reduced-motion: reduce)";
-
 /**
- * Mounts and drives the WebGL hero backdrop.
- *
- * Three.js is loaded with a dynamic `import()` rather than a static one, so it
- * arrives in its own chunk after the page has already painted. The hero is
- * readable and the CSS layer below is a complete background on its own, so
- * nothing here is on the critical path.
- *
- * Two things can go wrong on a student's machine, and both have to be quiet:
- *
- *  - No WebGL, or the context is lost. `createHeroField` returns `null`, the
- *    canvas stays transparent, and the CSS mesh underneath is never touched.
- *  - Reduced motion is requested. The field draws one still frame and never
- *    starts its loop, and the pointer and scroll effects are not attached.
- *
- * The canvas also reports itself to the DOM with `data-webgl="on"`, which is
- * what lets `globals.css` drop the CSS orb layer that this field replaces.
+ * WebGL hero backdrop. Three.js loads in its own chunk after paint; the CSS
+ * mesh underneath is a complete background, so a missing WebGL context is a
+ * quiet no-op. Reduced motion gets one still frame and no effects.
  */
 export function HeroCanvas() {
   const canvasRef = useRef<HTMLCanvasElement>(null);
@@ -30,17 +15,12 @@ export function HeroCanvas() {
     const canvas = canvasRef.current;
     if (!canvas) return;
 
-    // Flips to true when the effect is torn down. The dynamic import resolves
-    // on a later tick, so without this a fast navigation could create a scene
-    // that nothing owns and that no one will ever dispose.
-    let disposed = false;
-    // Held here rather than inside the async body: the effect cleanup is the
-    // only thing guaranteed to run, and it is the only owner of the scene.
+    let disposed = false; // guards the async import against fast unmounts
     let release: (() => void) | null = null;
 
-    const reducedMotion = window.matchMedia(REDUCED_MOTION_QUERY).matches;
-    // Touch gets no pointer light. A tap would otherwise leave a highlight
-    // stranded wherever the finger lifted.
+    const reducedMotion = window.matchMedia(
+      "(prefers-reduced-motion: reduce)",
+    ).matches;
     const finePointer = window.matchMedia("(pointer: fine)").matches;
 
     void (async () => {
@@ -50,94 +30,70 @@ export function HeroCanvas() {
       const field: HeroField | null = createHeroField(canvas, {
         reduced: reducedMotion,
       });
-      // No WebGL, or the context was refused. The CSS mesh below is a complete
-      // background, so this is a no-op rather than a fallback path.
-      if (!field) return;
+      if (!field) return; // no WebGL — the CSS layer stays
 
       const teardown: Array<() => void> = [];
       release = () => {
         for (const fn of teardown) fn();
         field.dispose();
       };
-      // Unmounted during the await: hand the scene straight back.
       if (disposed) {
         release();
         return;
       }
 
-      // Flagged before the fade so the orbs are gone by the time any of the
-      // WebGL output is visible. A brief overlap is invisible; a pop-in is not.
       const hero = canvas.closest<HTMLElement>("[data-hero]");
       hero?.setAttribute("data-webgl", "on");
       teardown.push(() => hero?.removeAttribute("data-webgl"));
 
       canvas.style.opacity = "1";
+      if (reducedMotion) return;
 
-      if (reducedMotion) {
-        // Nothing to drive. The still frame is already the finished image.
-        return;
-      }
+      // Pause when scrolled past or the tab is hidden.
+      const observer = new IntersectionObserver(
+        ([entry]) => field.setPaused(!entry.isIntersecting || document.hidden),
+        { threshold: [0, 1] },
+      );
+      observer.observe(hero ?? canvas);
+      teardown.push(() => observer.disconnect());
 
-      {
-        const target = hero ?? canvas;
-        const observer = new IntersectionObserver(
-          ([entry]) => field.setPaused(!entry.isIntersecting || document.hidden),
-          { threshold: [0, 1] },
-        );
-        observer.observe(target);
-        teardown.push(() => observer.disconnect());
+      const onVisibility = () => field.setPaused(document.hidden);
+      document.addEventListener("visibilitychange", onVisibility);
+      teardown.push(() =>
+        document.removeEventListener("visibilitychange", onVisibility),
+      );
 
-        if (finePointer) {
-          // Smoothed rather than mapped straight to the uniform: a raw
-          // position makes the whole field twitch with every mouse sample.
-          const pointer = { x: 0.5, y: 0.5 };
-          const targetPointer = { x: 0.5, y: 0.5 };
+      // Smoothed pointer light, mouse devices only.
+      if (finePointer) {
+        const pointer = { x: 0.5, y: 0.5 };
+        const target = { x: 0.5, y: 0.5 };
 
-          const onMove = (event: PointerEvent) => {
-            const rect = canvas.getBoundingClientRect();
-            if (!rect.width || !rect.height) return;
-            targetPointer.x = (event.clientX - rect.left) / rect.width;
-            targetPointer.y = 1 - (event.clientY - rect.top) / rect.height;
-          };
-          // Returns the light to the middle of the field on exit, so it never
-          // sits under one edge of the layout after the cursor leaves.
-          const onLeave = () => {
-            targetPointer.x = 0.5;
-            targetPointer.y = 0.5;
-          };
-          // One uniform write per frame, independent of the render loop's own
-          // frame rate, so the light stays smooth at 30fps.
-          const push = () => {
-            pointer.x += (targetPointer.x - pointer.x) * 0.08;
-            pointer.y += (targetPointer.y - pointer.y) * 0.08;
-            field.setPointer(pointer.x, pointer.y);
-          };
+        const onMove = (event: PointerEvent) => {
+          const rect = canvas.getBoundingClientRect();
+          if (!rect.width || !rect.height) return;
+          target.x = (event.clientX - rect.left) / rect.width;
+          target.y = 1 - (event.clientY - rect.top) / rect.height;
+        };
+        const onLeave = () => {
+          target.x = 0.5;
+          target.y = 0.5;
+        };
 
-          window.addEventListener("pointermove", onMove, { passive: true });
-          document.addEventListener("pointerleave", onLeave);
-          let frame = 0;
-          const animatePointer = () => {
-            push();
-            frame = requestAnimationFrame(animatePointer);
-          };
-          frame = requestAnimationFrame(animatePointer);
+        let frame = 0;
+        const tick = () => {
+          pointer.x += (target.x - pointer.x) * 0.08;
+          pointer.y += (target.y - pointer.y) * 0.08;
+          field.setPointer(pointer.x, pointer.y);
+          frame = requestAnimationFrame(tick);
+        };
+        frame = requestAnimationFrame(tick);
 
-          teardown.push(() => {
-            window.removeEventListener("pointermove", onMove);
-            document.removeEventListener("pointerleave", onLeave);
-            cancelAnimationFrame(frame);
-          });
-        }
-
-        // A backgrounded tab and a hero scrolled past both mean nobody is
-        // looking at the field, so it stops asking for frames.
-        const sync = () => field.setPaused(document.hidden);
-        const onVisibility = () => sync();
-
-        document.addEventListener("visibilitychange", onVisibility);
-
+        window.addEventListener("pointermove", onMove, { passive: true });
+        document.addEventListener("pointerleave", onLeave);
         teardown.push(() => {
-          document.removeEventListener("visibilitychange", onVisibility);
+          window.removeEventListener("pointermove", onMove);
+          document.removeEventListener("pointerleave", onLeave);
+          cancelAnimationFrame(frame);
         });
       }
     })();
@@ -153,8 +109,6 @@ export function HeroCanvas() {
     <canvas
       ref={canvasRef}
       aria-hidden="true"
-      // Starts transparent so the CSS layer is what shows until the field is
-      // proven to be running.
       className="pointer-events-none absolute inset-0 h-full w-full opacity-0"
     />
   );

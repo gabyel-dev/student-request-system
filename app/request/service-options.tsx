@@ -1,7 +1,7 @@
 "use client";
 
 import Link from "next/link";
-import { FiArrowLeft } from "react-icons/fi";
+import { FiArrowLeft, FiChevronLeft } from "react-icons/fi";
 import { services } from "@/app/dashboard/data";
 import { getServiceIcon } from "./service-icons";
 
@@ -10,8 +10,7 @@ export function BackToDashboard() {
     <Link
       href="/dashboard"
       className="inline-flex items-center gap-2 text-sm font-medium text-[#087a54] transition hover:opacity-70">
-      <FiArrowLeft size={15} aria-hidden="true" />
-      Back to dashboard
+      <FiChevronLeft size={15} aria-hidden="true" />
     </Link>
   );
 }

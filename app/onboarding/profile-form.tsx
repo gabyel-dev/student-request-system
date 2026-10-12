@@ -17,7 +17,6 @@ const STANDARD_ID = /^[0-9]{2}[A-Z]{4}-[0-9]{4}$/;
 type IdFormat = {
   id: string;
   title: string;
-  /** Shown on the card and under the input — keep it a real example. */
   example: string;
   rule: string;
   pattern?: string;
@@ -46,7 +45,7 @@ const ID_FORMATS: IdFormat[] = [
     example: "As printed on your ID",
     rule: "Any other format the school issued",
     maxLength: 32,
-    placeholder: "Enter your ID exactly as issued",
+    placeholder: "Enter your issued Student ID",
   },
 ];
 
