@@ -1,5 +1,5 @@
 import Link from "next/link";
-import { FiArrowLeft } from "react-icons/fi";
+import { FiArrowLeft, FiChevronLeft } from "react-icons/fi";
 import { userRepository } from "@/src/server/container";
 import { isAdminEmail } from "@/src/infrastructure/auth/admin-accounts";
 import { StudentsPanel } from "../students-panel";
@@ -14,8 +14,7 @@ export default async function StudentsPage() {
       <Link
         href="/dashboard"
         className="inline-flex items-center gap-2 text-xs font-semibold text-[#087a54] transition hover:text-[#066044]">
-        <FiArrowLeft aria-hidden="true" />
-        Back to dashboard
+        <FiChevronLeft aria-hidden="true" />
       </Link>
 
       <StudentsPanel students={students} />
