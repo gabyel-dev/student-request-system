@@ -4,6 +4,8 @@ import { userRepository } from "@/src/server/container";
 import { isAdminEmail } from "@/src/infrastructure/auth/admin-accounts";
 import { StudentsPanel } from "../students-panel";
 
+export const revalidate = 60;
+
 export default async function StudentsPage() {
   const students = (await userRepository.findAll()).filter(
     (student) => !isAdminEmail(student.email),

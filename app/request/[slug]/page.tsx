@@ -2,8 +2,8 @@ import { notFound, redirect } from "next/navigation";
 import { RequestForm } from "../request-form";
 import { isAdminEmail } from "@/src/infrastructure/auth/admin-accounts";
 import { requestRepository, userRepository } from "@/src/server/container";
-import { getSessionTokenUserId } from "@/src/server/session";
 import { getServiceByTitle, services } from "@/src/domain/services";
+import { getSessionTokenUserId } from "@/src/server/session";
 
 const serviceBySlug = new Map(services.map((s) => [s.slug, s]));
 

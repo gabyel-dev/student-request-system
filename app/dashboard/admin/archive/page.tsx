@@ -5,6 +5,8 @@ import { isAdminEmail } from "@/src/infrastructure/auth/admin-accounts";
 import { ArchivePanel } from "../archive-panel";
 import { buildEmailMaps } from "../../lib/request-utils";
 
+export const revalidate = 60;
+
 export default async function ArchivePage() {
   const [archived, students] = await Promise.all([
     requestRepository.findArchived(),

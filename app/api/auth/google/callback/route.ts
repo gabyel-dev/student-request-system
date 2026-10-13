@@ -60,6 +60,9 @@ export async function GET(request: NextRequest) {
       "https://oauth2.googleapis.com/token",
       null,
       {
+        // Bound the per-request Google call so one slow upstream cannot
+        // queue up the whole server under login load.
+        timeout: 10_000,
         params: {
           code,
           client_id: env.GOOGLE_CLIENT_ID,

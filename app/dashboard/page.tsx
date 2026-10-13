@@ -7,6 +7,8 @@ import { isAdminEmail } from "@/src/infrastructure/auth/admin-accounts";
 import { requestRepository } from "@/src/server/container";
 import { SPLASH_COOKIE } from "@/src/lib/auth/splash-cookie";
 
+export const revalidate = 60;
+
 export default async function DashboardPage() {
   const userId = await getSessionTokenUserId();
   if (!userId) {

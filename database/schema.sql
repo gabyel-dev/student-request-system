@@ -145,7 +145,20 @@ create unique index if not exists requests_active_section_queue_uq
   on public.requests (section, queue_number)
   where archived_at is null;
 
+-- Index for per-request user queries (countTodayByUser, findLastByUser, findByUserId)
+create index if not exists idx_requests_user_created
+  on public.requests (user_id, created_at desc);
 
+
+-- Index for active request checks by user + document type
+create index if not exists idx_requests_user_doc_active
+  on public.requests (user_id, document_type, archived_at, status)
+  where archived_at is null;
+
+
+-- Index for admin fetching requests by section
+create index if not exists idx_requests_section_archived
+  on public.requests (section, archived_at);
 
 create policy "Service role has full request access"
   on public.requests

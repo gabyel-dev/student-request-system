@@ -28,10 +28,15 @@ export interface GoogleTokenPayload {
  * This is critical: without server-side verification, an attacker could craft
  * a fake token with any email. The signature check ensures authenticity.
  */
+// Module singleton: google-auth-library caches Google's public signing keys
+// and reuses HTTPS connections per client. Constructing a new OAuth2Client
+// per login discards both, adding a key-fetch + TLS handshake to every login.
+const sharedClient = new OAuth2Client(env.GOOGLE_CLIENT_ID);
+
 export async function verifyGoogleToken(
   credential: string,
 ): Promise<GoogleTokenPayload> {
-  const client = new OAuth2Client(env.GOOGLE_CLIENT_ID);
+  const client = sharedClient;
 
   const ticket = await client.verifyIdToken({
     idToken: credential,
