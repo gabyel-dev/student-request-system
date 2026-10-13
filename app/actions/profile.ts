@@ -9,7 +9,7 @@ export type ProfileFormState = {
 };
 
 /** The registrar's standard issue format, e.g. 24BSIT-0123. */
-const STANDARD_ID_PATTERN = /^(\d{2})([A-Z]{4})-(\d{4})$/;
+const STANDARD_ID_PATTERN = /^(\d{2})([A-Z]{3,4})-(\d{4})$/;
 const CUSTOM_ID_MAX_LENGTH = 32;
 
 export async function saveStudentProfile(
@@ -33,7 +33,7 @@ export async function saveStudentProfile(
     .trim()
     .toUpperCase();
 
-  if (!/^[A-Z]{4}$/.test(course)) {
+  if (!/^[A-Z]{3,4}$/.test(course)) {
     return { error: "Enter a valid four-letter course code, such as BSIT." };
   }
 

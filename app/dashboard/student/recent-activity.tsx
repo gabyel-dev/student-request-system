@@ -133,9 +133,6 @@ export function RecentActivity({ requests }: { requests: StudentRequest[] }) {
               className="text-lg font-bold tracking-[-0.025em] text-ink sm:text-xl">
               Your requests
             </h2>
-            <p className="mt-1 text-[13px] text-muted">
-              {summaryLine(inFlight.length, closed.length)}
-            </p>
           </div>
           {inFlight.length ? (
             <p className="rounded-full border border-processing/30 bg-processing-soft px-3 py-1.5 text-[12px] font-semibold text-processing">
@@ -210,13 +207,6 @@ export function RecentActivity({ requests }: { requests: StudentRequest[] }) {
   );
 }
 
-function summaryLine(inFlight: number, closed: number) {
-  if (!inFlight && !closed) return "Nothing submitted yet.";
-  if (!inFlight) return `${closed} closed. Newest first.`;
-  if (!closed) return "Newest first.";
-  return `${inFlight} in progress · ${closed} closed. Newest first.`;
-}
-
 function GroupLabel({ children }: { children: React.ReactNode }) {
   return (
     <p className="border-b border-rule bg-sunken px-5 py-2.5 text-[12px] font-bold uppercase tracking-[0.08em] text-muted sm:px-7">
@@ -281,7 +271,7 @@ function RequestRow({
             <StatusPill status={request.status} />
             <span className="text-[11px] text-muted">
               {active
-                ? `Submitted ${formatDate(request.createdAt)}`
+                ? `${formatDate(request.createdAt)}`
                 : `Closed ${formatDate(request.updatedAt)}`}
             </span>
           </span>
@@ -320,14 +310,14 @@ function RequestRow({
           ) : null}
 
           {canModify ? (
-            <div className="mt-4 flex flex-wrap gap-2">
+            <div className="mt-4 flex flex-wrap gap-2 w-full justify-end">
               {request.documentType === "Others" && (
                 <button
                   ref={editRef}
                   type="button"
                   disabled={request.documentType !== "Others"}
                   onClick={onEdit}
-                  className={`inline-flex  items-center gap-1.5 rounded-full border border-hairline bg-surface px-2 py-2 text-[12px] font-semibold text-ink-soft transition-colors hover:border-accent-line hover:bg-accent-soft hover:text-accent disabled:opacity-50`}
+                  className={`inline-flex  items-center gap-1.5 rounded-full border border-hairline bg-surface px-2.5 py-2 text-[12px] font-semibold text-ink-soft transition-colors hover:border-accent-line hover:bg-accent-soft hover:text-accent disabled:opacity-50`}
                   aria-label={`Edit ${request.documentType} request`}
                   {...editHandlers}>
                   <FiEdit2 size={14} aria-hidden="true" className="shrink-0" />

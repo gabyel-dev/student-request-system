@@ -11,8 +11,8 @@ import { useGlobalLoading } from "@/app/components/global-loader";
 
 const initialState: ProfileFormState = { error: null };
 
-/** The registrar's standard issue format, e.g. 24BSIT-0123. */
-const STANDARD_ID = /^[0-9]{2}[A-Z]{4}-[0-9]{4}$/;
+/** The registrar's standard issue format, e.g. 24BSIT-0123 or 24CCS-0123. */
+const STANDARD_ID = /^[0-9]{2}[A-Z]{3,4}-[0-9]{4}$/;
 
 type IdFormat = {
   id: string;
@@ -33,11 +33,11 @@ const ID_FORMATS: IdFormat[] = [
   {
     id: "standard",
     title: "Standard",
-    example: "24BSIT-0123",
-    rule: "2 digits, 4 letters, dash, 4 digits",
-    pattern: "[0-9]{2}[A-Z]{4}-[0-9]{4}",
+    example: "24COURSE-0123",
+    rule: "2 digits, 3–4 letters, dash, 4 digits",
+    pattern: "[0-9]{2}[A-Z]{3,4}-[0-9]{4}",
     maxLength: 11,
-    placeholder: "e.g. 24BSIT-0123",
+    placeholder: "e.g. 24BSIT-0123 or 24CCS-0123",
   },
   {
     id: "custom",
@@ -117,11 +117,11 @@ export function ProfileForm({
           name="course"
           type="text"
           defaultValue={initialCourse}
-          placeholder="e.g. BSIT"
+          placeholder="e.g. BSIT or CCS"
           required
-          minLength={4}
+          minLength={3}
           maxLength={4}
-          pattern="[A-Za-z]{4}"
+          pattern="[A-Za-z]{3,4}"
           autoCapitalize="characters"
           autoComplete="off"
           className={inputClass}
@@ -237,12 +237,6 @@ export function ProfileForm({
           pattern={activeFormat.pattern}
           className={inputClass}
         />
-        <p className="mt-1.5 flex flex-wrap items-baseline gap-x-2 text-xs leading-5 text-muted">
-          <span>Example:</span>
-          <span className="font-mono tabular-nums text-ink">
-            {activeFormat.example}
-          </span>
-        </p>
       </div>
 
       {state.error ? (

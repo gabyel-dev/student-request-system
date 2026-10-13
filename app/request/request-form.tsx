@@ -84,7 +84,7 @@ export function RequestForm({
       />
       <div className="mx-auto w-full max-w-2xl md:x-4 md:py-6 sm:px-6 sm:py-10">
         <a
-          href="/dashboard"
+          href="/request"
           className="inline-flex ml-4 mt-6  md:ml-0 md:mt-0 items-center gap-2 text-sm font-medium text-accent transition hover:text-accent-hover">
           <FiChevronLeft size={16} aria-hidden="true" />
         </a>
