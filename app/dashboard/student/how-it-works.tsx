@@ -49,13 +49,10 @@ export function HowItWorks() {
       aria-labelledby="how-it-works-title"
       className="scroll-mt-24">
       <div>
-        <p className="text-[11px] font-bold uppercase tracking-[0.16em] text-accent">
-          How it works
-        </p>
         <h2
           id="how-it-works-title"
-          className="mt-1.5 text-balance text-xl font-bold tracking-[-0.025em] text-ink sm:text-2xl">
-          Requesting in three steps
+          className="mt-1.5 text-balance text-2xl font-bold tracking-[-0.025em] text-ink sm:text-4xl">
+          Requesting in <span className="text-emerald-600">Three</span> steps
         </h2>
       </div>
 

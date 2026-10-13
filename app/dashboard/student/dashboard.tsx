@@ -100,7 +100,7 @@ export function StudentDashboard({
   }, [requests]);
 
   return (
-    <div className="flex flex-col gap-14 pt-14 lg:gap-16">
+    <div className="flex flex-col gap-14 md:pt-14 lg:gap-16">
       <ScrollProgress />
       <DashboardHeader />
 

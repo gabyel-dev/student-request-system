@@ -46,7 +46,6 @@ export function RequestHero({
   const primaryRef = useRef<HTMLAnchorElement>(null);
   const primaryHandlers = usePressFeedback(primaryRef, { scale: 0.97 });
 
-
   return (
     <section
       data-hero

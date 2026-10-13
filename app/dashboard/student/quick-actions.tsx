@@ -63,21 +63,12 @@ export function QuickActions() {
       className="scroll-mt-24">
       <div className="flex flex-wrap items-end justify-between gap-3">
         <div>
-          <p className="text-[11px] font-bold uppercase tracking-[0.16em] text-accent">
-            Services
-          </p>
           <h2
             id="services-title"
-            className="mt-1.5 text-balance text-xl font-bold tracking-[-0.025em] text-ink sm:text-2xl">
-            What do you need?
+            className="mt-1.5 text-balance text-2xl font-bold tracking-[-0.025em] text-ink sm:text-4xl">
+            What <span className="text-emerald-600">Services</span> do you need?
           </h2>
-          <p className="mt-1.5 text-[13px] leading-6 text-muted">
-            Choose a document to start a request.
-          </p>
         </div>
-        <p className="font-mono text-[11px] tabular-nums text-muted">
-          {services.length} available
-        </p>
       </div>
 
       {/* One container, rows separated by the panel's own background showing
