@@ -102,20 +102,20 @@ export function RequestHero({
               <Link
                 href="#requests"
                 aria-label={`Track your ${featured.documentType} request, queue number ${featured.queueNumber}`}
-                className="group relative block w-full max-w-md overflow-hidden rounded-2xl border border-white/15 bg-white/[0.07] p-5 shadow-[0_24px_60px_-24px_rgba(0,0,0,0.65)] backdrop-blur-md transition-colors hover:border-white/25">
+                className="group relative block w-full max-w-md overflow-hidden rounded-2xl border border-white/15 bg-white/90 p-5 shadow-[0_24px_60px_-24px_rgba(0,0,0,0.65)]  transition-colors hover:border-white/25">
                 <span
                   aria-hidden="true"
                   className="pointer-events-none absolute inset-0 -translate-x-full bg-gradient-to-r from-transparent via-white/[0.08] to-transparent transition-transform duration-700 ease-out group-hover:translate-x-full"
                 />
                 <div className="relative flex items-start justify-between gap-4">
                   <div className="min-w-0">
-                    <p className="text-[10px] font-bold uppercase tracking-[0.22em] text-emerald-200/70">
+                    <p className="text-[10px] font-bold uppercase tracking-[0.22em] text-emerald-700/50">
                       Your queue ticket
                     </p>
-                    <p className="mt-1.5 text-[34px] font-bold leading-none tabular-nums tracking-tight text-white">
+                    <p className="mt-1.5 text-[34px] font-bold leading-none tabular-nums tracking-tight text-emerald-700">
                       #{String(featured.queueNumber).padStart(3, "0")}
                     </p>
-                    <p className="mt-1.5 max-w-[26ch] truncate text-[13px] text-white/65">
+                    <p className="mt-1.5 max-w-[26ch] truncate text-[13px] text-black/65">
                       {featured.documentType}
                     </p>
                   </div>
@@ -124,7 +124,7 @@ export function RequestHero({
 
                 <div
                   aria-hidden="true"
-                  className="relative my-4 border-t border-dashed border-white/20"
+                  className="relative my-4 border-t border-dashed border-black/20"
                 />
 
                 <div className="relative">
@@ -132,14 +132,14 @@ export function RequestHero({
                 </div>
 
                 {activeCount > 1 ? (
-                  <p className="relative mt-4 text-[12px] font-medium text-white/55 transition-colors group-hover:text-white/85">
+                  <p className="relative mt-4 text-[12px] font-medium text-black/55 transition-colors group-hover:text-black/85">
                     {activeCount - 1} more in your queue
                     <span aria-hidden="true"> →</span>
                   </p>
                 ) : null}
               </Link>
             ) : (
-              <p className="text-[13px] text-hero-ink-soft">
+              <p className="text-[13px] text-black/30">
                 Nothing in your queue yet. Your ticket will appear here.
               </p>
             )}
@@ -192,16 +192,16 @@ function Stepper({ status }: { status: RequestStatus }) {
                 aria-hidden="true"
                 className={`grid h-6 w-6 place-items-center rounded-full border text-[11px] font-bold transition-colors ${
                   done
-                    ? "border-emerald-300 bg-emerald-300 text-emerald-950"
+                    ? "border-emerald-800 bg-emerald-300 text-emerald-950"
                     : active
-                      ? "animate-pulse border-emerald-300/80 bg-emerald-300/15 text-emerald-200"
-                      : "border-white/20 text-white/35"
+                      ? "animate-pulse border-emerald-600 bg-emerald-300/15 text-emerald-900"
+                      : "border-black/20 text-black/35"
                 }`}>
                 {done ? "✓" : index + 1}
               </span>
               <span
                 className={`text-[10px] font-semibold uppercase tracking-[0.08em] ${
-                  index <= current ? "text-white/75" : "text-white/35"
+                  index <= current ? "text-black/75" : "text-black/35"
                 }`}>
                 {label}
               </span>
