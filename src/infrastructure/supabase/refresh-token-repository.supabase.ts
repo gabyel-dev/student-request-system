@@ -52,4 +52,15 @@ export const refreshTokenRepository = {
       .eq("token_hash", tokenHash);
     if (error) throw error;
   },
+
+  /** Removes every session for a user. Returns the deleted count. */
+  async deleteAllByUserId(userId: string): Promise<number> {
+    const { count, error } = await client
+      .from("refresh_tokens")
+      .delete({ count: "exact" })
+      .eq("user_id", userId);
+
+    if (error) throw error;
+    return count ?? 0;
+  },
 };

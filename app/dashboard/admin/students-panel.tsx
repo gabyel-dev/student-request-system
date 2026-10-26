@@ -1,9 +1,18 @@
 "use client";
 
 import { useMemo, useState } from "react";
-import { FiChevronDown, FiChevronRight, FiSearch } from "react-icons/fi";
+import { useRouter } from "next/navigation";
+import {
+  FiChevronDown,
+  FiChevronRight,
+  FiSearch,
+  FiTrash2,
+} from "react-icons/fi";
 import type { User } from "@/src/domain/user";
+import { deleteStudentAccount } from "@/app/actions/users";
+import { useToast } from "@/app/components/toaster";
 import Avatar from "@/app/dashboard/lib/avatar";
+import { ConfirmDialog } from "../student/confirm-dialog";
 
 /** "BSIT 3H" -> "3", "BSIT 3HL" -> "3", null -> null */
 function parseYear(section: string | null | undefined): string | null {
@@ -81,21 +90,56 @@ function groupByYearAndSection(students: User[]): YearGroupData[] {
 }
 
 export function StudentsPanel({ students }: { students: User[] }) {
+  const router = useRouter();
+  const { success: toastSuccess, error: toastError } = useToast();
   const [query, setQuery] = useState("");
+  const [removedIds, setRemovedIds] = useState<Set<string>>(() => new Set());
+  const [pendingDelete, setPendingDelete] = useState<User | null>(null);
+  const [deleting, setDeleting] = useState(false);
+
+  const visibleStudents = useMemo(
+    () => students.filter((student) => !removedIds.has(student.id)),
+    [students, removedIds],
+  );
 
   const filtered = useMemo(() => {
     const q = query.trim().toLowerCase();
-    if (!q) return students;
-    return students.filter((s) =>
+    if (!q) return visibleStudents;
+    return visibleStudents.filter((s) =>
       [s.fullName, s.email, s.studentNumber ?? "", s.section ?? ""].some(
         (value) => value.toLowerCase().includes(q),
       ),
     );
-  }, [students, query]);
+  }, [visibleStudents, query]);
 
   const yearGroups = useMemo(() => groupByYearAndSection(filtered), [filtered]);
   const searching = query.trim().length > 0;
-  const incompleteCount = students.filter((s) => !s.studentNumber).length;
+  const incompleteCount = visibleStudents.filter((s) => !s.studentNumber).length;
+
+  async function confirmDelete() {
+    if (!pendingDelete || deleting) return;
+    const student = pendingDelete;
+    setDeleting(true);
+    try {
+      const result = await deleteStudentAccount(student.id);
+      if (result.error) {
+        toastError(result.error);
+        return;
+      }
+      setRemovedIds((current) => {
+        const next = new Set(current);
+        next.add(student.id);
+        return next;
+      });
+      setPendingDelete(null);
+      toastSuccess(result.success ?? "Account deleted.");
+      router.refresh();
+    } catch {
+      toastError("The account could not be deleted. Try again.");
+    } finally {
+      setDeleting(false);
+    }
+  }
 
   return (
     <section
@@ -107,7 +151,7 @@ export function StudentsPanel({ students }: { students: User[] }) {
             Students
           </h2>
           <p className="mt-0.5 text-xs tabular-nums text-[#62716A]">
-            {students.length} registered
+            {visibleStudents.length} registered
             {incompleteCount > 0 ? ` · ${incompleteCount} incomplete` : ""}
           </p>
         </div>
@@ -123,7 +167,7 @@ export function StudentsPanel({ students }: { students: User[] }) {
         </label>
       </div>
 
-      {students.length === 0 ? (
+      {visibleStudents.length === 0 ? (
         <div className="px-4 py-12 text-center">
           <p className="text-sm font-medium text-[#17211B]">
             No student profiles yet
@@ -144,10 +188,33 @@ export function StudentsPanel({ students }: { students: User[] }) {
       ) : (
         <div className="divide-y divide-[#EEF2EF]">
           {yearGroups.map((group) => (
-            <YearGroup key={group.key} data={group} forceExpand={searching} />
+            <YearGroup
+              key={group.key}
+              data={group}
+              forceExpand={searching}
+              onDelete={setPendingDelete}
+            />
           ))}
         </div>
       )}
+
+      <ConfirmDialog
+        open={pendingDelete !== null}
+        title="Delete student account?"
+        body={
+          pendingDelete
+            ? `${pendingDelete.fullName} (${pendingDelete.email}) will be permanently deleted, along with all their requests and active sessions. This cannot be undone.`
+            : ""
+        }
+        confirmLabel="Delete account"
+        cancelLabel="Keep account"
+        destructive
+        busy={deleting}
+        onConfirm={() => void confirmDelete()}
+        onCancel={() => {
+          if (!deleting) setPendingDelete(null);
+        }}
+      />
     </section>
   );
 }
@@ -155,9 +222,11 @@ export function StudentsPanel({ students }: { students: User[] }) {
 function YearGroup({
   data,
   forceExpand,
+  onDelete,
 }: {
   data: YearGroupData;
   forceExpand: boolean;
+  onDelete: (student: User) => void;
 }) {
   const [open, setOpen] = useState(true);
   const expanded = forceExpand || open;
@@ -195,12 +264,13 @@ function YearGroup({
               key={section.name}
               data={section}
               forceExpand={forceExpand}
+              onDelete={onDelete}
             />
           ))}
           {data.ungrouped.length > 0 ? (
             <ul className="divide-y divide-[#F1F5F2]">
               {data.ungrouped.map((s) => (
-                <StudentRow key={s.id} student={s} />
+                <StudentRow key={s.id} student={s} onDelete={onDelete} />
               ))}
             </ul>
           ) : null}
@@ -213,9 +283,11 @@ function YearGroup({
 function SectionSubGroup({
   data,
   forceExpand,
+  onDelete,
 }: {
   data: SectionGroupData;
   forceExpand: boolean;
+  onDelete: (student: User) => void;
 }) {
   const [open, setOpen] = useState(true);
   const expanded = forceExpand || open;
@@ -249,7 +321,7 @@ function SectionSubGroup({
       {expanded ? (
         <ul className="divide-y divide-[#F1F5F2] border-t border-[#F1F5F2]">
           {data.students.map((s) => (
-            <StudentRow key={s.id} student={s} nested />
+            <StudentRow key={s.id} student={s} onDelete={onDelete} nested />
           ))}
         </ul>
       ) : null}
@@ -259,9 +331,11 @@ function SectionSubGroup({
 
 function StudentRow({
   student: s,
+  onDelete,
   nested = false,
 }: {
   student: User;
+  onDelete: (student: User) => void;
   nested?: boolean;
 }) {
   return (
@@ -279,16 +353,26 @@ function StudentRow({
           <p className="truncate text-xs text-[#62716A]">{s.email}</p>
         </div>
       </div>
-      <div className="shrink-0 text-right">
-        {s.studentNumber ? (
-          <p className="font-mono text-xs tabular-nums text-[#17211B]">
-            {s.studentNumber}
-          </p>
-        ) : (
-          <span className="inline-block rounded-full border border-amber-200 bg-amber-50 px-2 py-0.5 text-[11px] font-medium text-amber-800">
-            Incomplete
-          </span>
-        )}
+      <div className="flex shrink-0 items-center gap-2">
+        <div className="text-right">
+          {s.studentNumber ? (
+            <p className="font-mono text-xs tabular-nums text-[#17211B]">
+              {s.studentNumber}
+            </p>
+          ) : (
+            <span className="inline-block rounded-full border border-amber-200 bg-amber-50 px-2 py-0.5 text-[11px] font-medium text-amber-800">
+              Incomplete
+            </span>
+          )}
+        </div>
+        <button
+          type="button"
+          onClick={() => onDelete(s)}
+          aria-label={`Delete ${s.fullName}'s account`}
+          title="Delete account"
+          className="grid h-8 w-8 place-items-center rounded-full text-[#8A9A92] transition hover:bg-[#FDF2EF] hover:text-[#8E2F28]">
+          <FiTrash2 aria-hidden="true" size={15} />
+        </button>
       </div>
     </li>
   );

@@ -294,6 +294,17 @@ export function createRequestRepository() {
       if (error) throw error;
     },
 
+    /** Deletes every request owned by a user. Returns the deleted count. */
+    async deleteAllByUserId(userId: string): Promise<number> {
+      const { count, error } = await client
+        .from("requests")
+        .delete({ count: "exact" })
+        .eq("user_id", userId);
+
+      if (error) throw error;
+      return count ?? 0;
+    },
+
     async updateNotesAndProof(
       id: string,
       input: { notes: string | null; proofUrl: string | null },

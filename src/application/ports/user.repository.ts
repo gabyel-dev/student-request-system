@@ -14,4 +14,5 @@ export interface UserRepository {
     id: string;
     profilePictureUrl: string;
   }): Promise<User>;
+  deleteById(id: string): Promise<void>;
 }

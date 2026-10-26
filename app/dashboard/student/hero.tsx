@@ -139,7 +139,7 @@ export function RequestHero({
                 ) : null}
               </Link>
             ) : (
-              <p className="text-[13px] text-black/30">
+              <p className="text-[13px] text-white/30">
                 Nothing in your queue yet. Your ticket will appear here.
               </p>
             )}

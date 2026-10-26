@@ -118,5 +118,10 @@ export function createSupabaseUserRepository(): UserRepository {
       if (error) throw error;
       return toUser(data as UserRow);
     },
+
+    async deleteById(id: string): Promise<void> {
+      const { error } = await client.from("users").delete().eq("id", id);
+      if (error) throw error;
+    },
   };
 }
