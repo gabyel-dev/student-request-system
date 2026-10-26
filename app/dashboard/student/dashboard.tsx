@@ -57,12 +57,13 @@ export function StudentDashboard({
     [student.name, student.email],
   );
 
-  const { requests } = useRealtimeRequests({
+  const { requests, removeRequest } = useRealtimeRequests({
     initialRequests,
     // Students only receive events for rows belonging to them.
     // (For admins, this filter is omitted so all requests come through.)
     filter: `user_id=eq.${userId}`,
     resolveUser,
+    hideStudentArchived: true,
   });
 
   // One pass for both figures, so the hero's summary and the tracker's split
@@ -74,7 +75,12 @@ export function StudentDashboard({
 
     for (const request of requests) {
       if (request.status === "completed") completedCount += 1;
-      if (!isInFlight(request.status) || request.archivedAt) continue;
+      if (
+        !isInFlight(request.status) ||
+        request.archivedAt ||
+        request.studentArchivedAt
+      )
+        continue;
       activeCount += 1;
       // Newest of the open ones, so the hero promotes the request a student
       // most likely came back for rather than whichever row landed first.
@@ -110,7 +116,11 @@ export function StudentDashboard({
         featured={featured}
       />
 
-      <RecentActivity requests={requests} />
+      <RecentActivity
+        requests={requests}
+        onArchived={removeRequest}
+        onDeleted={removeRequest}
+      />
 
       <QuickActions />
       <HowItWorks />

@@ -1,9 +1,9 @@
 "use client";
 
 import Link from "next/link";
-import { FiArrowLeft, FiChevronLeft } from "react-icons/fi";
+import { FiChevronLeft } from "react-icons/fi";
 import { services } from "@/app/dashboard/data";
-import { getServiceIcon } from "./service-icons";
+import { serviceIcon } from "@/app/components/service-icon";
 
 export function BackToDashboard() {
   return (
@@ -19,11 +19,10 @@ export function ServiceOptions({ disabled = false }: { disabled?: boolean }) {
   return (
     <div className="mt-6 grid sm:grid-cols-2 sm:gap-x-12">
       {services.map(({ slug, title, description }) => {
-        const ServiceIcon = getServiceIcon(slug, title);
         const body = (
           <>
             <span className="grid h-10 w-10 shrink-0 place-items-center rounded-xl bg-accent-soft text-accent">
-              <ServiceIcon size={22} />
+              {serviceIcon(slug)}
             </span>
             <span className="min-w-0">
               <strong className="block text-sm text-[#14251d] transition-colors group-hover:text-[#087a54]">

@@ -27,7 +27,7 @@ export default async function DashboardPage() {
 
   const requests = admin
     ? await requestRepository.findAll()
-    : await requestRepository.findByUserId(user.id);
+    : await requestRepository.findVisibleByUserId(user.id);
   const students = admin
     ? (await userRepository.findAll()).filter(
         (student) => !isAdminEmail(student.email),

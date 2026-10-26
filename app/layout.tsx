@@ -2,6 +2,7 @@ import type { Metadata } from "next";
 import { DM_Mono, Manrope } from "next/font/google";
 import { GlobalLoadingProvider } from "@/app/components/global-loader";
 import { ToasterProvider } from "@/app/components/toaster";
+import { AssistantWidget } from "@/app/components/assistant/assistant-widget";
 import "./globals.css";
 
 const manrope = Manrope({
@@ -25,9 +26,12 @@ export default function RootLayout({ children }: LayoutProps<"/">) {
     <html
       lang="en"
       className={`${manrope.variable} ${dmMono.variable} h-full antialiased`}>
-      <body className="min-h-full flex flex-col">
+      <body className="min-h-full flex flex-col ">
         <ToasterProvider>
-          <GlobalLoadingProvider>{children}</GlobalLoadingProvider>
+          <GlobalLoadingProvider>
+            {children}
+            <AssistantWidget />
+          </GlobalLoadingProvider>
         </ToasterProvider>
       </body>
     </html>

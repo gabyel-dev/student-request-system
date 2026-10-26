@@ -2,45 +2,11 @@
 
 import Link from "next/link";
 import { useRef } from "react";
-import {
-  FiArrowRight,
-  FiAward,
-  FiBookOpen,
-  FiClipboard,
-  FiFileText,
-  FiSend,
-  FiShield,
-} from "react-icons/fi";
+import { FiArrowRight } from "react-icons/fi";
+import { serviceIcon } from "@/app/components/service-icon";
 import { services } from "../data";
 import { usePressFeedback } from "../lib/use-motion-helpers";
 import { useScrollReveal } from "../lib/use-scroll-reveal";
-
-type FeatherIcon = typeof FiFileText;
-
-/**
- * Pin a Feather icon per service slug here when the keyword matching below
- * gets one wrong. Anything not listed falls through to the matcher, and
- * anything the matcher misses gets the generic document icon.
- */
-const SERVICE_ICON_OVERRIDES: Record<string, FeatherIcon> = {
-  // "certificate-of-registration": FiClipboard,
-};
-
-/**
- * Resolves a Feather icon for a service without depending on the icon set
- * stored in the data file. Matching runs against slug + title, so it survives
- * renames on either side.
- */
-function iconForService(slug: string, title: string): FeatherIcon {
-  if (SERVICE_ICON_OVERRIDES[slug]) return SERVICE_ICON_OVERRIDES[slug];
-  const text = `${slug} ${title}`.toLowerCase();
-  if (/moral|character/.test(text)) return FiShield;
-  if (/dismissal|transfer|credential/.test(text)) return FiSend;
-  if (/diploma|graduation/.test(text)) return FiAward;
-  if (/grade|transcript|\btor\b/.test(text)) return FiBookOpen;
-  if (/regist|enrol/.test(text)) return FiClipboard;
-  return FiFileText;
-}
 
 /**
  * The service picker: the reason this page exists.
@@ -98,7 +64,6 @@ function ServiceCell({
 }) {
   const ref = useRef<HTMLAnchorElement>(null);
   const handlers = usePressFeedback(ref, { scale: 0.99 });
-  const Glyph = iconForService(slug, title);
 
   return (
     <li data-reveal className="bg-surface">
@@ -109,7 +74,7 @@ function ServiceCell({
         className="group relative flex h-full items-center gap-5 p-5 transition-colors hover:bg-sunken focus-visible:bg-sunken focus-visible:outline-none sm:p-6"
         {...handlers}>
         <span className="grid h-12 w-12 shrink-0 place-items-center rounded-2xl bg-accent-soft text-accent transition-transform duration-300 group-hover:scale-105">
-          <Glyph size={22} aria-hidden="true" />
+          {serviceIcon(slug)}
         </span>
 
         <span className="min-w-0 flex-1">

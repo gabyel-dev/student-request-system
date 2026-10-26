@@ -4,13 +4,14 @@ import { useRouter } from "next/navigation";
 import { useMemo, useRef, useState, useTransition } from "react";
 import { motion } from "framer-motion";
 import {
+  FiArchive,
   FiChevronDown,
   FiEdit2,
   FiFileText,
   FiInbox,
   FiTrash2,
 } from "react-icons/fi";
-import { deleteRequest } from "@/app/actions/requests";
+import { archiveRequest, deleteRequest } from "@/app/actions/requests";
 import { useToast } from "@/app/components/toaster";
 import { getServiceByTitle } from "@/src/domain/services";
 import { ConfirmDialog } from "./confirm-dialog";
@@ -50,7 +51,15 @@ import type { StudentRequest } from "@/src/domain/request";
 
 type PendingDeletion = { id: string; documentType: string } | null;
 
-export function RecentActivity({ requests }: { requests: StudentRequest[] }) {
+export function RecentActivity({
+  requests,
+  onArchived,
+  onDeleted,
+}: {
+  requests: StudentRequest[];
+  onArchived?: (requestId: string) => void;
+  onDeleted?: (requestId: string) => void;
+}) {
   const closedToggleRef = useRef<HTMLButtonElement>(null);
   const closedHandlers = usePressFeedback(closedToggleRef, { scale: 0.99 });
   const [showClosed, setShowClosed] = useState(false);
@@ -88,10 +97,27 @@ export function RecentActivity({ requests }: { requests: StudentRequest[] }) {
             return;
           }
           toastSuccess(result.success ?? "Request deleted.");
-          router.refresh();
+          onDeleted?.(id);
         })
         .catch(() => {
           toastError("The request could not be deleted. Try again.");
+        });
+    });
+  }
+
+  function archive(request: StudentRequest) {
+    startTransition(() => {
+      void archiveRequest(request.id)
+        .then((result) => {
+          if (result.error) {
+            toastError(result.error);
+            return;
+          }
+          toastSuccess(result.success ?? "Request archived.");
+          onArchived?.(request.id);
+        })
+        .catch(() => {
+          toastError("The request could not be archived. Try again.");
         });
     });
   }
@@ -102,6 +128,7 @@ export function RecentActivity({ requests }: { requests: StudentRequest[] }) {
         key={request.id}
         request={request}
         disabled={isPending}
+        onArchive={() => archive(request)}
         onEdit={() => {
           const service = getServiceByTitle(request.documentType);
           router.push(
@@ -226,11 +253,13 @@ function RequestRow({
   disabled,
   onEdit,
   onDelete,
+  onArchive,
 }: {
   request: StudentRequest;
   disabled: boolean;
   onEdit: () => void;
   onDelete: () => void;
+  onArchive: () => void;
 }) {
   const [expanded, setExpanded] = useState(false);
   const editRef = useRef<HTMLButtonElement>(null);
@@ -240,6 +269,11 @@ function RequestRow({
 
   const active = isInFlight(request.status);
   const canModify = request.status === "pending" && !request.archivedAt;
+  // Closed requests (completed or rejected) are the only ones the server allows
+  // a student to archive.
+  const canArchive =
+    (request.status === "completed" || request.status === "rejected") &&
+    !request.studentArchivedAt;
 
   return (
     <motion.li
@@ -336,11 +370,24 @@ function RequestRow({
               </button>
             </div>
           ) : (
-            <p className="mt-3 text-[12px] leading-5 text-muted">
-              {request.status === "processing"
-                ? "This request is being processed and can no longer be changed."
-                : "This request is closed."}
-            </p>
+            <div className="mt-3 flex flex-wrap items-center justify-between gap-3">
+              <p className="text-[12px] leading-5 text-muted">
+                {request.status === "processing"
+                  ? "This request is being processed and can no longer be changed."
+                  : "This request is closed."}
+              </p>
+              {canArchive ? (
+                <button
+                  type="button"
+                  disabled={disabled}
+                  onClick={onArchive}
+                  className="inline-flex items-center gap-1.5 rounded-full border border-accent-line bg-surface px-3 py-2 text-[12px] font-semibold text-accent transition-colors hover:bg-accent-soft disabled:opacity-50"
+                  aria-label={`Archive ${request.documentType} request`}>
+                  <FiArchive size={14} aria-hidden="true" className="shrink-0" />
+                  Archive
+                </button>
+              ) : null}
+            </div>
           )}
         </div>
       ) : null}

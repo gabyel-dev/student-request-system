@@ -18,4 +18,7 @@ export interface StudentRequest {
   // Set when the admin completes the queue cycle. A null value means the
   // request is part of the currently active queue.
   archivedAt: string | null;
+  // Set when the student files the request away from their own dashboard. This
+  // does not affect the registrar's active queue.
+  studentArchivedAt: string | null;
 }

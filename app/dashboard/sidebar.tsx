@@ -103,6 +103,7 @@ export function Sidebar({
       ]
     : [
         { icon: Home, label: "My requests", href: "/dashboard" },
+        { icon: History, label: "Archive", href: "/dashboard/archive" },
         { icon: User, label: "My profile", href: "/onboarding" },
         { icon: Help, label: "Help center", href: "/dashboard/help" },
       ];

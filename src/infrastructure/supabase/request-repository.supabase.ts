@@ -11,6 +11,7 @@ type RequestRow = {
   proof_url: string | null;
   notes: string | null;
   archived_at: string | null;
+  student_archived_at: string | null;
   created_at: string;
   updated_at: string;
   users?:
@@ -35,11 +36,12 @@ function toRequest(row: RequestRow): StudentRequest {
     createdAt: row.created_at,
     updatedAt: row.updated_at,
     archivedAt: row.archived_at,
+    studentArchivedAt: row.student_archived_at,
   };
 }
 
 const requestSelect =
-  "id, user_id, document_type, section, queue_number, status, proof_url, notes, archived_at, created_at, updated_at, users(full_name, email)";
+  "id, user_id, document_type, section, queue_number, status, proof_url, notes, archived_at, student_archived_at, created_at, updated_at, users(full_name, email)";
 
 const REQUEST_RETRIES = 5;
 
@@ -109,6 +111,59 @@ export function createRequestRepository() {
 
       if (error) throw error;
       return (data as RequestRow[]).map(toRequest);
+    },
+
+    /** Requests the student has not filed away from their dashboard. */
+    async findVisibleByUserId(userId: string) {
+      const { data, error } = await client
+        .from("requests")
+        .select(requestSelect)
+        .eq("user_id", userId)
+        .is("student_archived_at", null)
+        .order("created_at", { ascending: false });
+
+      if (error) throw error;
+      return (data as RequestRow[]).map(toRequest);
+    },
+
+    /** Requests the student filed away, newest archive first. */
+    async findStudentArchivedByUserId(userId: string) {
+      const { data, error } = await client
+        .from("requests")
+        .select(requestSelect)
+        .eq("user_id", userId)
+        .not("student_archived_at", "is", null)
+        .order("student_archived_at", { ascending: false });
+
+      if (error) throw error;
+      return (data as RequestRow[]).map(toRequest);
+    },
+
+    async archiveForStudent(id: string, userId: string) {
+      const { data, error } = await client
+        .from("requests")
+        .update({ student_archived_at: new Date().toISOString() })
+        .eq("id", id)
+        .eq("user_id", userId)
+        .in("status", ["completed", "rejected"])
+        .select(requestSelect)
+        .single();
+
+      if (error) throw error;
+      return toRequest(data as RequestRow);
+    },
+
+    async restoreForStudent(id: string, userId: string) {
+      const { data, error } = await client
+        .from("requests")
+        .update({ student_archived_at: null })
+        .eq("id", id)
+        .eq("user_id", userId)
+        .select(requestSelect)
+        .single();
+
+      if (error) throw error;
+      return toRequest(data as RequestRow);
     },
 
     /**

@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useRef, useState } from "react";
+import { useCallback, useEffect, useRef, useState } from "react";
 import type { StudentRequest, RequestStatus } from "@/src/domain/request";
 import { getRealtimeSupabaseClient } from "@/src/infrastructure/supabase/supabase.browser";
 
@@ -17,6 +17,7 @@ type RequestRow = {
   proof_url: string | null;
   notes: string | null;
   archived_at: string | null;
+  student_archived_at: string | null;
   created_at: string;
   updated_at: string;
 };
@@ -37,6 +38,9 @@ export type UseRealtimeRequestsOptions = {
   // rendered. For admins this reads a map built from the students list; for a
   // student it always returns their own profile.
   resolveUser: (userId: string) => RealtimeUser | undefined;
+  // Students hide requests they filed away; admins must still see the row in
+  // the registrar's queue until the admin archive (archived_at) runs.
+  hideStudentArchived?: boolean;
 };
 
 /**
@@ -49,7 +53,8 @@ export type UseRealtimeRequestsOptions = {
  *  3. Each event is applied to local state:
  *       INSERT  -> prepend the new request (newest first).
  *       UPDATE  -> replace that request with fresh values (e.g. status flips),
- *                  or remove it when the admin archived it (queue reset).
+ *                  or remove it when the admin archived it (queue reset) or
+ *                  the student filed it away.
  *       DELETE  -> remove the request from the list.
  *
  * So when a student submits a request, it appears on the admin queue instantly,
@@ -62,9 +67,11 @@ export function useRealtimeRequests({
   initialRequests,
   filter,
   resolveUser,
+  hideStudentArchived = false,
 }: UseRealtimeRequestsOptions): {
   requests: StudentRequest[];
   isLive: boolean;
+  removeRequest: (requestId: string) => void;
 } {
   const [requests, setRequests] = useState(initialRequests);
   // isLive = true once the WebSocket channel is joined and delivering events.
@@ -73,6 +80,14 @@ export function useRealtimeRequests({
   // Keep the latest resolveUser in a ref so the subscription below is only
   // opened once, while every incoming event still calls the current resolver.
   const resolveUserRef = useRef(resolveUser);
+
+  // Lets the archive action take a row out of view immediately, even when the
+  // Realtime channel is unavailable.
+  const removeRequest = useCallback((requestId: string) => {
+    setRequests((current) =>
+      current.filter((request) => request.id !== requestId),
+    );
+  }, []);
 
   useEffect(() => {
     // Syncing the ref in an effect (not during render) satisfies the
@@ -110,6 +125,7 @@ export function useRealtimeRequests({
         createdAt: row.created_at,
         updatedAt: row.updated_at,
         archivedAt: row.archived_at,
+        studentArchivedAt: row.student_archived_at,
       };
     }
 
@@ -130,12 +146,18 @@ export function useRealtimeRequests({
             : payload.new) as RequestRow | null;
           if (!row) return;
 
+          // Admin archive hides the row for everyone; the student's own archive
+          // only hides it on the student's dashboard.
+          const hiddenFromThisDashboard =
+            row.archived_at !== null ||
+            (hideStudentArchived && row.student_archived_at !== null);
+
           setRequests((current) => {
             switch (payload.eventType) {
               case "INSERT": {
                 // Never show archived rows in the live queue, and guard against
                 // a race where the row was already applied.
-                if (row.archived_at) return current;
+                if (hiddenFromThisDashboard) return current;
                 if (current.some((request) => request.id === row.id)) {
                   return current;
                 }
@@ -143,9 +165,9 @@ export function useRealtimeRequests({
                 return [rowToRequest(row), ...current];
               }
               case "UPDATE": {
-                // The admin completed the queue -> this row is now archived, so
-                // it leaves the live queue and shows up in the archive instead.
-                if (row.archived_at) {
+                // The admin completed the queue, or the student filed the
+                // request away -> it leaves this dashboard view.
+                if (hiddenFromThisDashboard) {
                   return current.filter((request) => request.id !== row.id);
                 }
                 // Merge fresh DB values over the existing entry.
@@ -181,7 +203,7 @@ export function useRealtimeRequests({
       setIsLive(false);
       void supabase.removeChannel(channel);
     };
-  }, [filter]);
+  }, [filter, hideStudentArchived]);
 
-  return { requests, isLive };
+  return { requests, isLive, removeRequest };
 }

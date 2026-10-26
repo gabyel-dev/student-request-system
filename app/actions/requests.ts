@@ -248,7 +248,7 @@ export async function deleteRequest(
   if (!request) return { error: "Request not found.", success: null };
   if (request.userId !== userId)
     return { error: "You can only delete your own requests.", success: null };
-  if (request.archivedAt)
+  if (request.archivedAt || request.studentArchivedAt)
     return { error: "Archived requests cannot be deleted.", success: null };
   if (request.status !== "pending")
     return {
@@ -294,7 +294,7 @@ export async function updateRequest(
       error: "You can only edit your own requests.",
       success: null,
     };
-  if (request.archivedAt)
+  if (request.archivedAt || request.studentArchivedAt)
     return { error: "Archived requests cannot be edited.", success: null };
   if (request.status !== "pending")
     return {
@@ -356,6 +356,90 @@ export async function updateRequest(
   } catch {
     return {
       error: "The request could not be updated. Try again.",
+      success: null,
+    };
+  }
+}
+
+/**
+ * Files a finished request away from the student's dashboard. Only completed
+ * and rejected requests can be archived; open requests must stay visible while
+ * the registrar is still working on them.
+ */
+export async function archiveRequest(
+  requestId: string,
+): Promise<RequestActionState> {
+  const userId = await getSessionTokenUserId();
+  if (!userId)
+    return {
+      error: "Your session has expired. Please sign in again.",
+      success: null,
+    };
+  if (!/^[0-9a-f-]{36}$/i.test(requestId))
+    return {
+      error: "That request could not be identified. Refresh and try again.",
+      success: null,
+    };
+
+  const request = await requestRepository.findById(requestId);
+  if (!request) return { error: "Request not found.", success: null };
+  if (request.userId !== userId)
+    return { error: "You can only archive your own requests.", success: null };
+  if (request.studentArchivedAt)
+    return { error: null, success: "Request is already in your archive." };
+  if (request.status !== "completed" && request.status !== "rejected")
+    return {
+      error: "Only completed or rejected requests can be archived.",
+      success: null,
+    };
+
+  try {
+    await requestRepository.archiveForStudent(requestId, userId);
+    revalidatePath("/dashboard");
+    revalidatePath("/dashboard/archive");
+    return {
+      error: null,
+      success: "Request archived. You can restore it from your archive.",
+    };
+  } catch {
+    return {
+      error: "The request could not be archived. Check your connection and try again.",
+      success: null,
+    };
+  }
+}
+
+/** Moves a student-archived request back onto the dashboard. */
+export async function restoreRequest(
+  requestId: string,
+): Promise<RequestActionState> {
+  const userId = await getSessionTokenUserId();
+  if (!userId)
+    return {
+      error: "Your session has expired. Please sign in again.",
+      success: null,
+    };
+  if (!/^[0-9a-f-]{36}$/i.test(requestId))
+    return {
+      error: "That request could not be identified. Refresh and try again.",
+      success: null,
+    };
+
+  const request = await requestRepository.findById(requestId);
+  if (!request) return { error: "Request not found.", success: null };
+  if (request.userId !== userId)
+    return { error: "You can only restore your own requests.", success: null };
+  if (!request.studentArchivedAt)
+    return { error: null, success: "Request is already on your dashboard." };
+
+  try {
+    await requestRepository.restoreForStudent(requestId, userId);
+    revalidatePath("/dashboard");
+    revalidatePath("/dashboard/archive");
+    return { error: null, success: "Request restored to your dashboard." };
+  } catch {
+    return {
+      error: "The request could not be restored. Check your connection and try again.",
       success: null,
     };
   }

@@ -97,15 +97,19 @@ function useFetchLoading(start: () => void, stop: () => void) {
 
       // Silent auth refresh runs in the background — never spin for it.
       const isSilentAuth = url.includes("/api/auth/refresh");
-      if (!isSilentAuth) start();
+      // The assistant runs its own requests; a full-screen spinner would
+      // cover the panel that triggered them.
+      const isAssistant = url.includes("/api/assistant/");
+      const isBackground = isSilentAuth || isAssistant;
+      if (!isBackground) start();
 
       return originalFetch(input, init).then(
         (response) => {
-          if (!isSilentAuth) stop();
+          if (!isBackground) stop();
           return response;
         },
         (error) => {
-          if (!isSilentAuth) stop();
+          if (!isBackground) stop();
           throw error;
         },
       );

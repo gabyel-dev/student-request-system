@@ -2,6 +2,7 @@ export type ServiceDefinition = {
   slug: string;
   title: string;
   description: string;
+  aliases?: string[];
 };
 
 export const services: ServiceDefinition[] = [
@@ -9,16 +10,19 @@ export const services: ServiceDefinition[] = [
     slug: "certificate-of-registration",
     title: "Certificate of Registration",
     description: "Confirms your official enrollment for the current term.",
+    aliases: ["COR"],
   },
   {
     slug: "transcript-of-records",
     title: "Transcript of Records",
     description: "Your complete list of courses and grades from past terms.",
+    aliases: ["TOR"],
   },
   {
     slug: "certificate-of-grades",
     title: "Certificate of Grades",
     description: "A summary of the grades for one completed term.",
+    aliases: ["COG"],
   },
   {
     slug: "grade-correction",

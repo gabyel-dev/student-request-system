@@ -210,7 +210,7 @@ function Stepper({ status }: { status: RequestStatus }) {
               <span
                 aria-hidden="true"
                 className={`mx-2 mb-6 h-px flex-1 ${
-                  index < current ? "bg-emerald-300/60" : "bg-white/15"
+                  index < current ? "bg-emerald-300/60" : "bg-black/8"
                 }`}
               />
             ) : null}
