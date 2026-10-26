@@ -4,6 +4,7 @@ import { Manrope } from "next/font/google";
 
 import { GoogleSignInButton } from "@/app/auth/google-sign-in-button";
 import { getSessionTokenUserId } from "@/src/server/session";
+import { LoginLegalNotice } from "./legal-notice";
 
 const manrope = Manrope({
   subsets: ["latin"],
@@ -73,11 +74,7 @@ export default async function LoginPage() {
         </section>
 
         <footer className="mobile-login__footer relative z-10 flex min-h-[86px] items-end justify-center px-5 pb-5 text-center">
-          <p className="relative z-10 text-[11px] font-medium tracking-wide text-white/90">
-            <span className="underline underline-offset-2">Terms</span> and{" "}
-            <span className="underline underline-offset-2">Conditions</span> and{" "}
-            <span className="underline underline-offset-2">Privacy Policy</span>
-          </p>
+          <LoginLegalNotice className="relative z-10 text-[11px] font-medium tracking-wide text-white/90" />
         </footer>
       </div>
 
@@ -133,11 +130,7 @@ export default async function LoginPage() {
           </section>
 
           <footer className="desktop-login__footer flex items-center justify-center px-6 py-3 md:absolute md:bottom-0 md:left-1/2 md:w-full md:-translate-x-1/2">
-            <p className="text-sm font-medium text-white/90">
-              <span className="cursor-pointer underline">Terms</span> and{" "}
-              <span className="cursor-pointer underline">Conditions</span> and{" "}
-              <span className="cursor-pointer underline">Privacy Policy.</span>
-            </p>
+            <LoginLegalNotice className="text-sm font-medium text-white/90" />
           </footer>
         </div>
       </div>
