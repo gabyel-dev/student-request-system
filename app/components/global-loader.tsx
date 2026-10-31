@@ -24,9 +24,6 @@ const SHOW_DELAY_MS = 180;
 // this long instead of leaving the spinner stuck on screen forever.
 const NAV_TIMEOUT_MS = 8000;
 
-// Number of dots in the spinner ring.
-const DOT_COUNT = 12;
-
 /* ------------------------------------------------------------------ */
 /* Context: manual start/stop for anything fetch() can't see            */
 /* ------------------------------------------------------------------ */
@@ -51,24 +48,32 @@ export function useGlobalLoading() {
 }
 
 /* ------------------------------------------------------------------ */
-/* Spinner: 12 fading dots in a ring (iOS-style activity indicator)    */
+/* Spinner: a brand-green orbit with a pulsing core.                   */
 /* ------------------------------------------------------------------ */
 
-function DotsSpinner() {
+function LoadingIndicator() {
   return (
     <>
-      <style>{`@keyframes dot-fade { from { opacity: 1; } to { opacity: 0.15; } }`}</style>
-      <span className="relative block h-11 w-11" aria-hidden="true">
-        {Array.from({ length: DOT_COUNT }, (_, i) => (
-          <span
-            key={i}
-            className="absolute left-1/2 top-1/2 -ml-[3px] -mt-[3px] h-1.5 w-1.5 rounded-full bg-[#0d4a33] animate-[dot-fade_1.2s_linear_infinite] motion-reduce:animate-none motion-reduce:opacity-50"
-            style={{
-              transform: `rotate(${i * 30}deg) translateY(-17px)`,
-              animationDelay: `${i * 100}ms`,
-            }}
-          />
-        ))}
+      <style>{`
+        @keyframes loader-orbit { to { transform: rotate(360deg); } }
+        @keyframes loader-breathe {
+          0%, 100% { transform: scale(.78); opacity: .55; }
+          50% { transform: scale(1); opacity: 1; }
+        }
+      `}</style>
+      <span className="relative grid h-14 w-14 place-items-center">
+        <span
+          aria-hidden="true"
+          className="absolute inset-0 rounded-full border-[3px] border-hairline"
+        />
+        <span
+          aria-hidden="true"
+          className="absolute inset-0 rounded-full border-[3px] border-transparent border-r-accent/40 border-t-accent animate-[loader-orbit_0.9s_linear_infinite] motion-reduce:animate-none"
+        />
+        <span
+          aria-hidden="true"
+          className="h-2.5 w-2.5 rounded-full bg-accent animate-[loader-breathe_1.4s_ease-in-out_infinite] motion-reduce:animate-none"
+        />
       </span>
     </>
   );
@@ -100,7 +105,10 @@ function useFetchLoading(start: () => void, stop: () => void) {
       // The assistant runs its own requests; a full-screen spinner would
       // cover the panel that triggered them.
       const isAssistant = url.includes("/api/assistant/");
-      const isBackground = isSilentAuth || isAssistant;
+      // The admin email progress widget polls in the background. Spinning the
+      // whole page every second would make the dashboard unusable.
+      const isEmailProgress = url.includes("/api/admin/email-jobs");
+      const isBackground = isSilentAuth || isAssistant || isEmailProgress;
       if (!isBackground) start();
 
       return originalFetch(input, init).then(
@@ -245,11 +253,12 @@ export function GlobalLoadingProvider({ children }: { children: ReactNode }) {
       {children}
       {visible ? (
         <div
-          className="pointer-events-none fixed inset-0 z-[1000] grid place-items-center"
+          className="pointer-events-none fixed inset-0 z-[1000] grid place-items-center bg-[#06281c]/15 backdrop-blur-[2px] [animation:toast-in_0.18s_ease-out]"
           role="status"
-          aria-live="polite">
+          aria-live="polite"
+          aria-busy="true">
           <span className="sr-only">Loading</span>
-          <DotsSpinner />
+          <LoadingIndicator />
         </div>
       ) : null}
     </LoadingContext.Provider>

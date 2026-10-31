@@ -48,6 +48,95 @@ const REQUEST_RETRIES = 5;
 export function createRequestRepository() {
   const client = getSupabaseClient();
 
+  /**
+   * A section's queue cycle is only open while something is still waiting or
+   * being processed. Once the last in-flight request is finished, completed
+   * and rejected rows are just history: archive them before the next submission
+   * so the new request starts at Queue 1 instead of continuing from numbers
+   * that no longer represent work in the queue.
+   *
+   * This is deliberately lazy. If the registrar still has pending work, the
+   * finished rows stay on the active dashboard until that work is done, so the
+   * admin can review them without opening the archive.
+   */
+  async function resetIdleSection(section: string): Promise<void> {
+    const { data, error } = await client
+      .from("requests")
+      .select("id")
+      .eq("section", section)
+      .is("archived_at", null)
+      .in("status", ["pending", "processing"])
+      .limit(1);
+
+    if (error) throw error;
+    if ((data ?? []).length > 0) return;
+
+    const { error: archiveError } = await client
+      .from("requests")
+      .update({ archived_at: new Date().toISOString() })
+      .eq("section", section)
+      .is("archived_at", null)
+      .in("status", ["completed", "rejected"]);
+
+    if (archiveError) throw archiveError;
+  }
+
+  /**
+   * Keeps a section's active queue numbers contiguous, in queue order.
+   *
+   * Queue numbers are per section and should read 1..N while a cycle is open.
+   * Deleting a pending request, archiving finished rows, or moving a request to
+   * another section can leave holes (e.g. 2, 3, 4). Updating rows in ascending
+   * queue order is safe: every new value is <= the row's current value, so it
+   * can only reuse a number freed by an earlier row, never collide with a row
+   * that has not been processed yet.
+   */
+  async function compactSectionQueue(section: string): Promise<void> {
+    const { data, error } = await client
+      .from("requests")
+      .select("id, queue_number")
+      .eq("section", section)
+      .is("archived_at", null)
+      .order("queue_number", { ascending: true });
+
+    if (error) throw error;
+
+    const rows = (data ?? []) as { id: string; queue_number: number }[];
+    for (let index = 0; index < rows.length; index++) {
+      const nextNumber = index + 1;
+      if (rows[index].queue_number === nextNumber) continue;
+
+      const { error: updateError } = await client
+        .from("requests")
+        .update({ queue_number: nextNumber })
+        .eq("id", rows[index].id)
+        .is("archived_at", null);
+
+      if (updateError) throw updateError;
+    }
+  }
+
+  /**
+   * Resets an idle cycle, compacts the section, then returns the next free
+   * queue number.
+   */
+  async function nextQueueNumber(section: string): Promise<number> {
+    await resetIdleSection(section);
+    await compactSectionQueue(section);
+
+    const { data, error } = await client
+      .from("requests")
+      .select("queue_number")
+      .eq("section", section)
+      .is("archived_at", null)
+      .order("queue_number", { ascending: false })
+      .limit(1)
+      .maybeSingle();
+
+    if (error) throw error;
+    return (data?.queue_number ?? 0) + 1;
+  }
+
   return {
     /**
      * Creates a request and assigns its queue number from the section's own
@@ -68,16 +157,10 @@ export function createRequestRepository() {
       proofUrl?: string | null;
     }) {
       for (let attempt = 0; attempt < REQUEST_RETRIES; attempt++) {
-        // Next number for THIS section's current active cycle only.
-        const { data: latest, error: latestError } = await client
-          .from("requests")
-          .select("queue_number")
-          .eq("section", input.section)
-          .is("archived_at", null)
-          .order("queue_number", { ascending: false })
-          .limit(1)
-          .maybeSingle();
-        if (latestError) throw latestError;
+        // Next number for THIS section's current active cycle only. The helper
+        // also closes holes left by deleted/archived requests, so the active
+        // queue always reads 1..N and a new request always goes to the back.
+        const queueNumber = await nextQueueNumber(input.section);
 
         const { data, error } = await client
           .from("requests")
@@ -85,7 +168,7 @@ export function createRequestRepository() {
             user_id: input.userId,
             document_type: input.documentType,
             section: input.section,
-            queue_number: (latest?.queue_number ?? 0) + 1,
+            queue_number: queueNumber,
             notes: input.notes ?? null,
             proof_url: input.proofUrl ?? null,
           })
@@ -167,6 +250,67 @@ export function createRequestRepository() {
     },
 
     /**
+     * Moves a student's pending requests into a corrected section and appends
+     * them to that section's queue.
+     *
+     * Profile details are snapshotted onto a request when it is submitted, so a
+     * student who notices a wrong section after submitting would otherwise be
+     * stuck with it. Pending requests are still safe to move; processing and
+     * finished requests keep the section they were submitted with.
+     */
+    async reassignPendingRequestsSection(
+      userId: string,
+      section: string,
+    ): Promise<number> {
+      const { data, error } = await client
+        .from("requests")
+        .select("id, section")
+        .eq("user_id", userId)
+        .eq("status", "pending")
+        .is("archived_at", null)
+        .order("created_at", { ascending: true });
+
+      if (error) throw error;
+
+      const pending = (data ?? []) as { id: string; section: string | null }[];
+      const oldSections = new Set<string>();
+      let moved = 0;
+
+      for (const request of pending) {
+        if (request.section === section) continue;
+        if (request.section) oldSections.add(request.section);
+
+        for (let attempt = 0; attempt < REQUEST_RETRIES; attempt++) {
+          const queueNumber = await nextQueueNumber(section);
+          const { error: updateError } = await client
+            .from("requests")
+            .update({
+              section,
+              queue_number: queueNumber,
+              updated_at: new Date().toISOString(),
+            })
+            .eq("id", request.id)
+            .eq("status", "pending")
+            .is("archived_at", null);
+
+          if (!updateError) {
+            moved += 1;
+            break;
+          }
+          if (updateError.code !== "23505") throw updateError;
+          if (attempt === REQUEST_RETRIES - 1) throw updateError;
+        }
+      }
+
+      // The old sections lost rows; close any holes left behind.
+      for (const oldSection of oldSections) {
+        await compactSectionQueue(oldSection);
+      }
+
+      return moved;
+    },
+
+    /**
      * Requests currently being served. `archived_at` is null, so this is the
      * live admin queue; past cycles live in the archive (see findArchived).
      */
@@ -219,6 +363,7 @@ export function createRequestRepository() {
         .from("requests")
         .select("id", { count: "exact", head: true })
         .eq("user_id", userId)
+        .in("status", ["pending", "processing"])
         .gte("created_at", today.toISOString());
 
       if (error) throw error;
@@ -264,6 +409,23 @@ export function createRequestRepository() {
       ) {
         throw new Error("An active request had an invalid archive status.");
       }
+
+      // Finished rows are gone from the active cycle now, which can leave the
+      // carried-over pending/processing requests with numbers like 3, 4. Bring
+      // each affected section back to a contiguous 1..N queue.
+      const { data: remaining, error: remainingError } = await client
+        .from("requests")
+        .select("section")
+        .is("archived_at", null);
+      if (remainingError) throw remainingError;
+
+      const sections = new Set<string>();
+      for (const row of remaining ?? []) {
+        if (row.section) sections.add(row.section);
+      }
+      for (const section of sections) {
+        await compactSectionQueue(section);
+      }
     },
 
     async updateStatus(id: string, status: RequestStatus) {
@@ -290,8 +452,19 @@ export function createRequestRepository() {
     },
 
     async deleteById(id: string) {
+      const { data: row, error: lookupError } = await client
+        .from("requests")
+        .select("section")
+        .eq("id", id)
+        .maybeSingle();
+      if (lookupError) throw lookupError;
+
       const { error } = await client.from("requests").delete().eq("id", id);
       if (error) throw error;
+
+      // Removing a pending request frees its queue number. Close the hole so
+      // the students behind it move up instead of leaving a permanent gap.
+      if (row?.section) await compactSectionQueue(row.section);
     },
 
     /** Deletes every request owned by a user. Returns the deleted count. */

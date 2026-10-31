@@ -10,12 +10,17 @@ import {
 } from "@/src/server/container";
 import { getSessionTokenUserId } from "@/src/server/session";
 import { isServiceTitle } from "@/src/domain/services";
-import type { RequestStatus } from "@/src/domain/request";
+import type {
+  RequestStatus,
+  RequestSubmissionReceipt,
+} from "@/src/domain/request";
 import { requestStatusEmail } from "@/src/infrastructure/mail/templates";
 
 export type RequestActionState = {
   error: string | null;
   success: string | null;
+  /** Present only on a successful new submission, for the receipt modal. */
+  createdRequest?: RequestSubmissionReceipt | null;
 };
 const requestStatuses: RequestStatus[] = [
   "pending",
@@ -148,18 +153,32 @@ export async function submitRequest(
     }
   }
 
-  await requestRepository.create({
+  const created = await requestRepository.create({
     userId,
     documentType,
     section: user.section,
     notes,
     proofUrl,
   });
+  const emailSent = await notifySubmission({
+    studentEmail: user.email,
+    studentName: user.fullName,
+    documentType,
+    queueNumber: created.queueNumber,
+    notes,
+  });
   revalidatePath("/dashboard");
   revalidatePath("/request");
   return {
     error: null,
     success: `${documentType} request submitted successfully.`,
+    createdRequest: {
+      id: created.id,
+      documentType: created.documentType,
+      queueNumber: created.queueNumber,
+      section: created.section,
+      emailSent,
+    },
   };
 }
 
@@ -196,6 +215,35 @@ export async function updateRequestStatus(
         "The request could not be updated. Check your connection and try again.",
       success: null,
     };
+  }
+}
+
+/**
+ * Sends the student a receipt as soon as their request is queued. The request
+ * is already saved, so a mail failure is logged (the mailer prints the raw
+ * transport error) and never rolls the submission back.
+ */
+async function notifySubmission(input: {
+  studentEmail: string;
+  studentName: string;
+  documentType: string;
+  queueNumber: number;
+  notes: string | null;
+}): Promise<boolean> {
+  if (!input.studentEmail) return false;
+  try {
+    const email = requestStatusEmail({
+      studentName: input.studentName,
+      documentType: input.documentType,
+      queueNumber: input.queueNumber,
+      status: "pending",
+      notes: input.notes,
+    });
+    await mailer.send({ to: input.studentEmail, ...email });
+    return true;
+  } catch (error) {
+    console.error("Failed to send submission confirmation email:", error);
+    return false;
   }
 }
 

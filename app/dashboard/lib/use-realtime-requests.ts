@@ -41,6 +41,9 @@ export type UseRealtimeRequestsOptions = {
   // Students hide requests they filed away; admins must still see the row in
   // the registrar's queue until the admin archive (archived_at) runs.
   hideStudentArchived?: boolean;
+  // Admins only see the active queue. Students keep admin-archived rows in
+  // their history because the server's findVisibleByUserId query returns them.
+  hideArchived?: boolean;
 };
 
 /**
@@ -68,6 +71,7 @@ export function useRealtimeRequests({
   filter,
   resolveUser,
   hideStudentArchived = false,
+  hideArchived = true,
 }: UseRealtimeRequestsOptions): {
   requests: StudentRequest[];
   isLive: boolean;
@@ -149,7 +153,7 @@ export function useRealtimeRequests({
           // Admin archive hides the row for everyone; the student's own archive
           // only hides it on the student's dashboard.
           const hiddenFromThisDashboard =
-            row.archived_at !== null ||
+            (hideArchived && row.archived_at !== null) ||
             (hideStudentArchived && row.student_archived_at !== null);
 
           setRequests((current) => {
@@ -203,7 +207,7 @@ export function useRealtimeRequests({
       setIsLive(false);
       void supabase.removeChannel(channel);
     };
-  }, [filter, hideStudentArchived]);
+  }, [filter, hideStudentArchived, hideArchived]);
 
   return { requests, isLive, removeRequest };
 }

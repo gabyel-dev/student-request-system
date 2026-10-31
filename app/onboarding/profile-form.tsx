@@ -70,9 +70,11 @@ function SubmitButton() {
 export function ProfileForm({
   section,
   studentNumber,
+  returnTo,
 }: {
   section: string;
   studentNumber: string | null;
+  returnTo?: string;
 }) {
   const { start, stop, startNavigation } = useGlobalLoading();
   const wrappedAction = useCallback(
@@ -108,6 +110,9 @@ export function ProfileForm({
 
   return (
     <form action={formAction} className="mt-8 space-y-5">
+      {returnTo ? (
+        <input type="hidden" name="returnTo" value={returnTo} />
+      ) : null}
       <div>
         <label htmlFor="course" className={labelClass}>
           Course

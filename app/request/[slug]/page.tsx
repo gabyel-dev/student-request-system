@@ -1,4 +1,5 @@
 import { notFound, redirect } from "next/navigation";
+import { AssistantWidget } from "@/app/components/assistant/assistant-widget";
 import { RequestForm } from "../request-form";
 import { isAdminEmail } from "@/src/infrastructure/auth/admin-accounts";
 import { requestRepository, userRepository } from "@/src/server/container";
@@ -57,17 +58,24 @@ export default async function RequestDetailPage({
 
   if (!service) notFound();
 
+  const returnTo = `/request/${slug}${editId ? `?edit=${editId}` : ""}`;
+  const profileHref = `/onboarding?returnTo=${encodeURIComponent(returnTo)}`;
+
   return (
-    <RequestForm
-      service={service}
-      student={{
-        name: user.fullName,
-        email: user.email,
-        profilePictureUrl: user.profilePictureUrl,
-        section: user.section ?? "",
-        studentNumber: user.studentNumber ?? "",
-      }}
-      editingRequest={editingRequest}
-    />
+    <>
+      <RequestForm
+        service={service}
+        student={{
+          name: user.fullName,
+          email: user.email,
+          profilePictureUrl: user.profilePictureUrl,
+          section: user.section ?? "",
+          studentNumber: user.studentNumber ?? "",
+        }}
+        profileHref={profileHref}
+        editingRequest={editingRequest}
+      />
+      <AssistantWidget />
+    </>
   );
 }

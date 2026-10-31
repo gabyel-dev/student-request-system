@@ -21,6 +21,7 @@ import type { StatusFilter } from "../lib/request-utils";
 import { RequestCardList, RequestTable } from "./requests-list";
 import { SectionGroups } from "./section-groups";
 import { EmailPanel } from "./email-panel";
+import { EmailProgress } from "./email-progress";
 import { SummaryTabs } from "./summary-tabs";
 import { Toolbar } from "./toolbar";
 import { QueueCyclePanel } from "./queue-cycle-panel";
@@ -150,7 +151,6 @@ export function AdminDashboard({
     id: string,
     status: RequestStatus,
     message: string,
-    previousStatus?: RequestStatus,
   ) {
     setUpdatingId(id);
     startTransition(() => {
@@ -160,14 +160,7 @@ export function AdminDashboard({
             toastError(result.error);
             return;
           }
-          if (previousStatus) {
-            toastSuccess(result.success ?? message, {
-              label: "Undo",
-              onClick: () => undoChange(id, previousStatus),
-            });
-          } else {
-            toastSuccess(result.success ?? message);
-          }
+          toastSuccess(result.success ?? message);
           router.refresh();
         })
         .catch(() => toastError("The request could not be updated. Try again."))
@@ -185,11 +178,7 @@ export function AdminDashboard({
       )
     )
       return;
-    runStatusUpdate(id, status, "Record status updated.", request.status);
-  }
-
-  function undoChange(id: string, from: RequestStatus) {
-    runStatusUpdate(id, from, `Reverted to ${from}.`);
+    runStatusUpdate(id, status, "Record status updated.");
   }
 
   const counts = filters.counts;
@@ -369,6 +358,7 @@ export function AdminDashboard({
       </section>
 
       <EmailPanel students={students} requests={requests} />
+      <EmailProgress />
     </div>
   );
 }

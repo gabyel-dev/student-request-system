@@ -11,17 +11,15 @@ import {
 import { FiAlertCircle, FiCheckCircle, FiX } from "react-icons/fi";
 
 type ToastKind = "success" | "error";
-type ToastAction = { label: string; onClick: () => void };
 
 type ToastItem = {
   id: number;
   kind: ToastKind;
   message: string;
-  action?: ToastAction;
 };
 
 type ToastContextValue = {
-  show: (kind: ToastKind, message: string, action?: ToastAction) => void;
+  show: (kind: ToastKind, message: string) => void;
   dismiss: (id: number) => void;
 };
 
@@ -39,10 +37,10 @@ export function ToasterProvider({ children }: { children: React.ReactNode }) {
   }, []);
 
   const show = useCallback(
-    (kind: ToastKind, message: string, action?: ToastAction) => {
+    (kind: ToastKind, message: string) => {
       const id = nextId.current++;
       setToasts((current) => {
-        const next = [...current, { id, kind, message, action }];
+        const next = [...current, { id, kind, message }];
         return next.length > MAX_TOASTS
           ? next.slice(next.length - MAX_TOASTS)
           : next;
@@ -92,17 +90,6 @@ function Toast({
       )}
       <div className="min-w-0 flex-1">
         <p className="leading-relaxed">{toast.message}</p>
-        {toast.action ? (
-          <button
-            type="button"
-            onClick={() => {
-              toast.action!.onClick();
-              onDismiss();
-            }}
-            className="mt-1.5 font-bold text-[#14251d] underline underline-offset-2 hover:opacity-70">
-            {toast.action.label}
-          </button>
-        ) : null}
       </div>
       <button
         type="button"
@@ -122,8 +109,7 @@ export function useToast() {
   }
   return {
     toast: context.show,
-    success: (message: string, action?: ToastAction) =>
-      context.show("success", message, action),
+    success: (message: string) => context.show("success", message),
     error: (message: string) => context.show("error", message),
   };
 }

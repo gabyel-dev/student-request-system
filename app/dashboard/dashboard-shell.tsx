@@ -1,6 +1,7 @@
 "use client";
 
 import { useCallback, useState } from "react";
+import { AssistantWidget } from "@/app/components/assistant/assistant-widget";
 import { Sidebar } from "./sidebar";
 import { AdminDashboard } from "./admin/dashboard";
 import { StudentDashboard } from "./student/dashboard";
@@ -62,6 +63,8 @@ export function DashboardShell({
       {showSplash && !splashDone && !adminData ? (
         <SplashScreen onDone={onSplashDone} />
       ) : null}
+
+      {!adminData ? <AssistantWidget /> : null}
     </main>
   );
 }

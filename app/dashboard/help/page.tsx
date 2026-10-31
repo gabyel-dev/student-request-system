@@ -1,4 +1,5 @@
 import type { Metadata } from "next";
+import { AssistantWidget } from "@/app/components/assistant/assistant-widget";
 import { HelpCenter } from "./help-center";
 
 export const metadata: Metadata = {
@@ -8,5 +9,10 @@ export const metadata: Metadata = {
 };
 
 export default function HelpPage() {
-  return <HelpCenter />;
+  return (
+    <>
+      <HelpCenter />
+      <AssistantWidget />
+    </>
+  );
 }

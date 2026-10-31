@@ -34,6 +34,19 @@ function parseBoolean(value: string | undefined, fallback: boolean): boolean {
  * Optional SMTP settings. The app still starts without them; email sending
  * simply reports that SMTP has not been configured.
  */
+/**
+ * Raw, safe-to-log view of the SMTP environment. Passwords are intentionally
+ * reduced to a boolean so a startup diagnostic can never print the secret.
+ */
+export const smtpDiagnostics = {
+  host: process.env.SMTP_HOST?.trim() || null,
+  port: process.env.SMTP_PORT?.trim() || null,
+  secure: process.env.SMTP_SECURE?.trim() || null,
+  from: process.env.SMTP_FROM?.trim() || null,
+  hasUser: Boolean(process.env.SMTP_USER?.trim()),
+  hasPass: Boolean(process.env.SMTP_PASS?.trim()),
+};
+
 export const smtpEnv: {
   SMTP_HOST: string;
   SMTP_PORT: number;

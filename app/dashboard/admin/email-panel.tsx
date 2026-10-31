@@ -162,7 +162,14 @@ export function EmailPanel({
               className="w-full resize-y rounded-xl border border-[#DDE5E0] bg-white px-3.5 py-2.5 text-sm leading-relaxed outline-none focus:border-[#0B6B4A]"
             />
           </div>
-          <SendButton />
+          <div className="grid gap-2">
+            <SendButton />
+            <p className="flex items-start gap-1.5 text-[11px] leading-relaxed text-[#62716A]">
+              <FiAlertCircle className="mt-0.5 shrink-0 text-amber-700" />
+              Don&apos;t close this tab while sending email. Progress appears in
+              the bottom-right corner.
+            </p>
+          </div>
         </div>
 
         <aside className="rounded-xl border border-[#EEF2EF] bg-[#FAFBFA] p-4">

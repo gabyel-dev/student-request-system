@@ -1,6 +1,7 @@
 import Link from "next/link";
 import { redirect } from "next/navigation";
 import { FiChevronLeft } from "react-icons/fi";
+import { AssistantWidget } from "@/app/components/assistant/assistant-widget";
 import { isAdminEmail } from "@/src/infrastructure/auth/admin-accounts";
 import { requestRepository, userRepository } from "@/src/server/container";
 import { getSessionTokenUserId } from "@/src/server/session";
@@ -48,6 +49,7 @@ export default async function StudentArchivePage() {
           <StudentArchivePanel archived={archived} />
         </div>
       </div>
+      <AssistantWidget />
     </main>
   );
 }

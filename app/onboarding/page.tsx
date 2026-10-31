@@ -1,30 +1,49 @@
 import Image from "next/image";
 import { redirect } from "next/navigation";
+import { AssistantWidget } from "@/app/components/assistant/assistant-widget";
 import { ProfileForm } from "./profile-form";
 import { getSessionTokenUserId } from "@/src/server/session";
 import { userRepository } from "@/src/server/container";
 
-export default async function OnboardingPage() {
+export default async function OnboardingPage({
+  searchParams,
+}: {
+  searchParams: Promise<{ returnTo?: string }>;
+}) {
   const userId = await getSessionTokenUserId();
   if (!userId) redirect("/login");
 
   const user = await userRepository.findById(userId);
   if (!user) redirect("/login");
 
+  const { returnTo } = await searchParams;
+  const safeReturnTo =
+    typeof returnTo === "string" &&
+    returnTo.startsWith("/") &&
+    !returnTo.startsWith("//") &&
+    !returnTo.includes("\\")
+      ? returnTo
+      : undefined;
+  const hasProfile = Boolean(user.section && user.studentNumber);
+
   return (
     <main className="min-h-screen w-full bg-[#eef7f1]  text-[#17392d]  ">
       <section className="mx-auto grid min-h-screen w-full overflow-hidden rounded-tr-3xl rounded-bl-3xl border border-white/70 bg-[rgba(247,255,251,.94)] shadow-[18px_24px_80px_rgba(0,0,0,.5)] backdrop-blur lg:grid-cols-[1fr_0.9fr]">
         <div className="px-6 py-8 sm:px-12 sm:py-12 lg:px-16 lg:py-16">
           <h1 className="mt-5 max-w-md text-4xl font-semibold leading-tight tracking-tight text-[#17392d] sm:text-5xl">
-            Let&apos;s complete your student profile.
+            {hasProfile
+              ? "Review your student profile."
+              : "Let's complete your student profile."}
           </h1>
           <p className="mt-5 max-w-md text-base leading-7 text-[#5d786b]">
-            Add these details once so your requests reach the right class and
-            student record.
+            {hasProfile
+              ? "Fix anything that looks wrong. Pending requests move to the corrected section automatically."
+              : "Add these details once so your requests reach the right class and student record."}
           </p>
           <ProfileForm
             section={user.section ?? ""}
             studentNumber={user.studentNumber ?? ""}
+            returnTo={safeReturnTo}
           />
         </div>
         <div className="relative min-h-64 lg:min-h-full">
@@ -47,6 +66,7 @@ export default async function OnboardingPage() {
           </div>
         </div>
       </section>
+      <AssistantWidget />
     </main>
   );
 }

@@ -1,7 +1,7 @@
 "use client";
 
 import Link from "next/link";
-import { usePathname } from "next/navigation";
+import { usePathname, useRouter } from "next/navigation";
 import { useEffect, useRef, useState } from "react";
 import {
   Close,
@@ -44,8 +44,9 @@ export function Sidebar({
   student: Student;
   adminMode?: boolean;
 }) {
-  const { start: startLoading, stop: stopLoading } = useGlobalLoading();
+  const { startNavigation, stop: stopLoading } = useGlobalLoading();
   const pathname = usePathname();
+  const router = useRouter();
   const [profileOpen, setProfileOpen] = useState(false);
   const [navOpen, setNavOpen] = useState(false);
   const [loggingOut, setLoggingOut] = useState(false);
@@ -83,10 +84,10 @@ export function Sidebar({
 
   async function handleLogout() {
     setLoggingOut(true);
-    startLoading();
+    startNavigation();
     try {
       await logout();
-      window.location.href = "/login";
+      router.replace("/login");
     } catch {
       stopLoading();
       setLoggingOut(false);

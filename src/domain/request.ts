@@ -1,5 +1,14 @@
 export type RequestStatus = "pending" | "processing" | "completed" | "rejected";
 
+/** The receipt returned to the student right after a request is created. */
+export type RequestSubmissionReceipt = {
+  id: string;
+  documentType: string;
+  queueNumber: number;
+  section: string | null;
+  emailSent: boolean;
+};
+
 export interface StudentRequest {
   id: string;
   userId: string;

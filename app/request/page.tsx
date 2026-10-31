@@ -3,6 +3,7 @@ import { isAdminEmail } from "@/src/infrastructure/auth/admin-accounts";
 import { requestRepository, userRepository } from "@/src/server/container";
 import { getSessionTokenUserId } from "@/src/server/session";
 import { getStartOfTodayInAppTimeZone } from "@/app/dashboard/lib/format";
+import { AssistantWidget } from "@/app/components/assistant/assistant-widget";
 import { BackToDashboard, ServiceOptions } from "./service-options";
 
 const DAILY_LIMIT = 5;
@@ -19,7 +20,9 @@ export default async function RequestIndexPage() {
   const requests = await requestRepository.findByUserId(userId);
   const today = getStartOfTodayInAppTimeZone();
   const todayCount = requests.filter(
-    (r) => new Date(r.createdAt).getTime() >= today.getTime(),
+    (r) =>
+      (r.status === "pending" || r.status === "processing") &&
+      new Date(r.createdAt).getTime() >= today.getTime(),
   ).length;
   const remaining = DAILY_LIMIT - todayCount;
 
@@ -48,6 +51,7 @@ export default async function RequestIndexPage() {
           <ServiceOptions />
         </section>
       </div>
+      <AssistantWidget />
     </main>
   );
 }

@@ -1,8 +1,9 @@
 "use server";
 
-import { revalidatePath } from "next/cache";
+import { after } from "next/server";
 import { isAdminEmail } from "@/src/infrastructure/auth/admin-accounts";
 import { mailer, userRepository } from "@/src/server/container";
+import { emailJobStore } from "@/src/server/email-job-store";
 import { getSessionTokenUserId } from "@/src/server/session";
 import { sectionBroadcastEmail } from "@/src/infrastructure/mail/templates";
 
@@ -14,6 +15,7 @@ export type MailActionState = {
 const MAX_SUBJECT_LENGTH = 120;
 const MAX_MESSAGE_LENGTH = 4000;
 const ALL_SECTIONS = "__all__";
+const BATCH_SIZE = 10;
 
 export async function sendSectionAnnouncement(
   _previousState: MailActionState,
@@ -78,46 +80,83 @@ export async function sendSectionAnnouncement(
       success: null,
     };
 
-  // Send one personalized email per student so every recipient is greeted by
-  // their own name. All sends for the section run as a single batch.
-  const results = await Promise.allSettled(
-    recipients.map((student) => {
-      const template = sectionBroadcastEmail({
-        recipientName: student.fullName || "Student",
-        section: targetingAll ? "All Sections" : rawSection,
-        message,
-        senderName: admin.fullName,
-      });
-      return mailer.send({
-        to: student.email,
-        subject,
-        html: template.html,
-        text: template.text,
-      });
-    }),
-  );
-
-  const failed = results.filter(
-    (result) => result.status === "rejected",
-  ).length;
-  if (failed > 0) {
-    for (const result of results) {
-      if (result.status === "rejected") {
-        console.error("Failed to send a section announcement:", result.reason);
-      }
-    }
-    return {
-      error:
-        failed === recipients.length
-          ? "The email could not be sent. Check your SMTP settings and try again."
-          : `Sent ${recipients.length - failed} of ${recipients.length} emails. ${failed} failed to send.`,
-      success: null,
-    };
+  // Group by section so a broadcast to everyone becomes one sequential batch
+  // per section instead of hundreds of simultaneous SMTP connections. Each
+  // section is still personalized, and each batch is small enough for Gmail's
+  // sending limits while keeping the overall run fast.
+  const bySection = new Map<string, typeof recipients>();
+  for (const student of recipients) {
+    const key = student.section ?? "Unknown section";
+    const group = bySection.get(key) ?? [];
+    group.push(student);
+    bySection.set(key, group);
   }
 
-  revalidatePath("/dashboard");
+  const job = emailJobStore.create({
+    section: targetingAll ? "All sections" : rawSection,
+    subject,
+    total: recipients.length,
+  });
+
+  // Let the admin's request finish first. The mailer keeps working in the
+  // background, so the form does not hang while a large section is sent.
+  after(async () => {
+    try {
+      emailJobStore.markSending(job.id, bySection.keys().next().value ?? null);
+
+      for (const [section, group] of bySection) {
+        emailJobStore.setCurrentSection(job.id, section);
+
+        for (let index = 0; index < group.length; index += BATCH_SIZE) {
+          const batch = group.slice(index, index + BATCH_SIZE);
+          const results = await Promise.allSettled(
+            batch.map(async (student) => {
+              try {
+                const template = sectionBroadcastEmail({
+                  recipientName: student.fullName || "Student",
+                  section: targetingAll ? section : rawSection,
+                  message,
+                  senderName: admin.fullName,
+                });
+                await mailer.send({
+                  to: student.email,
+                  subject,
+                  html: template.html,
+                  text: template.text,
+                });
+                emailJobStore.recordResult(job.id, true);
+              } catch (error) {
+                emailJobStore.recordResult(job.id, false);
+                throw error;
+              }
+            }),
+          );
+
+          for (const result of results) {
+            if (result.status === "rejected") {
+              console.error(
+                `Failed to send an announcement to section ${section}:`,
+                result.reason,
+              );
+            }
+          }
+        }
+      }
+
+      emailJobStore.finish(job.id);
+    } catch (error) {
+      emailJobStore.fail(
+        job.id,
+        error instanceof Error
+          ? error.message
+          : "The announcement could not be sent.",
+      );
+      console.error("Section announcement batch failed:", error);
+    }
+  });
+
   return {
     error: null,
-    success: `Announcement sent individually to ${targetLabel}. They will be notified by email.`,
+    success: `Announcement queued for ${targetLabel}. Don't close the tab while sending — progress is in the bottom-right corner.`,
   };
 }

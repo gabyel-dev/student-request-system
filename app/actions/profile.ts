@@ -1,7 +1,8 @@
 "use server";
 
+import { revalidatePath } from "next/cache";
 import { redirect } from "next/navigation";
-import { userRepository } from "@/src/server/container";
+import { requestRepository, userRepository } from "@/src/server/container";
 import { getSessionTokenUserId } from "@/src/server/session";
 
 export type ProfileFormState = {
@@ -11,6 +12,20 @@ export type ProfileFormState = {
 /** The registrar's standard issue format, e.g. 24BSIT-0123. */
 const STANDARD_ID_PATTERN = /^(\d{2})([A-Z]{3,4})-(\d{4})$/;
 const CUSTOM_ID_MAX_LENGTH = 32;
+
+/** Only allow same-site paths back to the page the student came from. */
+function safeReturnTo(value: FormDataEntryValue | null): string | null {
+  if (typeof value !== "string") return null;
+  const path = value.trim();
+  if (
+    !path.startsWith("/") ||
+    path.startsWith("//") ||
+    path.includes("\\")
+  ) {
+    return null;
+  }
+  return path;
+}
 
 export async function saveStudentProfile(
   _previousState: ProfileFormState,
@@ -84,5 +99,20 @@ export async function saveStudentProfile(
     };
   }
 
-  redirect("/dashboard");
+  // Requests snapshot the student's section at submission time. If the student
+  // corrected a wrong profile, carry their still-pending requests over to the
+  // corrected section so the registrar sees the right class. A failure here
+  // must not undo the profile save, so log the raw error and continue.
+  try {
+    await requestRepository.reassignPendingRequestsSection(userId, section);
+  } catch (error) {
+    console.error(
+      "[profile] Failed to move pending requests to the corrected section:",
+      error,
+    );
+  }
+
+  revalidatePath("/dashboard");
+  revalidatePath("/request");
+  redirect(safeReturnTo(formData.get("returnTo")) ?? "/dashboard");
 }

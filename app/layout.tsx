@@ -2,7 +2,6 @@ import type { Metadata } from "next";
 import { DM_Mono, Manrope } from "next/font/google";
 import { GlobalLoadingProvider } from "@/app/components/global-loader";
 import { ToasterProvider } from "@/app/components/toaster";
-import { AssistantWidget } from "@/app/components/assistant/assistant-widget";
 import { SiteFooter } from "@/app/components/site-footer";
 import "./globals.css";
 
@@ -32,7 +31,6 @@ export default function RootLayout({ children }: LayoutProps<"/">) {
           <GlobalLoadingProvider>
             {children}
             <SiteFooter />
-            <AssistantWidget />
           </GlobalLoadingProvider>
         </ToasterProvider>
       </body>

@@ -7,7 +7,7 @@ import { QuickActions } from "./quick-actions";
 import { RecentActivity } from "./recent-activity";
 import { RequestHero } from "./hero";
 import { ScrollProgress } from "./scroll-progress";
-import { StudentDetails } from "./student-details";
+
 import { isInFlight } from "./status-pill";
 import { useRealtimeRequests } from "../lib/use-realtime-requests";
 import type { Student } from "../types";
@@ -64,17 +64,16 @@ export function StudentDashboard({
     filter: `user_id=eq.${userId}`,
     resolveUser,
     hideStudentArchived: true,
+    hideArchived: false,
   });
 
   // One pass for both figures, so the hero's summary and the tracker's split
   // can never disagree about what is in flight.
-  const { active, completed, featured } = useMemo(() => {
+  const { active, featured } = useMemo(() => {
     let activeCount = 0;
-    let completedCount = 0;
     let newestOpen: StudentRequest | undefined;
 
     for (const request of requests) {
-      if (request.status === "completed") completedCount += 1;
       if (
         !isInFlight(request.status) ||
         request.archivedAt ||
@@ -94,7 +93,6 @@ export function StudentDashboard({
 
     return {
       active: activeCount,
-      completed: completedCount,
       featured: newestOpen
         ? {
             queueNumber: newestOpen.queueNumber,
@@ -121,16 +119,8 @@ export function StudentDashboard({
         onArchived={removeRequest}
         onDeleted={removeRequest}
       />
-
-      <QuickActions />
       <HowItWorks />
-
-      <StudentDetails
-        student={student}
-        total={requests.length}
-        active={active}
-        completed={completed}
-      />
+      <QuickActions />
     </div>
   );
 }
