@@ -33,7 +33,7 @@ The Grade Correction and Transcript of Records services have been removed.
 
 1. Reviewing — the registrar is reviewing the request.
 2. Processing — the registrar is preparing it and will notify the student when they can go to school.
-3. Pending payment — the student must proceed to the Cashier's Office within a week; otherwise the request will be rejected.
+3. Pending payment — "Your [request] is pending. Proceed to the Cashier's office for the payment of the requested document/s within a week. otherwise your request will be rejected."
 4. Claimed — the student has already claimed the document.
 5. Rejected (overdue) — optional terminal state for an overdue request.
 

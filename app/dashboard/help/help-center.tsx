@@ -226,7 +226,7 @@ export function HelpCenter() {
                     <p className="mt-3 flex items-center gap-1.5 text-[13px] text-muted">
                       <FiXCircle aria-hidden="true" size={14} />
                       Rejected (overdue) sits outside this flow — it is used
-                      for requests that have become overdue.
+                      when a request becomes overdue or can no longer be processed.
                     </p>
                   </div>
                 ) : null}

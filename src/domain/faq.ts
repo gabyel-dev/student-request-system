@@ -38,7 +38,7 @@ export const faqCategories: FaqCategory[] = [
       {
         question: "How do I request a document?",
         answer:
-          "From your dashboard, choose New request, pick the document you need, confirm your details, and submit. Your queue number appears right away — keep it, it's your place in line.",
+          "From your dashboard, choose New request, then select Certificate of Registration, Certificate of Grades, Subject Request, or Others. Confirm your details and submit. Subject Request requires notes and 1–4 proof files totaling no more than 20 MB. Your queue number appears right away.",
       },
       {
         question: "Where can I find my queue number?",
@@ -46,9 +46,14 @@ export const faqCategories: FaqCategory[] = [
           "It's printed on the ticket at the top of your dashboard, and inside every request listed under Recent activity.",
       },
       {
+        question: "Which requests require proof files?",
+        answer:
+          "Subject Request requires notes and proof. You can select up to 4 JPG, PNG, WEBP, GIF, or PDF files in one browse; the files may total no more than 20 MB. Proof files can be screenshots.",
+      },
+      {
         question: "Can I edit or cancel a request I already filed?",
         answer:
-          "Yes, while it's still Pending: expand the request in Recent activity and use Edit or Delete. Once it moves to Processing it's with the registrar — contact them directly if something needs to change.",
+          "Yes, while it is still Reviewing: expand the request in Recent activity and use Edit or Delete. After it moves to Processing or Pending payment, it can no longer be edited or deleted by the student.",
       },
       {
         question: "How long until my request is done?",
@@ -63,23 +68,29 @@ export const faqCategories: FaqCategory[] = [
     blurb: "What each status on your request means.",
     faqs: [
       {
-        question: "What does Pending mean?",
+        question: "What does Reviewing mean?",
         answer:
-          "Your request is in the queue, waiting to be picked up by the registrar. Nothing is wrong — your turn is coming.",
+          "The registrar is reviewing your submitted request. It can still be edited or deleted while it remains Reviewing.",
       },
       {
         question: "What does Processing mean?",
-        answer: "The registrar is actively working on your request.",
+        answer:
+          "The registrar is preparing your request. The registrar will notify you when you can go to school.",
       },
       {
-        question: "What does Completed mean?",
+        question: "What does Pending payment mean?",
         answer:
-          "Your document is ready. Check the request's notes for pickup or claiming instructions.",
+          "Your [request] is pending. Proceed to the Cashier's office for the payment of the requested document/s within a week. otherwise your request will be rejected.",
       },
       {
-        question: "What does Rejected mean?",
+        question: "What does Claimed mean?",
         answer:
-          "Your request couldn't be processed as filed. Read the notes to see why, fix the issue, and file a new request.",
+          "The document has already been claimed by the student.",
+      },
+      {
+        question: "What does Rejected (overdue) mean?",
+        answer:
+          "It is an optional terminal status used when a request is overdue or can no longer be processed. Read the request's notes for details.",
       },
     ],
   },
@@ -91,7 +102,7 @@ export const faqCategories: FaqCategory[] = [
       {
         question: "How many requests can I file per day?",
         answer:
-          "Five. Your dashboard shows how many you have left, and the indicator turns amber when you're down to your last two.",
+          "Four. Your dashboard shows how many requests you have left, and the indicator turns amber or red as your allowance runs low.",
       },
       {
         question: "What happens when I use all four?",

@@ -21,10 +21,10 @@ Q: What do the statuses mean?
 A: Reviewing means the registrar is reviewing your request. Processing means the registrar will notify you when you can go to school. Pending payment means: "Your [request] is pending. Proceed to the Cashier's office for the payment of the requested document/s within a week. otherwise your request will be rejected." Claimed means you have already claimed the document. Rejected (overdue) is used when a request is overdue.
 
 Q: How many requests can I file per day?
-A: Five per day. Your dashboard shows how many you have left.
+A: Four per day. Your dashboard shows how many you have left.
 
 Q: Can I edit or cancel a request?
-A: Yes while it is still Pending. Once it is Processing, contact the registrar to change it.
+A: Yes while it is still Reviewing. Processing, Pending payment, Claimed, and Rejected (overdue) requests can no longer be edited or deleted by the student.
 
 Q: How long until my request is done?
 A: It depends on the document and the current queue. Check the live status on your dashboard.
@@ -35,10 +35,11 @@ A: COR is Certificate of Registration and COG is Certificate of Grades.`;
 const KEY_QUESTIONS = new Set([
   "How do I request a document?",
   "Where can I find my queue number?",
-  "What does Pending mean?",
+  "What does Reviewing mean?",
   "What does Processing mean?",
-  "What does Completed mean?",
-  "What does Rejected mean?",
+  "What does Pending payment mean?",
+  "What does Claimed mean?",
+  "What does Rejected (overdue) mean?",
   "How many requests can I file per day?",
   "What happens when I use all four?",
   "Can I edit or cancel a request I already filed?",
