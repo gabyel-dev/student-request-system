@@ -220,8 +220,18 @@ export async function updateRequestStatus(
     };
 
   try {
+    const existing = await requestRepository.findById(requestId);
+    if (!existing) {
+      return {
+        error: "That request could not be found. Refresh and try again.",
+        success: null,
+      };
+    }
+
     const updated = await requestRepository.updateStatus(requestId, status);
-    await notifyStatusChange(updated);
+    if (existing.status !== status) {
+      await notifyStatusChange(updated);
+    }
     revalidatePath("/dashboard");
     return { error: null, success: "Request status updated." };
   } catch {
@@ -263,10 +273,9 @@ async function notifySubmission(input: {
 }
 
 /**
- * Emails the student about a request status change. Only milestones the
- * student must act on are emailed (completed = claim your document, rejected);
- * intermediate moves (pending/processing) and admin reverts stay quiet so
- * toggling statuses doesn't spam the student's inbox.
+ * Emails the student whenever an admin changes the request to a different
+ * status. This covers Reviewing, Processing, Pending payment, Claimed, and
+ * Rejected (overdue); selecting the current status does not send again.
  */
 async function notifyStatusChange(updated: {
   studentEmail: string;
@@ -276,7 +285,6 @@ async function notifyStatusChange(updated: {
   status: RequestStatus;
   notes: string | null;
 }): Promise<void> {
-  if (updated.status !== "completed" && updated.status !== "rejected") return;
   if (!updated.studentEmail || !mailer.isConfigured()) return;
   try {
     const email = requestStatusEmail({
