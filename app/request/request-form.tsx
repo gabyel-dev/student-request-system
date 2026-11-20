@@ -210,13 +210,14 @@ export function RequestForm({
                     name="proof"
                     type="file"
                     multiple
+                    required={!editingRequest?.proofUrls.length}
                     accept="image/png,image/jpeg,image/webp,image/gif,application/pdf"
                     className="mt-2 block w-full rounded-xl border border-hairline bg-white px-3.5 py-3 text-sm text-ink file:mr-3 file:rounded-lg file:border-0 file:bg-accent-soft file:px-3 file:py-2 file:font-semibold file:text-accent"
                   />
                   <p className="mt-1.5 text-xs leading-5 text-muted">
-                    Optional. Select multiple JPG, PNG, WEBP, GIF, or PDF files
-                    in one browse, including screenshots. Add up to 4 files;
-                    All selected files together must total 20MB or less.
+                    Required. Select one or more JPG, PNG, WEBP, GIF, or PDF
+                    files in one browse, including screenshots. Add up to 4 files;
+                    all selected files together must total 20MB or less.
                   </p>
                   {editingRequest?.proofUrls.length ? (
                     <p className="mt-1 text-xs text-muted">

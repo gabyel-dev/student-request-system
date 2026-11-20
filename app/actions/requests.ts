@@ -126,6 +126,12 @@ export async function submitRequest(
   const proofFiles = formData
     .getAll("proof")
     .filter((value): value is File => value instanceof File && value.size > 0);
+  if (documentType === "Subject Request" && proofFiles.length === 0) {
+    return {
+      error: "Please attach at least one proof file or screenshot.",
+      success: null,
+    };
+  }
   if (proofFiles.length > MAX_PROOF_FILES) {
     return {
       error: `You can attach up to ${MAX_PROOF_FILES} proof files.`,
@@ -391,6 +397,17 @@ export async function updateRequest(
   const proofFiles = formData
     .getAll("proof")
     .filter((value): value is File => value instanceof File && value.size > 0);
+  const removeProof = formData.get("removeProof") === "true";
+  if (
+    request.documentType === "Subject Request" &&
+    proofFiles.length === 0 &&
+    (removeProof || request.proofUrls.length === 0)
+  ) {
+    return {
+      error: "Subject Request must keep at least one proof file or screenshot.",
+      success: null,
+    };
+  }
   if (proofFiles.length > MAX_PROOF_FILES) {
     return {
       error: `You can attach up to ${MAX_PROOF_FILES} proof files.`,
@@ -429,7 +446,6 @@ export async function updateRequest(
       };
     }
   }
-  const removeProof = formData.get("removeProof") === "true";
   if (removeProof) proofUrls = [];
 
   try {
