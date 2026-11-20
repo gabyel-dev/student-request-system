@@ -1,6 +1,45 @@
-This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
+# itikQ Student Request System
 
-## Auth Boilerplate
+A Next.js and Supabase web application for Pateros Technological College students and registrar staff. Students submit and track official requests; administrators review the section-based queue and update statuses.
+
+## Current Request Workflow
+
+### Services
+
+- Certificate of Registration (COR)
+- Certificate of Grades (COG)
+- Subject Request
+- Others
+
+The Grade Correction and Transcript of Records services have been removed.
+
+### Subject Request proof and notes
+
+- Notes are required.
+- Proof files are required and can be selected together in one file browse.
+- Up to 4 JPG, PNG, WEBP, GIF, or PDF files are accepted.
+- Selected proof files may total no more than 20 MB.
+- Files are stored in the Supabase `request_proofs` bucket.
+- Students and administrators can preview proofs in a modal; PDFs use an embedded preview and a new-tab fallback.
+
+### Request limits
+
+- 4 requests per student per day.
+- 60-second cooldown between submissions.
+- Only one active request per document type.
+- Queue numbers are assigned per section.
+
+### Status sequence
+
+1. Reviewing — the registrar is reviewing the request.
+2. Processing — the registrar is preparing it and will notify the student when they can go to school.
+3. Pending payment — the student must proceed to the Cashier's Office within a week; otherwise the request will be rejected.
+4. Claimed — the student has already claimed the document.
+5. Rejected (overdue) — optional terminal state for an overdue request.
+
+The student and admin dashboards show the same status names. Every status change sends the student a status email, and selecting the existing status does not send a duplicate email. Email notes use the heading `Notes:`.
+
+## Setup
 
 Clean-architecture register/login (`pure typescript`) with Supabase used only as the Postgres database (no `supabase-auth`), argon2 password hashing, and JWT-based sessions (httpOnly cookie). Auth is **purely server-side** via Server Actions — form submissions never hit a client-facing API.
 

@@ -24,15 +24,23 @@ The product combines a simple student request flow with a staff-facing live queu
 
 ## Operating Context
 
-Students authenticate with their school Google account, complete their profile when needed, choose a document service, receive a queue number, and track request status. Whitelisted administrators use a dedicated dashboard to review requests, update statuses, and view registered students. The prototype is intended for professor evaluation of the complete student-to-admin workflow.
+Students authenticate with their school Google account, complete their profile when needed, and choose from four document services: Certificate of Registration (COR), Certificate of Grades (COG), Subject Request, and Others. They receive a section-based queue number and track the request through five statuses. Whitelisted administrators use a dedicated dashboard to review requests, update statuses, view registered students, and manage queue cycles. The prototype supports the complete student-to-admin workflow.
 
 ## Capabilities and Constraints
 
 - Google authentication is restricted to the Pateros Technological College email domain.
 - Administrator access is controlled by the server-side `ADMIN_ACCOUNTS` environment variable.
 - Administrators bypass student onboarding and enter the dashboard directly.
-- Students can submit document requests with a queue number and status.
-- Administrators can view all requests, update request statuses, and view the student directory.
+- Students can submit at most 4 requests per day with a 60-second cooldown between submissions.
+- Subject Request requires notes and one or more proof files; students may select up to 4 files totaling 20 MB in one browse.
+- Proof files are uploaded to the public Supabase `request_proofs` bucket and stored as URLs in the request.
+- Proofs support JPG, PNG, WEBP, GIF, and PDF formats and can be previewed in a modal or opened in a new tab.
+- Students can view, edit while Reviewing, delete while Reviewing, and archive completed or rejected requests.
+- The status sequence is Reviewing → Processing → Pending payment → Claimed.
+- Rejected (overdue) is an optional terminal state outside the main status sequence.
+- Every student-relevant status change sends an email notification.
+- COR and COG completion emails include payment and claim instructions; other services use the normal claim instructions.
+- Administrators can view all requests, update statuses, view proof files, and manage the student directory.
 - The web experience must remain usable on mobile devices.
 - Request and user data are stored in Supabase.
 

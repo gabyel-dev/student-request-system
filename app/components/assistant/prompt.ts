@@ -18,7 +18,7 @@ Q: Where can I find my queue number?
 A: It is on the ticket at the top of your dashboard and inside every request under Recent activity.
 
 Q: What do the statuses mean?
-A: Reviewing means the registrar is reviewing your request. Processing means the registrar will notify you when you can go to school. Pending means payment is pending at the registrar. Completed means you have already claimed the document. Rejected is used when a request is overdue.
+A: Reviewing means the registrar is reviewing your request. Processing means the registrar will notify you when you can go to school. Pending payment means: "Your [request] is pending. Proceed to the Cashier's office for the payment of the requested document/s within a week. otherwise your request will be rejected." Claimed means you have already claimed the document. Rejected (overdue) is used when a request is overdue.
 
 Q: How many requests can I file per day?
 A: Five per day. Your dashboard shows how many you have left.

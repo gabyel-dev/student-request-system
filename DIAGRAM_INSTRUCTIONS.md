@@ -73,19 +73,19 @@ The diagram assistant must not contradict any of these facts.
 2. **Only the school domain is allowed:** `paterostechnologicalcollege.edu.ph`. A Google account from another domain is rejected.
 3. **Administrators are not a database role.** Admin status is derived at runtime from the server-side `ADMIN_ACCOUNTS` environment variable. There is no `admins` table and no `role` column.
 4. **Administrators bypass student onboarding.** Students must have a section and student number before requesting. An administrator without those fields still goes directly to the admin dashboard.
-5. **There are exactly four document services:** Certificate of Registration (COR), Certificate of Grades (COG), Subject Request, and Others. "Others" and Subject Request require an explanation in the notes. The service catalog is code-defined; there is no `services` table.
+5. **There are exactly four document services:** Certificate of Registration (COR), Certificate of Grades (COG), Subject Request, and Others. Grade Correction and Transcript of Records are removed. "Others" and Subject Request require notes. The Subject Request also requires proof; the service catalog is code-defined, with no `services` table.
 6. **Queue numbers are per section, not global.** Each section has its own active queue. A section's next queue number is the highest active queue number in that section plus one. Different sections can simultaneously have Queue 1.
 7. **The request stores a snapshot of the student's section** at creation time. `requests.section` is a snapshot, not a foreign key to `users.section`.
-8. **Request statuses are exactly:** `pending`, `processing`, `completed`, `rejected`. The database stores lowercase text. UI labels are Pending, Processing, Completed, Rejected.
-9. **A student may have only one active request per document type.** "Active" means `archived_at IS NULL` and status `pending` or `processing`.
+8. **Request statuses are exactly:** `reviewing`, `processing`, `pending`, `completed`, `rejected`. The database stores lowercase text. UI labels are Reviewing, Processing, Pending payment, Claimed, and Rejected (overdue). `rejected` is optional and represents an overdue request.
+9. **A student may have only one active request per document type.** "Active" means `archived_at IS NULL` and status is one of `reviewing`, `processing`, or `pending`.
 10. **Request limits:** maximum 4 requests per student per day, and a 60-second cooldown between requests. The server enforces both.
-11. **Request statuses:** Reviewing means the registrar is reviewing the request; Processing means the registrar will notify the student when they can go to school; Pending means payment is pending at the registrar; Completed means the student has already claimed the document; Rejected is optional for overdue requests.
-11. **Proof attachment rules:** optional; maximum 5 MB; allowed types are JPG, PNG, WEBP, GIF, and PDF. Notes are capped at 500 characters. "Others" cannot be submitted without notes.
-12. **Students can edit or delete only their own pending, unarchived requests.** Processing, completed, and rejected requests cannot be edited or deleted by the student.
-13. **Students can archive only completed or rejected requests.** Student archiving sets `student_archived_at`; it hides the request from the student's dashboard but does not remove it from the registrar's active queue. Students can restore a student-archived request.
-14. **Administrators can change a request to any of the four statuses**, including reverting to a previous status. Status changes update `updated_at`.
-15. **Status emails are sent only when status becomes `completed` or `rejected`.** Moves to `pending` or `processing`, and admin reverts, do not email the student. Email sending is skipped if SMTP is not configured.
-16. **"Complete queue cycle" archives only completed and rejected requests.** It sets `archived_at` on those rows. Pending and processing requests stay active and keep their queue numbers. Nothing is deleted.
+11. **The status sequence is Reviewing → Processing → Pending payment → Claimed.** Processing means the registrar will notify the student that they can go to school. Pending payment means the student must proceed to the Cashier's Office within a week; otherwise the request will be rejected. Claimed means the student has already claimed the document.
+12. **Subject Request proof rules:** notes and at least one proof file are required. Students may select up to 4 files in one browse. Files must be JPG, PNG, WEBP, GIF, or PDF, and all selected files together must total no more than 20 MB. Proofs are public URLs in Supabase Storage bucket `request_proofs`; other services do not require proof. Notes are capped at 500 characters.
+13. **Students can edit or delete only their own Reviewing, unarchived requests.** Processing, Pending payment, Claimed, and Rejected (overdue) requests cannot be edited or deleted by the student.
+14. **Students can archive only Claimed or Rejected (overdue) requests.** Student archiving sets `student_archived_at`; it hides the request from the student's dashboard but does not remove it from the registrar's active queue. Students can restore a student-archived request.
+15. **Administrators can change a request to any of the five statuses**, including reverting to a previous status. Status changes update `updated_at`.
+16. **Status emails are sent whenever an admin changes a request to a different status.** The email covers Reviewing, Processing, Pending payment, Claimed, and Rejected (overdue). Selecting the current status does not send a duplicate email. Email sending is skipped if SMTP is not configured; email note text uses the heading `Notes:`.
+17. **"Complete queue cycle" archives only Claimed and Rejected (overdue) requests.** It sets `archived_at` on those rows. Reviewing, Processing, and Pending payment requests stay active and keep their queue numbers. Nothing is deleted.
 17. **Admin archive and student archive are separate.** `archived_at` is the registrar's queue-cycle archive. `student_archived_at` is the student's own filing-away action.
 18. **Administrators can delete a student account.** This deletes the user row and their related request rows and refresh-token rows. An administrator cannot delete their own account, and admin accounts cannot be deleted through this function. The current code does not delete the student's storage files, so do not show storage deletion.
 19. **Session behavior:** a short-lived JWT access token (5 minutes) and a long-lived refresh token (30 days) are stored in cookies. Only a SHA-256 hash of the refresh token is stored in the database. The proxy guards protected routes and refreshes expired sessions; refresh tokens are rotated when expired. Logout deletes the refresh-token record and clears both cookies.
@@ -178,7 +178,7 @@ Show itikQ as a single system and its data exchanges with the outside world.
 
 | External entity | Data into the system | Data out of the system |
 | --- | --- | --- |
-| Student | Google sign-in request; authenticated requests carrying session cookies; profile details (course, year, section code, student number); document service selection, notes, and optional proof file; edit/delete/archive/restore actions; request-tracking queries; help-center and AI assistant questions | Sign-in redirect and session cookies; onboarding or validation feedback; dashboard data; queue number and request status; archive and action results; status email notifications; help content and AI assistant answers |
+| Student | Google sign-in request; authenticated requests carrying session cookies; profile details (course, year, section code, student number); document service selection, required notes for Others/Subject Request, and up to four Subject Request proof files; edit/delete/archive/restore actions; request-tracking queries; help-center and AI assistant questions | Sign-in redirect and session cookies; onboarding or validation feedback; dashboard data; queue number and request status; archive and action results; status email notifications; help content and AI assistant answers |
 | Administrator | Google sign-in request; authenticated requests carrying session cookies; queue review/filter/search/sort selections; request status updates; complete-queue-cycle request; student directory actions; student account deletion request; announcement section, subject, and message | Admin dashboard data; active request queue and queue statistics; student directory data; archived queue data; status update and queue-cycle results; account deletion results; announcement delivery summary |
 | Google Identity Provider | OAuth authorization code; verified ID token containing identity claims; Google profile picture | Authorization redirect / token-exchange request |
 | SMTP Email Service | Delivery acknowledgment or delivery result | Request status notification email; section announcement email |
@@ -295,20 +295,20 @@ Use exactly E1–E5 from the context diagram. Do not introduce a new external en
 **Inputs**
 - Authenticated student identity.
 - Selected document service title.
-- Optional notes (required for "Others").
-- Optional proof file.
+- Notes (required for "Others" and Subject Request).
+- Proof files (required for Subject Request).
 
 **Processing**
 - Confirm the user is a student, has a complete profile, and is not an administrator.
-- Validate the selected service against the six-service catalog.
-- Validate notes length and "Others" notes requirement.
-- Validate proof size and MIME type.
+- Validate the selected service against the four-service catalog.
+- Validate notes length and required notes for "Others" and Subject Request.
+- For Subject Request, require at least one proof and validate up to 4 files, allowed MIME types, and a 20 MB combined size limit.
 - Reject a duplicate active request for the same document type.
-- Enforce the 5-requests-per-day limit.
+- Enforce the 4-requests-per-day limit.
 - Enforce the 60-second cooldown.
-- Store the proof file if supplied.
+- Store proof files in Supabase Storage `request_proofs` and save their public URLs.
 - Compute the next queue number for the student's section from the active queue.
-- Insert the request with `status = pending`, the section snapshot, and the queue number.
+- Insert the request with `status = reviewing`, the section snapshot, and the queue number.
 - Retry on a queue-number race using the partial unique index.
 
 **Outputs**
@@ -330,15 +330,16 @@ Use exactly E1–E5 from the context diagram. Do not introduce a new external en
 - View/track request request.
 - Edit notes/proof request.
 - Delete request.
-- Archive completed/rejected request.
+- Archive Claimed/Rejected (overdue) request.
 - Restore student-archived request.
 - Realtime request-change events from Supabase.
 
 **Processing**
 - Load the student's visible requests (excluding student-archived rows) and their student archive.
-- Show queue number, status, document type, section, notes, timestamps, and proof URL.
-- Allow edit/delete only for the student's own pending, unarchived requests.
-- Allow archive only for completed/rejected requests.
+- Show queue number, status, document type, section, notes, timestamps, and proof URLs.
+- Allow proof previews through a modal for images, PDFs, and the other supported files.
+- Allow edit/delete only for the student's own Reviewing, unarchived requests.
+- Allow archive only for Claimed/Rejected (overdue) requests.
 - Allow restore only for student-archived requests.
 - Reflect database changes live through Supabase Realtime.
 - Keep admin archive state (`archived_at`) separate from student archive state (`student_archived_at`).
@@ -348,7 +349,7 @@ Use exactly E1–E5 from the context diagram. Do not introduce a new external en
 - Live status updates on the dashboard.
 
 **Data stores**
-- `D2 Requests` (read, update notes/proof, set/clear `student_archived_at`, delete pending request).
+- `D2 Requests` (read, update notes/proof, set/clear `student_archived_at`, delete Reviewing request).
 - `D6 Request Proofs` (write replacement proof on edit).
 
 **External entity**
@@ -368,10 +369,10 @@ Use exactly E1–E5 from the context diagram. Do not introduce a new external en
 - Load active requests (`archived_at IS NULL`) and archived requests.
 - Group/filter by section and status; show queue statistics.
 - Update a request's status and `updated_at`.
-- Send a status email only when the new status is `completed` or `rejected`.
-- Do not send email for `pending`, `processing`, or status reverts.
-- On "Complete queue cycle," archive only completed/rejected requests by setting `archived_at`.
-- Leave pending/processing requests active with their existing queue numbers.
+- Send a status email when the new status differs from the current status.
+- Email Reviewing, Processing, Pending payment, Claimed, and Rejected (overdue) transitions; do not resend for the same status.
+- On "Complete queue cycle," archive only Claimed or Rejected (overdue) requests by setting `archived_at`.
+- Leave Reviewing, Processing, and Pending payment requests active with their existing queue numbers.
 - Never delete records during queue-cycle completion.
 - Keep archived records grouped by section and completion date for the admin archive.
 
@@ -547,8 +548,8 @@ Do not add "Supabase" or "Database" as an actor. Do not add a separate "Registra
 - **Submit document request**
 - **Upload supporting proof** (optional extension of Submit document request)
 - **Track request status**
-- **Edit pending request**
-- **Delete pending request**
+- **Edit Reviewing request**
+- **Delete Reviewing request**
 - **Archive completed or rejected request**
 - **Restore archived request**
 - **View help center**
@@ -589,8 +590,8 @@ Use these relationships accurately:
 - `Student` — **Browse document services**
 - `Student` — **Submit document request**
 - `Student` — **Track request status**
-- `Student` — **Edit pending request**
-- `Student` — **Delete pending request**
+- `Student` — **Edit Reviewing request**
+- `Student` — **Delete Reviewing request**
 - `Student` — **Archive completed or rejected request**
 - `Student` — **Restore archived request**
 - `Student` — **View help center**
@@ -624,7 +625,7 @@ Use these relationships accurately:
 - Administrators require the server-side admin whitelist. Students require a completed profile for request-related use cases.
 - Administrator use cases do not include submitting or editing student requests.
 - Student use cases do not include managing other students or changing request statuses.
-- "Complete queue cycle" is not the same as "Delete request." It archives only completed/rejected rows and preserves other active rows.
+- "Complete queue cycle" is not the same as "Delete request." It archives only Claimed/Rejected (overdue) rows and preserves other active rows.
 - "Archive completed or rejected request" is the student's own filing-away action; it is not the admin queue-cycle archive.
 - Do not show email/password login, password reset, registration, or Supabase Auth.
 
@@ -712,22 +713,24 @@ From the student dashboard, the student can choose:
 
 1. Browse the four document services.
 2. Select a service.
-3. Enter notes (required for "Others") and optionally attach a proof file.
+3. Enter notes (required for "Others" and Subject Request). For Subject Request, select 1–4 proof files or screenshots in one browse.
 4. Submit.
 5. Application validates:
    - Student is not an administrator.
    - Profile has a section.
    - Document type is valid.
-   - "Others" has notes.
-   - Proof is within 5 MB and an allowed type.
+   - "Others" and Subject Request have notes.
+   - Subject Request has at least one proof.
+   - Proof files are JPG, PNG, WEBP, GIF, or PDF and total no more than 20 MB.
    - No active request exists for the same document type.
-   - Daily limit of 5 has not been reached.
+   - Daily limit of 4 has not been reached.
    - At least 60 seconds have passed since the last request.
 6. If validation fails → show the error and return to the form/dashboard.
 7. If validation passes:
-   - Upload the proof if present.
+   - Upload proof files to the `request_proofs` bucket.
    - Determine the next queue number for the student's section.
-   - Insert the request with `status = pending`.
+   - Insert the request with `status = reviewing`.
+   - Send the Reviewing status email.
    - Show the queue number and confirmation.
 8. Return to the student dashboard.
 
@@ -736,9 +739,9 @@ From the student dashboard, the student can choose:
 1. Load the student's visible requests and student archive.
 2. Apply live updates from Supabase Realtime.
 3. Student chooses an action:
-   - **Edit** → allowed only for a pending, unarchived request; update notes/proof.
-   - **Delete** → allowed only for a pending, unarchived request; confirm; delete.
-   - **Archive** → allowed only for completed/rejected requests; set `student_archived_at`.
+   - **Edit** → allowed only for a Reviewing, unarchived request; update notes/proof while retaining at least one Subject Request proof.
+   - **Delete** → allowed only for a Reviewing, unarchived request; confirm; delete.
+   - **Archive** → allowed only for Claimed/Rejected (overdue) requests; set `student_archived_at`.
    - **Restore** → clear `student_archived_at` for a student-archived request.
    - **View** → show queue number, status, section, notes, timestamps, and proof.
 4. Application checks ownership and status; rejects invalid actions.
@@ -792,7 +795,7 @@ From the admin dashboard, the administrator can choose:
 #### Complete queue cycle
 
 1. Administrator confirms the action.
-2. Application archives only completed/rejected requests by setting `archived_at`.
+2. Application archives only Claimed/Rejected (overdue) requests by setting `archived_at`.
 3. Pending/processing requests remain active and keep their queue numbers.
 4. No records are deleted.
 5. The archive becomes available under the admin archive view.
@@ -830,20 +833,18 @@ Same as the student logout flow.
 ### Request status lifecycle to include as a subgraph or note
 
 ```text
-pending ──────────────> processing ──────────────> completed
-   │                         │                        │
-   │                         └────────> rejected <────┘
+reviewing ──────────────> processing ──────────────> pending payment ──────────────> claimed
+   │                            │                           │                          │
+   ├── student may edit/delete  └── no edit/delete         └── no edit/delete        └── archive eligible
    │
-   ├── student may edit/delete while pending
-   │
-   └── completed/rejected may be archived by student or admin
-       pending/processing remain active during admin queue-cycle completion
+   └── rejected (overdue) is optional and sits outside the main sequence
+       reviewing/processing/pending remain active during admin queue-cycle completion
 ```
 
 Clarifications:
 
 - Administrators may move a request between any of the four statuses, including reverting.
-- Students cannot change status; they only submit, edit/delete pending requests, and archive/restore finished requests.
+- Students cannot change status; they only submit, edit/delete Reviewing requests, and archive/restore Claimed/Rejected (overdue) requests.
 - "Completed" means ready to claim at school, not delivered online.
 - Admin queue-cycle archive and student archive are separate.
 
@@ -887,10 +888,10 @@ Use exactly these four relational tables. Do not add tables that do not exist in
 | --- | --- | --- |
 | `id` | UUID | Primary key; default `gen_random_uuid()` |
 | `user_id` | UUID | Not null; foreign key → `users.id`; `ON DELETE CASCADE` |
-| `document_type` | TEXT | Not null; one of the five service titles |
+| `document_type` | TEXT | Not null; one of the four service titles |
 | `section` | TEXT | Nullable; snapshot of the student's section at creation |
 | `queue_number` | INTEGER | Not null; per-section active queue number |
-| `status` | TEXT | Not null; default `pending`; app-enforced values: `pending`, `processing`, `completed`, `rejected` |
+| `status` | TEXT | Not null; default `reviewing`; app-enforced values: `reviewing`, `processing`, `pending`, `completed`, `rejected` |
 | `notes` | TEXT | Nullable; maximum 500 characters in the app |
 | `proof_url` | TEXT | Nullable; public URL in the `request_proofs` bucket |
 | `proof_urls` | TEXT[] | Not null; up to four public URLs in the `request_proofs` bucket |
@@ -940,7 +941,7 @@ USERS ||--o{ REFRESH_TOKENS : "owns"
 - **Do not draw an `admins` table or a `role` column.** Administrator status is derived from the `ADMIN_ACCOUNTS` environment variable.
 - **Do not draw `student_name` or `student_email` in `requests`.** They are obtained by joining `users`.
 - **Queue uniqueness is partial and per section:** the unique index `requests_active_section_queue_uq` covers `(section, queue_number)` only where `archived_at IS NULL`. State this in a note; do not draw a simple global unique constraint on `queue_number`.
-- **Status is text in the database**, with the four allowed values enforced by application code, not by a database enum or check constraint. State this in a note.
+- **Status is text in the database**, with the five allowed values enforced by application code, not by a database enum or check constraint. State this in a note.
 - **`student_number` is nullable but unique when present.**
 - **`email` is unique.**
 - **`profile_picture_url`, `proof_url`, and `proof_urls` store public URLs, not binary files.**
@@ -1042,7 +1043,7 @@ Before returning the final output, verify all of the following:
 - [ ] No diagram shows payment, document generation, online document delivery, or claim tracking.
 - [ ] Status values are lowercase in data-model/flow labels: `pending`, `processing`, `completed`, `rejected`.
 - [ ] Queue numbers are described as per-section, not global.
-- [ ] "Complete queue cycle" is described as archiving only completed/rejected requests, never deleting them.
+- [ ] "Complete queue cycle" is described as archiving only Claimed/Rejected (overdue) requests, never deleting them.
 - [ ] Emails are described as sent only for `completed` and `rejected` status changes.
 - [ ] The assistant is described as read-only for requests and subject to rate limits.
 - [ ] All labels are consistent across the five diagrams.
@@ -1084,7 +1085,7 @@ Use these files if you have repository access and need to verify a detail:
 - `database/assistant-rate-limit.sql` — standalone assistant rate-limit table.
 - `src/domain/user.ts` — user domain shape.
 - `src/domain/request.ts` — request statuses and request domain shape.
-- `src/domain/services.ts` — six-service catalog.
+- `src/domain/services.ts` — four-service catalog.
 - `src/application/use-cases/google-login.ts` — Google login, domain restriction, user creation, token issue.
 - `src/infrastructure/auth/google-oauth.service.ts` — Google ID-token verification.
 - `src/infrastructure/auth/jose.token.service.ts` — access-token signing/verification.

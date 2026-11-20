@@ -383,7 +383,7 @@ function RequestRow({
                   : request.status === "processing"
                     ? "This request is being processed. The registrar will notify you when you can go to school."
                     : request.status === "pending"
-                      ? "Payment is pending at the registrar."
+                      ? `Your ${request.documentType} is pending. Proceed to the Cashier's office for the payment of the requested document/s within a week. otherwise your request will be rejected.`
                       : request.status === "completed"
                         ? "This document has already been claimed."
                         : "This request is rejected or overdue."}

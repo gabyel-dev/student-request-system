@@ -235,7 +235,7 @@ export function requestStatusEmail(input: RequestStatusEmailInput): {
   const subtitle: Record<RequestStatus, string> = {
     reviewing: `Your <strong>${escapeHtml(input.documentType)}</strong> request is being reviewed.`,
     processing: `Your <strong>${escapeHtml(input.documentType)}</strong> request is being processed. The registrar will notify you when you can go to school.`,
-    pending: `Your <strong>${escapeHtml(input.documentType)}</strong> is pending payment at the registrar&rsquo;s office.`,
+    pending: `Your <strong>${escapeHtml(input.documentType)}</strong> is pending. Proceed to the Cashier&rsquo;s office for the payment of the requested document/s within a week. otherwise your request will be rejected.`,
     completed: `Your <strong>${escapeHtml(input.documentType)}</strong> has already been claimed.`,
     rejected: `Your <strong>${escapeHtml(input.documentType)}</strong> request couldn&rsquo;t be approved. If you still need this document, you can submit a new request anytime.`,
   };
