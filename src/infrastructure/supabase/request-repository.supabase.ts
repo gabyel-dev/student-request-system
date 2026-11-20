@@ -9,6 +9,7 @@ type RequestRow = {
   queue_number: number;
   status: RequestStatus;
   proof_url: string | null;
+  proof_urls: string[] | null;
   notes: string | null;
   archived_at: string | null;
   student_archived_at: string | null;
@@ -32,6 +33,7 @@ function toRequest(row: RequestRow): StudentRequest {
     queueNumber: row.queue_number,
     status: row.status,
     proofUrl: row.proof_url,
+    proofUrls: row.proof_urls?.length ? row.proof_urls : row.proof_url ? [row.proof_url] : [],
     notes: row.notes,
     createdAt: row.created_at,
     updatedAt: row.updated_at,
@@ -41,7 +43,7 @@ function toRequest(row: RequestRow): StudentRequest {
 }
 
 const requestSelect =
-  "id, user_id, document_type, section, queue_number, status, proof_url, notes, archived_at, student_archived_at, created_at, updated_at, users(full_name, email)";
+  "id, user_id, document_type, section, queue_number, status, proof_url, proof_urls, notes, archived_at, student_archived_at, created_at, updated_at, users(full_name, email)";
 
 const REQUEST_RETRIES = 5;
 
@@ -155,6 +157,7 @@ export function createRequestRepository() {
       section: string;
       notes?: string | null;
       proofUrl?: string | null;
+      proofUrls?: string[];
     }) {
       for (let attempt = 0; attempt < REQUEST_RETRIES; attempt++) {
         // Next number for THIS section's current active cycle only. The helper
@@ -171,6 +174,7 @@ export function createRequestRepository() {
             queue_number: queueNumber,
             notes: input.notes ?? null,
             proof_url: input.proofUrl ?? null,
+            proof_urls: input.proofUrls ?? [],
           })
           .select(requestSelect)
           .single();
@@ -480,13 +484,14 @@ export function createRequestRepository() {
 
     async updateNotesAndProof(
       id: string,
-      input: { notes: string | null; proofUrl: string | null },
+      input: { notes: string | null; proofUrls: string[] },
     ) {
       const { data, error } = await client
         .from("requests")
         .update({
           notes: input.notes,
-          proof_url: input.proofUrl,
+          proof_url: input.proofUrls[0] ?? null,
+          proof_urls: input.proofUrls,
           updated_at: new Date().toISOString(),
         })
         .eq("id", id)

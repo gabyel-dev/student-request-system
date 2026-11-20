@@ -42,6 +42,7 @@ export default async function RequestDetailPage({
       id: request.id,
       notes: request.notes ?? "",
       proofUrl: request.proofUrl ?? null,
+      proofUrls: request.proofUrls,
     };
   }
 

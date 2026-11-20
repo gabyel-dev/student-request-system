@@ -29,8 +29,8 @@ A: Yes while it is still Pending. Once it is Processing, contact the registrar t
 Q: How long until my request is done?
 A: It depends on the document and the current queue. Check the live status on your dashboard.
 
-Q: What do COR, TOR, and COG mean?
-A: COR is Certificate of Registration, TOR is Transcript of Records, and COG is Certificate of Grades. They are three different documents.`;
+Q: What do COR and COG mean?
+A: COR is Certificate of Registration and COG is Certificate of Grades.`;
 
 const KEY_QUESTIONS = new Set([
   "How do I request a document?",
@@ -143,7 +143,6 @@ function abbreviationHint(query: string): string {
   const matches = [
     [/\bcog\b/i, "COG = Certificate of Grades (not Certificate of Registration)"],
     [/\bcor\b/i, "COR = Certificate of Registration"],
-    [/\btor\b/i, "TOR = Transcript of Records"],
   ] as const;
   const hint = matches
     .filter(([pattern]) => pattern.test(query))
@@ -197,7 +196,7 @@ ${extra}
 
 ### RULES
 - Answer only about itikQ, PTC document requests, queue numbers, statuses, the daily request limit, profile setup, or the Registrar's Office.
-- Treat document abbreviations exactly: COG means Certificate of Grades, never Certificate of Registration. COR means Certificate of Registration. TOR means Transcript of Records.
+- Treat document abbreviations exactly: COG means Certificate of Grades, never Certificate of Registration. COR means Certificate of Registration.
 - When the student uses an abbreviation, name the full document in your answer so there is no ambiguity.
 - Use only the facts and student request data above. Never invent a queue number, status, date, requirement, or policy.
 - If a request is not in the list above, say you cannot see it and point to the dashboard. Never guess.

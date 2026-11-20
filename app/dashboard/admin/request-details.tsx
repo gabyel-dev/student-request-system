@@ -1,4 +1,4 @@
-import { FiExternalLink } from "react-icons/fi";
+import { ProofViewer } from "@/app/components/proof-viewer";
 import { formatDateTime } from "../lib/format";
 import type { StudentRequest } from "@/src/domain/request";
 
@@ -13,20 +13,18 @@ export function DetailItem({ label, value }: { label: string; value: string }) {
   );
 }
 
-export function ProofLink({ url }: { url: string }) {
+export function ProofLink({ urls }: { urls: string[] }) {
   return (
     <div>
       <dt className="text-[11px] font-semibold uppercase tracking-[0.08em] text-[#62716A]">
         Proof
       </dt>
       <dd className="mt-1">
-        <a
-          href={url}
-          target="_blank"
-          rel="noopener noreferrer"
-          className="inline-flex items-center gap-1.5 text-[13px] font-medium text-[#0B6B4A] hover:underline">
-          <FiExternalLink aria-hidden="true" /> View proof
-        </a>
+        <div className="flex flex-col items-start gap-1">
+          {urls.map((url, index) => (
+            <ProofViewer key={url} url={url} label={`View proof ${index + 1}`} />
+          ))}
+        </div>
       </dd>
     </div>
   );
@@ -54,7 +52,7 @@ export function RequestDetailGrid({
       {request.notes ? (
         <DetailItem label="Notes" value={request.notes} />
       ) : null}
-      {request.proofUrl ? <ProofLink url={request.proofUrl} /> : null}
+      {request.proofUrls.length ? <ProofLink urls={request.proofUrls} /> : null}
     </dl>
   );
 }

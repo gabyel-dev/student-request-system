@@ -2,9 +2,7 @@ import { createElement } from "react";
 import type { IconType } from "react-icons";
 import {
   FiAward,
-  FiBookOpen,
   FiClipboard,
-  FiEdit2,
   FiFileText,
   FiHelpCircle,
   FiList,
@@ -16,9 +14,7 @@ import {
  */
 const SERVICE_ICONS: Record<string, IconType> = {
   "certificate-of-registration": FiClipboard,
-  "transcript-of-records": FiBookOpen,
   "certificate-of-grades": FiAward,
-  "grade-correction": FiEdit2,
   "subject-request": FiList,
   others: FiHelpCircle,
 };

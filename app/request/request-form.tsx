@@ -49,6 +49,7 @@ export function RequestForm({
     id: string;
     notes: string;
     proofUrl: string | null;
+    proofUrls: string[];
   } | null;
 }) {
   const editing = Boolean(editingRequest);
@@ -169,12 +170,12 @@ export function RequestForm({
                 />
               ) : null}
 
-              {service.title === "Others" ? (
+              {service.title === "Others" || service.title === "Subject Request" ? (
                 <div className="mb-5">
                   <label
                     htmlFor="request-notes"
                     className="text-[11px] font-bold uppercase tracking-[0.14em] text-muted">
-                    Explain your request
+                    Notes
                   </label>
                   <textarea
                     id="request-notes"
@@ -183,13 +184,47 @@ export function RequestForm({
                     required
                     maxLength={500}
                     rows={5}
-                    placeholder="Tell the registrar what you need help with."
+                    placeholder={
+                      service.title === "Subject Request"
+                        ? "Tell the registrar which subject is missing or incorrect and what should be changed."
+                        : "Tell the registrar what you need help with."
+                    }
                     className="mt-2 w-full resize-y rounded-xl border border-hairline bg-white px-3.5 py-3 text-sm leading-6 text-ink outline-none transition placeholder:text-muted/70 focus:border-accent focus:ring-2 focus:ring-accent/15"
                   />
                   <p className="mt-1.5 text-xs leading-5 text-muted">
                     Please provide enough detail for the registrar to review
                     your request.
                   </p>
+                </div>
+              ) : null}
+
+              {service.title === "Subject Request" ? (
+                <div className="mb-5">
+                  <label
+                    htmlFor="request-proof"
+                    className="text-[11px] font-bold uppercase tracking-[0.14em] text-muted">
+                    Proof files or screenshots (up to 4)
+                  </label>
+                  <input
+                    id="request-proof"
+                    name="proof"
+                    type="file"
+                    multiple
+                    accept="image/png,image/jpeg,image/webp,image/gif,application/pdf"
+                    className="mt-2 block w-full rounded-xl border border-hairline bg-white px-3.5 py-3 text-sm text-ink file:mr-3 file:rounded-lg file:border-0 file:bg-accent-soft file:px-3 file:py-2 file:font-semibold file:text-accent"
+                  />
+                  <p className="mt-1.5 text-xs leading-5 text-muted">
+                    Optional. Select multiple JPG, PNG, WEBP, GIF, or PDF files
+                    in one browse, including screenshots. Add up to 4 files;
+                    All selected files together must total 20MB or less.
+                  </p>
+                  {editingRequest?.proofUrls.length ? (
+                    <p className="mt-1 text-xs text-muted">
+                      {editingRequest.proofUrls.length} existing file
+                      {editingRequest.proofUrls.length === 1 ? "" : "s"} will
+                      remain unless you replace them.
+                    </p>
+                  ) : null}
                 </div>
               ) : null}
 

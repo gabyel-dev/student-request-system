@@ -21,6 +21,7 @@ export interface StudentRequest {
   queueNumber: number;
   status: RequestStatus;
   proofUrl: string | null;
+  proofUrls: string[];
   notes: string | null;
   createdAt: string;
   updatedAt: string;

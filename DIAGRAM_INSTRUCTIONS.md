@@ -73,12 +73,12 @@ The diagram assistant must not contradict any of these facts.
 2. **Only the school domain is allowed:** `paterostechnologicalcollege.edu.ph`. A Google account from another domain is rejected.
 3. **Administrators are not a database role.** Admin status is derived at runtime from the server-side `ADMIN_ACCOUNTS` environment variable. There is no `admins` table and no `role` column.
 4. **Administrators bypass student onboarding.** Students must have a section and student number before requesting. An administrator without those fields still goes directly to the admin dashboard.
-5. **There are exactly six document services:** Certificate of Registration (COR), Transcript of Records (TOR), Certificate of Grades (COG), Grade Correction, Subject Request, and Others. "Others" requires an explanation in the notes. The service catalog is code-defined; there is no `services` table.
+5. **There are exactly four document services:** Certificate of Registration (COR), Certificate of Grades (COG), Subject Request, and Others. "Others" and Subject Request require an explanation in the notes. The service catalog is code-defined; there is no `services` table.
 6. **Queue numbers are per section, not global.** Each section has its own active queue. A section's next queue number is the highest active queue number in that section plus one. Different sections can simultaneously have Queue 1.
 7. **The request stores a snapshot of the student's section** at creation time. `requests.section` is a snapshot, not a foreign key to `users.section`.
 8. **Request statuses are exactly:** `pending`, `processing`, `completed`, `rejected`. The database stores lowercase text. UI labels are Pending, Processing, Completed, Rejected.
 9. **A student may have only one active request per document type.** "Active" means `archived_at IS NULL` and status `pending` or `processing`.
-10. **Request limits:** maximum 5 requests per student per day, and a 60-second cooldown between requests. The server enforces both.
+10. **Request limits:** maximum 4 requests per student per day, and a 60-second cooldown between requests. The server enforces both.
 11. **Proof attachment rules:** optional; maximum 5 MB; allowed types are JPG, PNG, WEBP, GIF, and PDF. Notes are capped at 500 characters. "Others" cannot be submitted without notes.
 12. **Students can edit or delete only their own pending, unarchived requests.** Processing, completed, and rejected requests cannot be edited or deleted by the student.
 13. **Students can archive only completed or rejected requests.** Student archiving sets `student_archived_at`; it hides the request from the student's dashboard but does not remove it from the registrar's active queue. Students can restore a student-archived request.
@@ -709,7 +709,7 @@ From the student dashboard, the student can choose:
 
 #### Start a request
 
-1. Browse the six document services.
+1. Browse the four document services.
 2. Select a service.
 3. Enter notes (required for "Others") and optionally attach a proof file.
 4. Submit.
@@ -886,12 +886,13 @@ Use exactly these four relational tables. Do not add tables that do not exist in
 | --- | --- | --- |
 | `id` | UUID | Primary key; default `gen_random_uuid()` |
 | `user_id` | UUID | Not null; foreign key → `users.id`; `ON DELETE CASCADE` |
-| `document_type` | TEXT | Not null; one of the six service titles |
+| `document_type` | TEXT | Not null; one of the five service titles |
 | `section` | TEXT | Nullable; snapshot of the student's section at creation |
 | `queue_number` | INTEGER | Not null; per-section active queue number |
 | `status` | TEXT | Not null; default `pending`; app-enforced values: `pending`, `processing`, `completed`, `rejected` |
 | `notes` | TEXT | Nullable; maximum 500 characters in the app |
 | `proof_url` | TEXT | Nullable; public URL in the `request_proofs` bucket |
+| `proof_urls` | TEXT[] | Not null; up to four public URLs in the `request_proofs` bucket |
 | `archived_at` | TIMESTAMPTZ | Nullable; set by the admin queue-cycle archive |
 | `student_archived_at` | TIMESTAMPTZ | Nullable; set when the student files the request away |
 | `created_at` | TIMESTAMPTZ | Not null; default `now()` |
@@ -934,18 +935,18 @@ USERS ||--o{ REFRESH_TOKENS : "owns"
 ### Critical ERD constraints and notes
 
 - **Do not draw a relationship from `requests.section` to `users.section`.** It is a denormalized snapshot, not a foreign key.
-- **Do not draw a `document_types` or `services` table.** The six services are a code-defined catalog, not a database table.
+- **Do not draw a `document_types` or `services` table.** The four services are a code-defined catalog, not a database table.
 - **Do not draw an `admins` table or a `role` column.** Administrator status is derived from the `ADMIN_ACCOUNTS` environment variable.
 - **Do not draw `student_name` or `student_email` in `requests`.** They are obtained by joining `users`.
 - **Queue uniqueness is partial and per section:** the unique index `requests_active_section_queue_uq` covers `(section, queue_number)` only where `archived_at IS NULL`. State this in a note; do not draw a simple global unique constraint on `queue_number`.
 - **Status is text in the database**, with the four allowed values enforced by application code, not by a database enum or check constraint. State this in a note.
 - **`student_number` is nullable but unique when present.**
 - **`email` is unique.**
-- **`profile_picture_url` and `proof_url` store public URLs, not binary files.**
+- **`profile_picture_url`, `proof_url`, and `proof_urls` store public URLs, not binary files.**
 - **Supabase Storage buckets are not relational tables.** Add a note outside the ERD:
   - `profile_pictures` stores public profile images.
   - `request_proofs` stores public proof files.
-  - The database stores only their public URLs in `users.profile_picture_url` and `requests.proof_url`.
+  - The database stores only their public URLs in `users.profile_picture_url`, `requests.proof_url`, and `requests.proof_urls`.
 - **`assistant_rate_limits` is standalone.** Do not invent a `user_id` foreign key even though bucket keys contain user IDs.
 - The `@supabase/supabase-js` service-role client is used by the server; the browser uses the anon key only for Realtime reads. This is an implementation note, not an ERD relationship.
 
@@ -983,6 +984,7 @@ erDiagram
     text status
     text notes
     text proof_url
+    text[] proof_urls
     timestamptz archived_at
     timestamptz student_archived_at
     timestamptz created_at

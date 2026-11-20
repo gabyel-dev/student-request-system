@@ -6,7 +6,7 @@ import { getStartOfTodayInAppTimeZone } from "@/app/dashboard/lib/format";
 import { AssistantWidget } from "@/app/components/assistant/assistant-widget";
 import { BackToDashboard, ServiceOptions } from "./service-options";
 
-const DAILY_LIMIT = 5;
+const DAILY_LIMIT = 4;
 
 export default async function RequestIndexPage() {
   const userId = await getSessionTokenUserId();

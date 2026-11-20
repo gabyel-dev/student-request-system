@@ -15,6 +15,7 @@ type RequestRow = {
   queue_number: number;
   status: RequestStatus;
   proof_url: string | null;
+  proof_urls: string[] | null;
   notes: string | null;
   archived_at: string | null;
   student_archived_at: string | null;
@@ -125,6 +126,11 @@ export function useRealtimeRequests({
         queueNumber: row.queue_number,
         status: row.status,
         proofUrl: row.proof_url,
+        proofUrls: row.proof_urls?.length
+          ? row.proof_urls
+          : row.proof_url
+            ? [row.proof_url]
+            : [],
         notes: row.notes,
         createdAt: row.created_at,
         updatedAt: row.updated_at,

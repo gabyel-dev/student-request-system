@@ -15,6 +15,7 @@ import { archiveRequest, deleteRequest } from "@/app/actions/requests";
 import { useToast } from "@/app/components/toaster";
 import { getServiceByTitle } from "@/src/domain/services";
 import { ConfirmDialog } from "./confirm-dialog";
+import { ProofViewer } from "@/app/components/proof-viewer";
 import { StatusPill, isInFlight } from "./status-pill";
 import {
   APP_TIME_ZONE,
@@ -342,6 +343,7 @@ function RequestRow({
               {request.notes}
             </p>
           ) : null}
+          <ProofLinks urls={request.proofUrls} />
 
           {canModify ? (
             <div className="mt-4 flex flex-wrap gap-2 w-full justify-end">
@@ -402,6 +404,23 @@ function Detail({ label, value }: { label: string; value: string }) {
         {label}
       </dt>
       <dd className="mt-1 text-[13px] font-medium text-ink">{value}</dd>
+    </div>
+  );
+}
+
+function ProofLinks({ urls }: { urls: string[] }) {
+  if (!urls.length) return null;
+
+  return (
+    <div className="mt-3 rounded-xl bg-surface px-3 py-2">
+      <p className="text-[10px] font-bold uppercase tracking-[0.1em] text-muted">
+        Proof files
+      </p>
+      <div className="mt-1 flex flex-col items-start gap-1">
+        {urls.map((url, index) => (
+          <ProofViewer key={url} url={url} label={`View proof ${index + 1}`} />
+        ))}
+      </div>
     </div>
   );
 }

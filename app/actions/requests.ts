@@ -30,9 +30,10 @@ const requestStatuses: RequestStatus[] = [
 ];
 
 const COOLDOWN_SECONDS = 60;
-const DAILY_LIMIT = 5;
+const DAILY_LIMIT = 4;
 const MAX_NOTES_LENGTH = 500;
-const MAX_PROOF_BYTES = 5 * 1024 * 1024;
+const MAX_PROOF_FILES = 4;
+const MAX_PROOF_TOTAL_BYTES = 20 * 1024 * 1024;
 const ALLOWED_PROOF_TYPES = new Set([
   "image/png",
   "image/jpeg",
@@ -111,39 +112,52 @@ export async function submitRequest(
     String(formData.get("notes") ?? "")
       .trim()
       .slice(0, MAX_NOTES_LENGTH) || null;
-  if (documentType === "Others" && !notes) {
+  if (
+    (documentType === "Others" || documentType === "Subject Request") &&
+    !notes
+  ) {
     return {
       error: "Please explain your request before submitting.",
       success: null,
     };
   }
 
-  const proofFile = formData.get("proof");
-  let proofUrl: string | null = null;
-
-  if (proofFile instanceof File && proofFile.size > 0) {
-    if (proofFile.size > MAX_PROOF_BYTES) {
-      return {
-        error: "Proof file must be 5MB or smaller.",
-        success: null,
-      };
-    }
+  const proofFiles = formData
+    .getAll("proof")
+    .filter((value): value is File => value instanceof File && value.size > 0);
+  if (proofFiles.length > MAX_PROOF_FILES) {
+    return {
+      error: `You can attach up to ${MAX_PROOF_FILES} proof files.`,
+      success: null,
+    };
+  }
+  if (
+    proofFiles.reduce((total, file) => total + file.size, 0) >
+    MAX_PROOF_TOTAL_BYTES
+  ) {
+    return {
+      error: "Proof files must total 20MB or less.",
+      success: null,
+    };
+  }
+  for (const proofFile of proofFiles) {
     if (!ALLOWED_PROOF_TYPES.has(proofFile.type)) {
       return {
         error: "Proof must be a JPG, PNG, WEBP, GIF, or PDF file.",
         success: null,
       };
     }
-  } else if (proofFile instanceof File) {
-    return { error: "Choose a valid proof file.", success: null };
   }
 
   const blockReason = await assertCanCreateRequest(userId, documentType);
   if (blockReason) return { error: blockReason, success: null };
 
-  if (proofFile instanceof File && proofFile.size > 0) {
+  let proofUrls: string[] = [];
+  if (proofFiles.length > 0) {
     try {
-      proofUrl = await storeRequestProof({ userId, file: proofFile });
+      proofUrls = await Promise.all(
+        proofFiles.map((file) => storeRequestProof({ userId, file })),
+      );
     } catch {
       return {
         error:
@@ -158,7 +172,7 @@ export async function submitRequest(
     documentType,
     section: user.section,
     notes,
-    proofUrl,
+    proofUrls,
   });
   const emailSent = await notifySubmission({
     studentEmail: user.email,
@@ -354,49 +368,65 @@ export async function updateRequest(
     String(formData.get("notes") ?? "")
       .trim()
       .slice(0, MAX_NOTES_LENGTH) || null;
-  if (request.documentType === "Others" && !notes) {
+  if (
+    (request.documentType === "Others" ||
+      request.documentType === "Subject Request") &&
+    !notes
+  ) {
     return {
       error: "Please explain your request before saving.",
       success: null,
     };
   }
 
-  const proofFile = formData.get("proof");
-  let proofUrl = request.proofUrl;
-
-  if (proofFile instanceof File && proofFile.size > 0) {
-    if (proofFile.size > MAX_PROOF_BYTES) {
-      return {
-        error: "Proof file must be 5MB or smaller.",
-        success: null,
-      };
-    }
+  const proofFiles = formData
+    .getAll("proof")
+    .filter((value): value is File => value instanceof File && value.size > 0);
+  if (proofFiles.length > MAX_PROOF_FILES) {
+    return {
+      error: `You can attach up to ${MAX_PROOF_FILES} proof files.`,
+      success: null,
+    };
+  }
+  if (
+    proofFiles.reduce((total, file) => total + file.size, 0) >
+    MAX_PROOF_TOTAL_BYTES
+  ) {
+    return {
+      error: "Proof files must total 20MB or less.",
+      success: null,
+    };
+  }
+  for (const proofFile of proofFiles) {
     if (!ALLOWED_PROOF_TYPES.has(proofFile.type)) {
       return {
         error: "Proof must be a JPG, PNG, WEBP, GIF, or PDF file.",
         success: null,
       };
     }
+  }
+
+  let proofUrls = request.proofUrls;
+  if (proofFiles.length > 0) {
     try {
-      proofUrl = await storeRequestProof({ userId, file: proofFile });
+      proofUrls = await Promise.all(
+        proofFiles.map((file) => storeRequestProof({ userId, file })),
+      );
     } catch {
       return {
         error:
-          "Your proof could not be uploaded. Check the file and try again.",
+          "Your proof could not be uploaded. Check the files and try again.",
         success: null,
       };
     }
-  } else if (proofFile instanceof File) {
-    return { error: "Choose a valid proof file.", success: null };
   }
-
   const removeProof = formData.get("removeProof") === "true";
-  if (removeProof) proofUrl = null;
+  if (removeProof) proofUrls = [];
 
   try {
     await requestRepository.updateNotesAndProof(requestId, {
       notes,
-      proofUrl,
+      proofUrls,
     });
     revalidatePath("/dashboard");
     revalidatePath("/request");

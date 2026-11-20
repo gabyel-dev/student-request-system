@@ -13,6 +13,7 @@ import { useToast } from "@/app/components/toaster";
 import type { StudentRequest } from "@/src/domain/request";
 import { formatDateTime } from "../lib/format";
 import { StatusPill } from "../student/status-pill";
+import { ProofViewer } from "@/app/components/proof-viewer";
 
 export function StudentArchivePanel({
   archived,
@@ -119,6 +120,22 @@ function ArchiveRow({
             <p className="mt-2 rounded-xl bg-sunken px-3 py-2 text-[12px] leading-5 text-muted">
               {request.notes}
             </p>
+          ) : null}
+          {request.proofUrls.length ? (
+            <div className="mt-2 rounded-xl bg-sunken px-3 py-2">
+              <p className="text-[10px] font-bold uppercase tracking-[0.1em] text-muted">
+                Proof files
+              </p>
+              <div className="mt-1 flex flex-col items-start gap-1">
+                {request.proofUrls.map((url, index) => (
+                  <ProofViewer
+                    key={url}
+                    url={url}
+                    label={`View proof ${index + 1}`}
+                  />
+                ))}
+              </div>
+            </div>
           ) : null}
         </div>
 

@@ -81,6 +81,7 @@ create table if not exists public.requests (
   status text not null default 'pending',
   notes text,
   proof_url text,
+  proof_urls text[] not null default '{}',
   archived_at timestamptz,
   -- Set when the student files this request away from their dashboard. This is
   -- separate from archived_at, which closes the admin queue cycle.
@@ -94,6 +95,8 @@ alter table public.requests
   add column if not exists notes text;
 alter table public.requests
   add column if not exists proof_url text;
+alter table public.requests
+  add column if not exists proof_urls text[] not null default '{}';
 alter table public.requests
   add column if not exists section text;
 alter table public.requests

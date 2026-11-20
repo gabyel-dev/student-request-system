@@ -13,21 +13,10 @@ export const services: ServiceDefinition[] = [
     aliases: ["COR"],
   },
   {
-    slug: "transcript-of-records",
-    title: "Transcript of Records",
-    description: "Your complete list of courses and grades from past terms.",
-    aliases: ["TOR"],
-  },
-  {
     slug: "certificate-of-grades",
     title: "Certificate of Grades",
     description: "A summary of the grades for one completed term.",
     aliases: ["COG"],
-  },
-  {
-    slug: "grade-correction",
-    title: "Grade Correction",
-    description: "Report a grade that needs to be corrected or removed.",
   },
   {
     slug: "subject-request",

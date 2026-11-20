@@ -117,32 +117,15 @@ export function SplashScreen({ onDone }: { onDone: () => void }) {
           dismissRef.current();
         }
       }}
-      className="fixed inset-0 z-[100] flex cursor-pointer select-none flex-col items-center justify-center overflow-hidden bg-mesh-deep outline-none">
-      <div className="sd-mesh absolute inset-0" />
-      <div className="sd-grain absolute inset-0" />
+      className="fixed inset-0 z-[100] flex cursor-pointer select-none flex-col items-center justify-center overflow-hidden bg-emerald-800 outline-none">
 
       <div className="relative flex flex-col items-center px-6">
         <div data-splash-mascot>
           <DuckMascot placement="splash" />
         </div>
 
-        <p
-          data-splash-word
-          className="mt-7 text-[34px] font-bold leading-none tracking-[-0.03em] text-white sm:text-[40px]">
-          itikQ
-        </p>
+        <img src="/_logo_white.png" alt="itiQ Logo" className="w-50 h-50" />
 
-        <span
-          data-splash-rule
-          aria-hidden="true"
-          className="mt-5 block h-px w-40 origin-left bg-gradient-to-r from-transparent via-emerald-300/80 to-transparent"
-        />
-
-        <p
-          data-splash-sub
-          className="mt-5 text-[11px] font-semibold uppercase tracking-[0.22em] text-hero-ink-soft">
-          Pateros Technological College
-        </p>
       </div>
     </div>
   );

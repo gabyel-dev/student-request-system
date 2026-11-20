@@ -61,7 +61,7 @@ function LoadingIndicator() {
           50% { transform: scale(1); opacity: 1; }
         }
       `}</style>
-      <span className="relative grid h-14 w-14 place-items-center">
+      <span className="relative grid h-10 w-10 place-items-center">
         <span
           aria-hidden="true"
           className="absolute inset-0 rounded-full border-[3px] border-hairline"
@@ -70,10 +70,7 @@ function LoadingIndicator() {
           aria-hidden="true"
           className="absolute inset-0 rounded-full border-[3px] border-transparent border-r-accent/40 border-t-accent animate-[loader-orbit_0.9s_linear_infinite] motion-reduce:animate-none"
         />
-        <span
-          aria-hidden="true"
-          className="h-2.5 w-2.5 rounded-full bg-accent animate-[loader-breathe_1.4s_ease-in-out_infinite] motion-reduce:animate-none"
-        />
+
       </span>
     </>
   );

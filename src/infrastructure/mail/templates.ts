@@ -222,18 +222,24 @@ export function requestStatusEmail(input: RequestStatusEmailInput): {
 } {
   const meta = statusMeta[input.status];
   const firstName = getFirstName(input.studentName);
+  const requiresPayment = new Set([
+    "Certificate of Registration",
+    "Certificate of Grades",
+  ]).has(input.documentType);
 
   const subtitle: Record<RequestStatus, string> = {
-    completed: `Your <strong>${escapeHtml(input.documentType)}</strong> is ready. Stop by the school to make your payment and claim your document.`,
+    completed: `Your <strong>${escapeHtml(input.documentType)}</strong> is ready. Stop by the school to ${requiresPayment ? "make your payment and " : ""}claim your document.`,
     rejected: `Your <strong>${escapeHtml(input.documentType)}</strong> request couldn&rsquo;t be approved. If you still need this document, you can submit a new request anytime.`,
     processing: `Your <strong>${escapeHtml(input.documentType)}</strong> request is being processed. We&rsquo;ll email you as soon as it&rsquo;s ready to claim.`,
     pending: `We got your <strong>${escapeHtml(input.documentType)}</strong> request. It&rsquo;s in the queue and will be reviewed soon.`,
   };
 
-  const completedNote =
-    input.status === "completed"
+  let completedNote = "";
+  if (input.status === "completed") {
+    completedNote = requiresPayment
       ? `<p style="margin:14px 0 0;font-size:13px;line-height:1.6;color:#506a5d;">Bring a valid ID when you visit. For payment details, contact the registrar&rsquo;s office during office hours.</p>`
-      : "";
+      : `<p style="margin:14px 0 0;font-size:13px;line-height:1.6;color:#506a5d;">Bring a valid ID when you visit to claim your document.</p>`;
+  }
 
   const cta =
     input.status === "completed"

@@ -87,7 +87,6 @@ export function EmailProgress() {
   const headline = activeJob ?? latestJob;
   const headlineActive = isActive(headline);
   const headlineFailed = headline.status === "failed";
-  const processed = headline.sent + headline.failed;
 
   return (
     <div className="fixed bottom-4 right-4 z-40 w-[min(380px,calc(100vw-2rem))] sm:bottom-6 sm:right-6">
@@ -194,7 +193,7 @@ export function EmailProgress() {
                           : "Starting…"
                         : job.error
                           ? job.error
-                          : `${processed} of ${job.total} processed`}
+                          : `${job.sent + job.failed} of ${job.total} processed`}
                     </p>
                   </li>
                 );
