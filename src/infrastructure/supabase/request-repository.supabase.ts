@@ -270,7 +270,7 @@ export function createRequestRepository() {
         .from("requests")
         .select("id, section")
         .eq("user_id", userId)
-        .eq("status", "pending")
+        .eq("status", "reviewing")
         .is("archived_at", null)
         .order("created_at", { ascending: true });
 
@@ -294,7 +294,7 @@ export function createRequestRepository() {
               updated_at: new Date().toISOString(),
             })
             .eq("id", request.id)
-            .eq("status", "pending")
+            .eq("status", "reviewing")
             .is("archived_at", null);
 
           if (!updateError) {

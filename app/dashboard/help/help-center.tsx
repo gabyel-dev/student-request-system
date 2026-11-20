@@ -35,9 +35,10 @@ const CATEGORIES = faqCategories.map((category) => ({
 }));
 
 const JOURNEY_STEPS = [
-  { icon: FiClock, label: "Pending" },
+  { icon: FiLoader, label: "Reviewing" },
   { icon: FiLoader, label: "Processing" },
-  { icon: FiCheckCircle, label: "Completed" },
+  { icon: FiClock, label: "Pending payment" },
+  { icon: FiCheckCircle, label: "Claimed" },
 ];
 
 function FaqItem({
@@ -224,8 +225,8 @@ export function HelpCenter() {
                     </div>
                     <p className="mt-3 flex items-center gap-1.5 text-[13px] text-muted">
                       <FiXCircle aria-hidden="true" size={14} />
-                      Rejected sits outside this flow — it means the request
-                      needs corrections.
+                      Rejected (overdue) sits outside this flow — it is used
+                      for requests that have become overdue.
                     </p>
                   </div>
                 ) : null}

@@ -313,9 +313,9 @@ export async function deleteRequest(
     return { error: "You can only delete your own requests.", success: null };
   if (request.archivedAt || request.studentArchivedAt)
     return { error: "Archived requests cannot be deleted.", success: null };
-  if (request.status !== "pending")
+  if (request.status !== "reviewing")
     return {
-      error: "Only pending requests can be deleted.",
+      error: "Only reviewing requests can be deleted.",
       success: null,
     };
 
@@ -359,9 +359,9 @@ export async function updateRequest(
     };
   if (request.archivedAt || request.studentArchivedAt)
     return { error: "Archived requests cannot be edited.", success: null };
-  if (request.status !== "pending")
+  if (request.status !== "reviewing")
     return {
-      error: "Only pending requests can be edited.",
+      error: "Only reviewing requests can be edited.",
       success: null,
     };
 

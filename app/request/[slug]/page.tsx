@@ -34,7 +34,7 @@ export default async function RequestDetailPage({
     if (!/^[0-9a-f-]{36}$/i.test(editId)) notFound();
 
     const request = await requestRepository.findById(editId);
-    if (!request || request.userId !== userId || request.status !== "pending") {
+    if (!request || request.userId !== userId || request.status !== "reviewing") {
       notFound();
     }
     fallbackDocumentType = request.documentType;

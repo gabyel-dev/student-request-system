@@ -81,6 +81,7 @@ export function StatusPill({ status }: { status: RequestStatus }) {
     <span
       className={`inline-flex items-center gap-1.5 rounded-full border px-1 py-1 text-[11px] font-semibold leading-4 ${meta.chip}`}>
       <Glyph aria-hidden="true" className="text-[13px]" />
+      <span>{meta.label}</span>
     </span>
   );
 }

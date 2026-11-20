@@ -22,7 +22,7 @@ const STEPS = [
     icon: FiFileText,
     step: "01",
     title: "Pick a document",
-    body: "Choose the service you need and fill in the form. You can still edit a request while it is pending.",
+    body: "Choose the service you need and fill in the form. You can still edit or delete a request while it is reviewing.",
   },
   {
     icon: FiHash,

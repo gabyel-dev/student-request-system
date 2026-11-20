@@ -4,10 +4,10 @@ import type { User } from "@/src/domain/user";
 export const filterTabs = [
   { value: "all", label: "All records" },
   { value: "reviewing", label: "Reviewing" },
-  { value: "pending", label: "Needs review" },
-  { value: "processing", label: "In progress" },
-  { value: "completed", label: "Completed" },
-  { value: "rejected", label: "Rejected" },
+  { value: "processing", label: "Processing" },
+  { value: "pending", label: "Pending payment" },
+  { value: "completed", label: "Claimed" },
+  { value: "rejected", label: "Rejected (overdue)" },
 ] as const;
 
 export type StatusFilter = RequestStatus | "all";

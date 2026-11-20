@@ -30,7 +30,7 @@ const statusPill: Record<string, string> = {
 };
 const statusLabel: Record<string, string> = {
   reviewing: "Reviewing",
-  pending: "Pending",
+  pending: "Pending payment",
   processing: "Processing",
   completed: "Claimed",
   rejected: "Rejected (overdue)",

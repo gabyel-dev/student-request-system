@@ -196,13 +196,25 @@ export function AdminDashboard({
       filter: "all",
     },
     {
-      label: "Needs review",
+      label: "Reviewing",
+      value: counts.reviewing,
+      icon: NeedsReviewIcon,
+      filter: "reviewing",
+    },
+    {
+      label: "Processing",
+      value: counts.processing,
+      icon: NeedsReviewIcon,
+      filter: "processing",
+    },
+    {
+      label: "Pending payment",
       value: counts.pending,
       icon: NeedsReviewIcon,
       filter: "pending",
     },
     {
-      label: "Completed",
+      label: "Claimed",
       value: counts.completed,
       icon: CompletedIcon,
       filter: "completed",

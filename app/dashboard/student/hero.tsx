@@ -174,9 +174,20 @@ export function RequestHero({
  * exposed via `aria-current` so assistive tech gets the same information.
  */
 function Stepper({ status }: { status: RequestStatus }) {
-  const stages = ["Queued", "Processing", "Ready"] as const;
+  const stages = [
+    "Reviewing",
+    "Processing",
+    "Pending payment",
+    "Claimed",
+  ] as const;
   const current =
-    status === "reviewing" ? 0 : status === "processing" ? 1 : 2;
+    status === "reviewing"
+      ? 0
+      : status === "processing"
+        ? 1
+        : status === "pending"
+          ? 2
+          : 3;
 
   return (
     <ol className="flex items-start" aria-label="Request progress">

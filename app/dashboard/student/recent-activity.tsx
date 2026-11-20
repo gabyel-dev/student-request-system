@@ -269,7 +269,7 @@ function RequestRow({
   const removeHandlers = usePressFeedback(removeRef, { scale: 0.96 });
 
   const active = isInFlight(request.status);
-  const canModify = request.status === "pending" && !request.archivedAt;
+  const canModify = request.status === "reviewing" && !request.archivedAt;
   // Closed requests (completed or rejected) are the only ones the server allows
   // a student to archive.
   const canArchive =
@@ -347,11 +347,15 @@ function RequestRow({
 
           {canModify ? (
             <div className="mt-4 flex flex-wrap gap-2 w-full justify-end">
-              {request.documentType === "Others" && (
+              {(request.documentType === "Others" ||
+                request.documentType === "Subject Request") && (
                 <button
                   ref={editRef}
                   type="button"
-                  disabled={request.documentType !== "Others"}
+                  disabled={
+                    request.documentType !== "Others" &&
+                    request.documentType !== "Subject Request"
+                  }
                   onClick={onEdit}
                   className={`inline-flex  items-center gap-1.5 rounded-full border border-hairline bg-surface px-2.5 py-2 text-[12px] font-semibold text-ink-soft transition-colors hover:border-accent-line hover:bg-accent-soft hover:text-accent disabled:opacity-50`}
                   aria-label={`Edit ${request.documentType} request`}
@@ -374,9 +378,15 @@ function RequestRow({
           ) : (
             <div className="mt-3 flex flex-wrap items-center justify-between gap-3">
               <p className="text-[12px] leading-5 text-muted">
-                {request.status === "processing"
-                  ? "This request is being processed and can no longer be changed."
-                  : "This request is closed."}
+                {request.status === "reviewing"
+                  ? "This request is currently being reviewed."
+                  : request.status === "processing"
+                    ? "This request is being processed. The registrar will notify you when you can go to school."
+                    : request.status === "pending"
+                      ? "Payment is pending at the registrar."
+                      : request.status === "completed"
+                        ? "This document has already been claimed."
+                        : "This request is rejected or overdue."}
               </p>
               {canArchive ? (
                 <button
