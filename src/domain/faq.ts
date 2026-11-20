@@ -94,7 +94,7 @@ export const faqCategories: FaqCategory[] = [
           "Five. Your dashboard shows how many you have left, and the indicator turns amber when you're down to your last two.",
       },
       {
-        question: "What happens when I use all five?",
+        question: "What happens when I use all four?",
         answer:
           "Requesting pauses until the next day. If you need several documents, plan ahead and spread them out.",
       },

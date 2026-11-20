@@ -3,6 +3,7 @@ import type { User } from "@/src/domain/user";
 
 export const filterTabs = [
   { value: "all", label: "All records" },
+  { value: "reviewing", label: "Reviewing" },
   { value: "pending", label: "Needs review" },
   { value: "processing", label: "In progress" },
   { value: "completed", label: "Completed" },
@@ -27,6 +28,7 @@ export type ViewMode = "flat" | "section";
  * default, and a brand change lands everywhere at once.
  */
 export const statusTone: Record<RequestStatus, string> = {
+  reviewing: "bg-processing",
   pending: "bg-pending",
   processing: "bg-processing",
   completed: "bg-completed",
@@ -37,8 +39,14 @@ export const statusMeta: Record<
   RequestStatus,
   { label: string; width: number; bar: string; text: string }
 > = {
+  reviewing: {
+    label: "Reviewing request",
+    width: 25,
+    bar: "bg-gradient-to-r from-processing/45 to-processing",
+    text: "text-processing",
+  },
   pending: {
-    label: "Pending review",
+    label: "Pending payment",
     width: 25,
     bar: "bg-gradient-to-r from-pending/45 to-pending",
     text: "text-pending",
@@ -50,13 +58,13 @@ export const statusMeta: Record<
     text: "text-processing",
   },
   completed: {
-    label: "Completed",
+    label: "Claimed",
     width: 100,
     bar: "bg-gradient-to-r from-completed/45 to-completed",
     text: "text-completed",
   },
   rejected: {
-    label: "Rejected",
+    label: "Rejected (overdue)",
     width: 100,
     bar: "bg-gradient-to-r from-rejected/45 to-rejected",
     text: "text-rejected",
@@ -87,6 +95,7 @@ export function countRequests(
 ): Record<StatusFilter, number> {
   return {
     all: requests.length,
+    reviewing: requests.filter((r) => r.status === "reviewing").length,
     pending: requests.filter((r) => r.status === "pending").length,
     processing: requests.filter((r) => r.status === "processing").length,
     completed: requests.filter((r) => r.status === "completed").length,

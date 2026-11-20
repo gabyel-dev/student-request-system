@@ -78,7 +78,7 @@ create table if not exists public.requests (
   document_type text not null,
   section text,
   queue_number integer not null,
-  status text not null default 'pending',
+  status text not null default 'reviewing',
   notes text,
   proof_url text,
   proof_urls text[] not null default '{}',
@@ -97,6 +97,8 @@ alter table public.requests
   add column if not exists proof_url text;
 alter table public.requests
   add column if not exists proof_urls text[] not null default '{}';
+alter table public.requests
+  alter column status set default 'reviewing';
 alter table public.requests
   add column if not exists section text;
 alter table public.requests

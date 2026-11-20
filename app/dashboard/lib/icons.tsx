@@ -25,6 +25,7 @@ export type IconTone =
   | "neutral"
   | "muted"
   | "accent"
+  | "reviewing"
   | "pending"
   | "processing"
   | "completed"
@@ -35,6 +36,7 @@ const TONES: Record<IconTone, { primary: string; secondary: string }> = {
   neutral: { primary: "#43524b", secondary: "#c3cfc9" },
   muted: { primary: "#6a7871", secondary: "#d5dcd9" },
   accent: { primary: "#0b6b4a", secondary: "#a9cdbb" },
+  reviewing: { primary: "#0d7a5b", secondary: "#b3ddcc" },
   pending: { primary: "#96690f", secondary: "#ecd9a8" },
   // A lighter, cooler step of the brand green. Processing was blue, which made
   // the one status a student sees most of the time look like it belonged to a

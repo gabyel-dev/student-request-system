@@ -24,7 +24,12 @@ function buildSectionStats(requests: StudentRequest[]): SectionStats[] {
     const s = bySection.get(key) ?? { currentQueue: 0, waiting: 0, total: 0 };
     s.total += 1;
     s.currentQueue = Math.max(s.currentQueue, r.queueNumber);
-    if (r.status === "pending" || r.status === "processing") s.waiting += 1;
+    if (
+      r.status === "reviewing" ||
+      r.status === "pending" ||
+      r.status === "processing"
+    )
+      s.waiting += 1;
     bySection.set(key, s);
   }
   return (
@@ -188,7 +193,7 @@ export function QueueCyclePanel({ requests }: { requests: StudentRequest[] }) {
               </li>
               {carriedCount > 0 ? (
                 <li>
-                  · {carriedCount} pending/processing request(s) stay active and
+                  · {carriedCount} active request(s) stay active and
                   keep their queue numbers.
                 </li>
               ) : null}

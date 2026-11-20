@@ -18,7 +18,7 @@ Q: Where can I find my queue number?
 A: It is on the ticket at the top of your dashboard and inside every request under Recent activity.
 
 Q: What do the statuses mean?
-A: Pending means your request is in the queue. Processing means the registrar is working on it. Completed means the document is ready — check the notes for pickup. Rejected means it could not be processed; read the notes, fix the issue, and file a new request.
+A: Reviewing means the registrar is reviewing your request. Processing means the registrar will notify you when you can go to school. Pending means payment is pending at the registrar. Completed means you have already claimed the document. Rejected is used when a request is overdue.
 
 Q: How many requests can I file per day?
 A: Five per day. Your dashboard shows how many you have left.
@@ -40,7 +40,7 @@ const KEY_QUESTIONS = new Set([
   "What does Completed mean?",
   "What does Rejected mean?",
   "How many requests can I file per day?",
-  "What happens when I use all five?",
+  "What happens when I use all four?",
   "Can I edit or cancel a request I already filed?",
   "How long until my request is done?",
 ]);

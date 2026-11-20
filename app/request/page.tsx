@@ -21,7 +21,9 @@ export default async function RequestIndexPage() {
   const today = getStartOfTodayInAppTimeZone();
   const todayCount = requests.filter(
     (r) =>
-      (r.status === "pending" || r.status === "processing") &&
+      (r.status === "reviewing" ||
+        r.status === "pending" ||
+        r.status === "processing") &&
       new Date(r.createdAt).getTime() >= today.getTime(),
   ).length;
   const remaining = DAILY_LIMIT - todayCount;
@@ -57,7 +59,7 @@ export default async function RequestIndexPage() {
 }
 
 /**
- * The student's daily request allowance, visualized as five dots. The card
+ * The student's daily request allowance, visualized as four dots. The card
  * tints amber when the allowance runs low and red when it's spent, so the
  * state reads at a glance instead of hiding in a sentence.
  */

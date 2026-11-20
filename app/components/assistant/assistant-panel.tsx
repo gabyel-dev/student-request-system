@@ -28,13 +28,15 @@ const QUICK_PROMPTS = [
 ];
 
 const STATUS_LABELS: Record<RequestStatus, string> = {
-  pending: "Pending",
+  reviewing: "Reviewing",
+  pending: "Pending payment",
   processing: "Processing",
-  completed: "Completed",
-  rejected: "Rejected",
+  completed: "Claimed",
+  rejected: "Rejected (overdue)",
 };
 
 const STATUS_CHIPS: Record<RequestStatus, string> = {
+  reviewing: "border-processing/30 bg-processing-soft text-processing",
   pending: "border-pending/30 bg-pending-soft text-pending",
   processing: "border-processing/30 bg-processing-soft text-processing",
   completed: "border-completed/30 bg-completed-soft text-completed",

@@ -175,7 +175,8 @@ export function RequestHero({
  */
 function Stepper({ status }: { status: RequestStatus }) {
   const stages = ["Queued", "Processing", "Ready"] as const;
-  const current = status === "pending" ? 0 : status === "processing" ? 1 : 2;
+  const current =
+    status === "reviewing" ? 0 : status === "processing" ? 1 : 2;
 
   return (
     <ol className="flex items-start" aria-label="Request progress">

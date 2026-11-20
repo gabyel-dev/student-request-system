@@ -23,6 +23,7 @@ export type RequestActionState = {
   createdRequest?: RequestSubmissionReceipt | null;
 };
 const requestStatuses: RequestStatus[] = [
+  "reviewing",
   "pending",
   "processing",
   "completed",
@@ -250,7 +251,7 @@ async function notifySubmission(input: {
       studentName: input.studentName,
       documentType: input.documentType,
       queueNumber: input.queueNumber,
-      status: "pending",
+      status: "reviewing",
       notes: input.notes,
     });
     await mailer.send({ to: input.studentEmail, ...email });

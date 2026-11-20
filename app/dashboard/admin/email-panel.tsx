@@ -65,7 +65,12 @@ export function EmailPanel({
         completed: 0,
         last: null as RequestStatus | null,
       };
-      if (r.status === "pending" || r.status === "processing") e.active += 1;
+      if (
+        r.status === "reviewing" ||
+        r.status === "pending" ||
+        r.status === "processing"
+      )
+        e.active += 1;
       if (r.status === "completed") e.completed += 1;
       e.last = r.status;
       perUser.set(r.userId, e);

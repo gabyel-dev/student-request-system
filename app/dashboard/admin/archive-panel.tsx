@@ -22,16 +22,18 @@ function formatTime(value: string): string {
 }
 
 const statusPill: Record<string, string> = {
+  reviewing: "bg-emerald-50 text-emerald-800 border-emerald-200",
   pending: "bg-amber-50 text-amber-800 border-amber-200",
   processing: "bg-blue-50 text-blue-800 border-blue-200",
   completed: "bg-emerald-50 text-emerald-800 border-emerald-200",
   rejected: "bg-neutral-100 text-neutral-600 border-neutral-200",
 };
 const statusLabel: Record<string, string> = {
+  reviewing: "Reviewing",
   pending: "Pending",
   processing: "Processing",
-  completed: "Completed",
-  rejected: "Rejected",
+  completed: "Claimed",
+  rejected: "Rejected (overdue)",
 };
 
 type ArchivedItem = {

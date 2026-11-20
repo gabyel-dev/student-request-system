@@ -1,4 +1,9 @@
-export type RequestStatus = "pending" | "processing" | "completed" | "rejected";
+export type RequestStatus =
+  | "reviewing"
+  | "processing"
+  | "pending"
+  | "completed"
+  | "rejected";
 
 /** The receipt returned to the student right after a request is created. */
 export type RequestSubmissionReceipt = {

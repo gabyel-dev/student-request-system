@@ -54,8 +54,13 @@ const statusMeta: Record<
     text: string;
   }
 > = {
+  reviewing: {
+    label: "Reviewing request",
+    pill: "#e6f4ee",
+    text: "#0d7a5b",
+  },
   pending: {
-    label: "Pending review",
+    label: "Pending payment",
     pill: "#fbf3e4",
     text: "#96690f",
   },
@@ -65,12 +70,12 @@ const statusMeta: Record<
     text: "#0d7a5b",
   },
   completed: {
-    label: "Completed",
+    label: "Claimed",
     pill: "#e8f2ed",
     text: "#0b6b4a",
   },
   rejected: {
-    label: "Rejected",
+    label: "Rejected (overdue)",
     pill: "#fbeeed",
     text: "#a33f39",
   },
@@ -202,7 +207,7 @@ function notesBox(notes: string | null | undefined): string {
   if (!notes) return "";
   return `
     <div style="margin-top:14px;background:#fdf3e2;padding:16px 20px;">
-      <strong style="display:block;font-size:11px;font-weight:800;letter-spacing:.08em;text-transform:uppercase;color:#8a6d1f;">Note from the office</strong>
+      <strong style="display:block;font-size:11px;font-weight:800;letter-spacing:.08em;text-transform:uppercase;color:#8a6d1f;">Notes:</strong>
       <span style="display:block;margin-top:6px;font-size:14px;line-height:1.6;color:#6b5315;">${escapeHtml(notes)}</span>
     </div>`;
 }
@@ -228,17 +233,18 @@ export function requestStatusEmail(input: RequestStatusEmailInput): {
   ]).has(input.documentType);
 
   const subtitle: Record<RequestStatus, string> = {
-    completed: `Your <strong>${escapeHtml(input.documentType)}</strong> is ready. Stop by the school to ${requiresPayment ? "make your payment and " : ""}claim your document.`,
+    reviewing: `Your <strong>${escapeHtml(input.documentType)}</strong> request is being reviewed.`,
+    processing: `Your <strong>${escapeHtml(input.documentType)}</strong> request is being processed. The registrar will notify you when you can go to school.`,
+    pending: `Your <strong>${escapeHtml(input.documentType)}</strong> is pending payment at the registrar&rsquo;s office.`,
+    completed: `Your <strong>${escapeHtml(input.documentType)}</strong> has already been claimed.`,
     rejected: `Your <strong>${escapeHtml(input.documentType)}</strong> request couldn&rsquo;t be approved. If you still need this document, you can submit a new request anytime.`,
-    processing: `Your <strong>${escapeHtml(input.documentType)}</strong> request is being processed. We&rsquo;ll email you as soon as it&rsquo;s ready to claim.`,
-    pending: `We got your <strong>${escapeHtml(input.documentType)}</strong> request. It&rsquo;s in the queue and will be reviewed soon.`,
   };
 
   let completedNote = "";
   if (input.status === "completed") {
     completedNote = requiresPayment
-      ? `<p style="margin:14px 0 0;font-size:13px;line-height:1.6;color:#506a5d;">Bring a valid ID when you visit. For payment details, contact the registrar&rsquo;s office during office hours.</p>`
-      : `<p style="margin:14px 0 0;font-size:13px;line-height:1.6;color:#506a5d;">Bring a valid ID when you visit to claim your document.</p>`;
+      ? `<p style="margin:14px 0 0;font-size:13px;line-height:1.6;color:#506a5d;">For payment details, contact the registrar&rsquo;s office during office hours.</p>`
+      : `<p style="margin:14px 0 0;font-size:13px;line-height:1.6;color:#506a5d;">This request is recorded as claimed by the student.</p>`;
   }
 
   const cta =
@@ -261,7 +267,7 @@ export function requestStatusEmail(input: RequestStatusEmailInput): {
       cta,
       note: `Open your ${escapeHtml(BRAND)} dashboard to review the details of this request.`,
     }),
-    text: `[${meta.label.toUpperCase()}] ${input.documentType} request\n\nHello ${input.studentName},\n\n${subtitle[input.status].replace(/<[^>]+>/g, "")}\n\nStatus: ${meta.label}\nQueue number: ${input.queueNumber ?? "—"}${input.notes ? `\nNote from the office: ${input.notes}` : ""}\n\nOpen your itikQ dashboard for the details.`,
+    text: `[${meta.label.toUpperCase()}] ${input.documentType} request\n\nHello ${input.studentName},\n\n${subtitle[input.status].replace(/<[^>]+>/g, "")}\n\nStatus: ${meta.label}\nQueue number: ${input.queueNumber ?? "—"}${input.notes ? `\nNotes: ${input.notes}` : ""}\n\nOpen your itikQ dashboard for the details.`,
   };
 }
 

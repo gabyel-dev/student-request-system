@@ -67,7 +67,7 @@ export function createRequestRepository() {
       .select("id")
       .eq("section", section)
       .is("archived_at", null)
-      .in("status", ["pending", "processing"])
+      .in("status", ["reviewing", "pending", "processing"])
       .limit(1);
 
     if (error) throw error;
@@ -351,7 +351,7 @@ export function createRequestRepository() {
         .eq("user_id", userId)
         .eq("document_type", documentType)
         .is("archived_at", null)
-        .in("status", ["pending", "processing"])
+        .in("status", ["reviewing", "pending", "processing"])
         .order("created_at", { ascending: false })
         .limit(1)
         .maybeSingle();
@@ -367,7 +367,7 @@ export function createRequestRepository() {
         .from("requests")
         .select("id", { count: "exact", head: true })
         .eq("user_id", userId)
-        .in("status", ["pending", "processing"])
+        .in("status", ["reviewing", "pending", "processing"])
         .gte("created_at", today.toISOString());
 
       if (error) throw error;

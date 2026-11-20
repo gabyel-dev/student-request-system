@@ -26,8 +26,13 @@ type StatusMeta = {
 };
 
 export const STATUS_PRESENTATION: Record<RequestStatus, StatusMeta> = {
+  reviewing: {
+    label: "Reviewing",
+    chip: "border-processing/30 bg-processing-soft text-processing",
+    icon: FiLoader,
+  },
   pending: {
-    label: "Pending",
+    label: "Pending payment",
     chip: "border-pending/30 bg-pending-soft text-pending",
     icon: FiClock,
   },
@@ -37,12 +42,12 @@ export const STATUS_PRESENTATION: Record<RequestStatus, StatusMeta> = {
     icon: FiLoader,
   },
   completed: {
-    label: "Completed",
+    label: "Claimed",
     chip: "border-completed/30 bg-completed-soft text-completed",
     icon: FiCheckCircle,
   },
   rejected: {
-    label: "Rejected",
+    label: "Rejected (overdue)",
     chip: "border-rejected/30 bg-rejected-soft text-rejected",
     icon: FiXCircle,
   },
@@ -54,7 +59,11 @@ export const STATUS_PRESENTATION: Record<RequestStatus, StatusMeta> = {
  * being re-derived at each call site.
  */
 export function isInFlight(status: RequestStatus): boolean {
-  return status === "pending" || status === "processing";
+  return (
+    status === "reviewing" ||
+    status === "pending" ||
+    status === "processing"
+  );
 }
 
 /**

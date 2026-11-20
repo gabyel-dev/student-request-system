@@ -79,6 +79,7 @@ The diagram assistant must not contradict any of these facts.
 8. **Request statuses are exactly:** `pending`, `processing`, `completed`, `rejected`. The database stores lowercase text. UI labels are Pending, Processing, Completed, Rejected.
 9. **A student may have only one active request per document type.** "Active" means `archived_at IS NULL` and status `pending` or `processing`.
 10. **Request limits:** maximum 4 requests per student per day, and a 60-second cooldown between requests. The server enforces both.
+11. **Request statuses:** Reviewing means the registrar is reviewing the request; Processing means the registrar will notify the student when they can go to school; Pending means payment is pending at the registrar; Completed means the student has already claimed the document; Rejected is optional for overdue requests.
 11. **Proof attachment rules:** optional; maximum 5 MB; allowed types are JPG, PNG, WEBP, GIF, and PDF. Notes are capped at 500 characters. "Others" cannot be submitted without notes.
 12. **Students can edit or delete only their own pending, unarchived requests.** Processing, completed, and rejected requests cannot be edited or deleted by the student.
 13. **Students can archive only completed or rejected requests.** Student archiving sets `student_archived_at`; it hides the request from the student's dashboard but does not remove it from the registrar's active queue. Students can restore a student-archived request.
